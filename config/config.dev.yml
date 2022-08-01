@@ -1,0 +1,14 @@
+appEnv: dev
+
+database:
+  user: $USER
+  password: $PASSWORD
+  net: tcp
+  addr: $ADDR
+  dbname: $DB_NAME
+  allowNativePasswords: true
+  params:
+    parseTime: true
+    charset: utf8mb4
+    # loc: Asia/Tokyo
+    tls: true
