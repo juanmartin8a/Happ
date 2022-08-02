@@ -2,14 +2,17 @@ package main
 
 import (
 	"context"
+	// "fmt"
 	"happ/config"
 	"happ/database"
 	"happ/ent"
 	"happ/ent/migrate"
 	"log"
+	// "os"
 )
 
 func main() {
+	// fmt.Println(os.Getenv("PASSWORD"))
 	config.ReadConfig(config.ReadConfigOption{})
 
 	client, err := database.NewClient(database.NewClientOptions{})
