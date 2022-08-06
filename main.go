@@ -4,18 +4,15 @@ import (
 	"context"
 	"happ/config"
 	"happ/database"
-	"happ/ent/migrate"
 	"happ/graph"
 	"log"
-	"net/http"
 	"os"
 
-	// _ "github.com/99designs/gqlgen"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
-
-// _ "github.com/99designs/gqlgen"
 
 const defaultPort = "8080"
 
@@ -27,6 +24,10 @@ func main() {
 
 	config.ReadConfig(config.ReadConfigOption{})
 
+	e := echo.New()
+
+	e.Use(middleware.Recover())
+
 	client, err := database.NewClient(database.NewClientOptions{})
 	if err != nil {
 		log.Fatalf("failed opening mysql client: %v", err)
@@ -35,44 +36,28 @@ func main() {
 	ctx := context.Background()
 	if err := client.Schema.Create(
 		ctx,
-		migrate.WithDropIndex(true),
-		migrate.WithDropColumn(true),
-		migrate.WithForeignKeys(false),
+		// migrate.WithDropIndex(true),
+		// migrate.WithDropColumn(true),
+		// migrate.WithForeignKeys(false),
 	); err != nil {
 		log.Fatal("opening ent client", err)
 	}
 
-	//srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 	srv := handler.NewDefaultServer(graph.NewSchema(client))
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	{
+		e.POST("/query", func(c echo.Context) error {
+			srv.ServeHTTP(c.Response(), c.Request())
+			return nil
+		})
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	// log.Fatal(http.ListenAndServe(":"+port, nil))
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatal("http server terminated", err)
+		e.GET("/playground", func(c echo.Context) error {
+			playground.Handler("GraphQL", "/query").ServeHTTP(c.Response(), c.Request())
+			return nil
+		})
 	}
 
-	// client, err := ent.Open(dialect.SQLite, "file:ent?mode=memory&cache=shared&_fk=1")
-	//   if err != nil {
-	//       log.Fatal("opening ent client", err)
-	//   }
-	//   if err := client.Schema.Create(
-	//       context.Background(),
-	//       migrate.WithGlobalUniqueID(true),
-	//   ); err != nil {
-	//       log.Fatal("opening ent client", err)
-	//   }
+	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 
-	// Configure the server and start listening on :8081.
-	// srv := handler.NewDefaultServer(todo.NewSchema(client))
-	// http.Handle("/",
-	//     playground.Handler("Todo", "/query"),
-	// )
-	// http.Handle("/query", srv)
-	// log.Println("listening on :8081")
-	// if err := http.ListenAndServe(":8081", nil); err != nil {
-	//     log.Fatal("http server terminated", err)
-	// }
+	e.Logger.Fatal(e.Start(":" + port))
 }

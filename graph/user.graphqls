@@ -1,5 +1,5 @@
 type User {
-  id: Float!
+  id: ID!
   name: String!
   birthday: String!
   createdAt: String!
@@ -7,5 +7,5 @@ type User {
 }
 
 type Query {
-  user: User!
+  user: User
 }

@@ -4,6 +4,7 @@
 package main
 
 import (
+	// "errors"
 	"log"
 
 	"entgo.io/contrib/entgql"
@@ -14,12 +15,12 @@ import (
 func main() {
 	ex, err := entgql.NewExtension()
 	if err != nil {
-		log.Fatalf("creating entgql extension: %v", err)
+		log.Fatalf("Error: failed creating entgql extension: %v", err)
 	}
 	opts := []entc.Option{
 		entc.Extensions(ex),
 	}
 	if err := entc.Generate("./schema", &gen.Config{}, opts...); err != nil {
-		log.Fatalf("running ent codegen: %v", err)
+		log.Fatalf("Error: failed running ent codegen: %v", err)
 	}
 }
