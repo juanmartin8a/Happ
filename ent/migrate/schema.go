@@ -12,8 +12,8 @@ var (
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Size: 255},
-		{Name: "username", Type: field.TypeString, Size: 255},
-		{Name: "email", Type: field.TypeString, Size: 255},
+		{Name: "username", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "email", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "birthday", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "date"}},
 		{Name: "password", Type: field.TypeString, Size: 255},
 		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP", SchemaType: map[string]string{"mysql": "datetime"}},

@@ -22,10 +22,12 @@ func (User) Fields() []ent.Field {
 			MaxLen(255),
 		field.String("username").
 			NotEmpty().
-			MaxLen(255),
+			MaxLen(255).
+			Unique(),
 		field.String("email").
 			NotEmpty().
-			MaxLen(255),
+			MaxLen(255).
+			Unique(),
 		field.Time("birthday").
 			SchemaType(map[string]string{
 				dialect.MySQL: "date",
