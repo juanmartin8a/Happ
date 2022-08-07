@@ -60,4 +60,6 @@ func main() {
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 
 	e.Logger.Fatal(e.Start(":" + port))
+
+	// SignUp()
 }
