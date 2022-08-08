@@ -2,10 +2,29 @@
 
 package model
 
+import (
+	"happ/ent"
+)
+
+type ErrorResponse struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
+type SignInInput struct {
+	UsernameOrEmail string `json:"usernameOrEmail"`
+	Password        string `json:"password"`
+}
+
 type SignUpInput struct {
 	Name     string `json:"name"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Birthday string `json:"birthday"`
+}
+
+type UserAuthResponse struct {
+	User   *ent.User        `json:"user"`
+	Errors []*ErrorResponse `json:"errors"`
 }

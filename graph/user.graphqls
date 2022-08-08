@@ -17,10 +17,28 @@ input SignUpInput {
   birthday: String!
 }
 
+input SignInInput {
+  usernameOrEmail: String!
+  password: String!
+}
+
+type UserAuthResponse {
+  user: User
+  errors: [ErrorResponse!]
+}
+
+type ErrorResponse {
+  field: String!
+  message: String!
+}
+
 type Query {
   user(
     username: String!
-  ): User
+  ): User,
+  signIn(
+    input: SignInInput!
+  ): UserAuthResponse
 }
 
 type Mutation {

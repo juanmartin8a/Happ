@@ -7,11 +7,13 @@ import (
 	"context"
 	"fmt"
 	"happ/ent"
+	"happ/ent/predicate"
 	"happ/ent/user"
 	"happ/graph/generated"
 	"happ/graph/model"
 	"happ/hash"
 	"log"
+	"net/mail"
 	"strconv"
 	"time"
 )
@@ -41,10 +43,6 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 		log.Fatal(err)
 	}
 
-	print(encodedHash)
-
-	// panic(fmt.Errorf("not implemented"))
-
 	return r.client.User.Create().
 		SetName(input.Name).
 		SetUsername(input.Username).
@@ -59,19 +57,99 @@ func (r *queryResolver) User(ctx context.Context, username string) (*ent.User, e
 	return r.client.User.Query().Where(user.Username(username)).Only(ctx)
 }
 
+// SignIn is the resolver for the signIn field.
+func (r *queryResolver) SignIn(ctx context.Context, input model.SignInInput) (*model.UserAuthResponse, error) {
+	_, err := mail.ParseAddress(input.UsernameOrEmail)
+
+	var whereVal predicate.User
+
+	if err == nil {
+		whereVal = user.Email(input.UsernameOrEmail)
+	} else {
+		whereVal = user.Username(input.UsernameOrEmail)
+	}
+
+	user, e := r.client.User.Query().Where(whereVal).Only(ctx)
+
+	fmt.Println(user)
+
+	var errors []*model.ErrorResponse
+
+	if e != nil {
+		errors = append(
+			errors,
+			&model.ErrorResponse{
+				Field:   "usernameOrEmail",
+				Message: "User Not Found",
+			},
+		)
+		return &model.UserAuthResponse{
+			Errors: errors,
+		}, nil
+	}
+
+	match, _ := hash.VerifyPassword(input.Password, user.Password)
+
+	if !match {
+		errors = append(
+			errors,
+			&model.ErrorResponse{
+				Field:   "Password",
+				Message: "Incorrect Password",
+			},
+		)
+	}
+
+	if len(errors) > 0 {
+		return &model.UserAuthResponse{
+			Errors: errors,
+		}, nil
+	}
+
+	return &model.UserAuthResponse{
+		User: user,
+	}, nil
+	// panic(fmt.Errorf("not implemented"))
+}
+
 // Birthday is the resolver for the birthday field.
 func (r *userResolver) Birthday(ctx context.Context, obj *ent.User) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+
+	birthdayNano := obj.Birthday.UnixNano()
+
+	Birthdaymillis := birthdayNano / 1000000
+
+	birthdayTime := int(Birthdaymillis)
+
+	birthday := strconv.Itoa(birthdayTime)
+
+	return birthday, nil
 }
 
 // CreatedAt is the resolver for the createdAt field.
 func (r *userResolver) CreatedAt(ctx context.Context, obj *ent.User) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	createdAtNano := obj.CreatedAt.UnixNano()
+
+	createdAtmillis := createdAtNano / 1000000
+
+	createdAtTime := int(createdAtmillis)
+
+	createdAt := strconv.Itoa(createdAtTime)
+
+	return createdAt, nil
 }
 
 // UpdatedAt is the resolver for the updatedAt field.
 func (r *userResolver) UpdatedAt(ctx context.Context, obj *ent.User) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	updatedAtNano := obj.UpdatedAt.UnixNano()
+
+	updatedAtmillis := updatedAtNano / 1000000
+
+	updatedAtTime := int(updatedAtmillis)
+
+	updatedAt := strconv.Itoa(updatedAtTime)
+
+	return updatedAt, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
