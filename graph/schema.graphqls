@@ -1,0 +1,4 @@
+type ErrorResponse {
+  field: String!
+  message: String!
+}

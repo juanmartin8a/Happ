@@ -78,7 +78,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	SignUp(ctx context.Context, input model.SignUpInput) (*ent.User, error)
+	SignUp(ctx context.Context, input model.SignUpInput) (*model.UserAuthResponse, error)
 }
 type QueryResolver interface {
 	User(ctx context.Context, username string) (*ent.User, error)
@@ -296,6 +296,10 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "../schema.graphqls", Input: `type ErrorResponse {
+  field: String!
+  message: String!
+}`, BuiltIn: false},
 	{Name: "../user.graphqls", Input: `type User {
   id: ID!
   name: String!
@@ -325,11 +329,6 @@ type UserAuthResponse {
   errors: [ErrorResponse!]
 }
 
-type ErrorResponse {
-  field: String!
-  message: String!
-}
-
 type Query {
   user(
     username: String!
@@ -342,12 +341,7 @@ type Query {
 type Mutation {
   signUp(
     input: SignUpInput!
-    # name: String!
-    # username: String!
-    # email: String!
-    # password: String!
-    # birthday: String!
-  ): User!
+  ): UserAuthResponse
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -563,14 +557,11 @@ func (ec *executionContext) _Mutation_signUp(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.User)
+	res := resTmp.(*model.UserAuthResponse)
 	fc.Result = res
-	return ec.marshalNUser2ᚖhappᚋentᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUserAuthResponse2ᚖhappᚋgraphᚋmodelᚐUserAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_signUp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -581,24 +572,12 @@ func (ec *executionContext) fieldContext_Mutation_signUp(ctx context.Context, fi
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "username":
-				return ec.fieldContext_User_username(ctx, field)
-			case "email":
-				return ec.fieldContext_User_email(ctx, field)
-			case "birthday":
-				return ec.fieldContext_User_birthday(ctx, field)
-			case "password":
-				return ec.fieldContext_User_password(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_User_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_User_updatedAt(ctx, field)
+			case "user":
+				return ec.fieldContext_UserAuthResponse_user(ctx, field)
+			case "errors":
+				return ec.fieldContext_UserAuthResponse_errors(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type UserAuthResponse", field.Name)
 		},
 	}
 	defer func() {
@@ -3267,9 +3246,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_signUp(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3889,20 +3865,6 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) marshalNUser2happᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v ent.User) graphql.Marshaler {
-	return ec._User(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNUser2ᚖhappᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

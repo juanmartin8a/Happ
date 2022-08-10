@@ -27,11 +27,6 @@ type UserAuthResponse {
   errors: [ErrorResponse!]
 }
 
-type ErrorResponse {
-  field: String!
-  message: String!
-}
-
 type Query {
   user(
     username: String!
@@ -44,10 +39,5 @@ type Query {
 type Mutation {
   signUp(
     input: SignUpInput!
-    # name: String!
-    # username: String!
-    # email: String!
-    # password: String!
-    # birthday: String!
-  ): User!
+  ): UserAuthResponse
 }

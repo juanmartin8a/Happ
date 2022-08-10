@@ -12,6 +12,7 @@ import (
 	"happ/graph/generated"
 	"happ/graph/model"
 	"happ/hash"
+	userValidation "happ/resolverUtils"
 	"log"
 	"net/mail"
 	"strconv"
@@ -19,16 +20,20 @@ import (
 )
 
 // SignUp is the resolver for the signUp field.
-func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) (*ent.User, error) {
+func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) (*model.UserAuthResponse, error) {
 	fmt.Println(input)
-	// panic(fmt.Errorf("not implemented"))
-	msInt, err := strconv.ParseInt(input.Birthday, 10, 64)
-	if err != nil {
-		log.Fatal(err)
+
+	errors, _ := userValidation.SignUpInputValidator(input, r.client, ctx)
+
+	if len(errors) > 0 {
+		return &model.UserAuthResponse{
+			Errors: errors,
+		}, nil
 	}
+
+	msInt, _ := strconv.ParseInt(input.Birthday, 10, 64)
 	birthday := time.Unix(0, msInt*int64(time.Millisecond))
 	fmt.Println(birthday)
-	// panic(fmt.Errorf("not implemented"))
 
 	p := &hash.Params{
 		Memory:      64 * 1024, // 64 MB
@@ -43,13 +48,30 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 		log.Fatal(err)
 	}
 
-	return r.client.User.Create().
+	user, e := r.client.User.Create().
 		SetName(input.Name).
 		SetUsername(input.Username).
 		SetEmail(input.Email).
 		SetBirthday(birthday).
 		SetPassword(encodedHash).
 		Save(ctx)
+
+	if e != nil {
+		errors = append(
+			errors,
+			&model.ErrorResponse{
+				Field:   "global",
+				Message: "Could not create user",
+			},
+		)
+		return &model.UserAuthResponse{
+			Errors: errors,
+		}, nil
+	}
+
+	return &model.UserAuthResponse{
+		User: user,
+	}, nil
 }
 
 // User is the resolver for the user field.
@@ -114,7 +136,6 @@ func (r *queryResolver) SignIn(ctx context.Context, input model.SignInInput) (*m
 
 // Birthday is the resolver for the birthday field.
 func (r *userResolver) Birthday(ctx context.Context, obj *ent.User) (string, error) {
-
 	birthdayNano := obj.Birthday.UnixNano()
 
 	Birthdaymillis := birthdayNano / 1000000
