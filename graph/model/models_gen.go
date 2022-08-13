@@ -24,7 +24,13 @@ type SignUpInput struct {
 	Birthday string `json:"birthday"`
 }
 
+type TokenResponse struct {
+	RefreshToken string `json:"refreshToken"`
+	AccessToken  string `json:"accessToken"`
+}
+
 type UserAuthResponse struct {
 	User   *ent.User        `json:"user"`
+	Tokens *TokenResponse   `json:"tokens"`
 	Errors []*ErrorResponse `json:"errors"`
 }

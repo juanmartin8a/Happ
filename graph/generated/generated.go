@@ -60,6 +60,11 @@ type ComplexityRoot struct {
 		User   func(childComplexity int, username string) int
 	}
 
+	TokenResponse struct {
+		AccessToken  func(childComplexity int) int
+		RefreshToken func(childComplexity int) int
+	}
+
 	User struct {
 		Birthday  func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
@@ -73,6 +78,7 @@ type ComplexityRoot struct {
 
 	UserAuthResponse struct {
 		Errors func(childComplexity int) int
+		Tokens func(childComplexity int) int
 		User   func(childComplexity int) int
 	}
 }
@@ -156,6 +162,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.User(childComplexity, args["username"].(string)), true
 
+	case "TokenResponse.accessToken":
+		if e.complexity.TokenResponse.AccessToken == nil {
+			break
+		}
+
+		return e.complexity.TokenResponse.AccessToken(childComplexity), true
+
+	case "TokenResponse.refreshToken":
+		if e.complexity.TokenResponse.RefreshToken == nil {
+			break
+		}
+
+		return e.complexity.TokenResponse.RefreshToken(childComplexity), true
+
 	case "User.birthday":
 		if e.complexity.User.Birthday == nil {
 			break
@@ -218,6 +238,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserAuthResponse.Errors(childComplexity), true
+
+	case "UserAuthResponse.tokens":
+		if e.complexity.UserAuthResponse.Tokens == nil {
+			break
+		}
+
+		return e.complexity.UserAuthResponse.Tokens(childComplexity), true
 
 	case "UserAuthResponse.user":
 		if e.complexity.UserAuthResponse.User == nil {
@@ -324,8 +351,14 @@ input SignInInput {
   password: String!
 }
 
+type TokenResponse {
+  refreshToken: String!
+  accessToken: String!
+}
+
 type UserAuthResponse {
   user: User
+  tokens: TokenResponse
   errors: [ErrorResponse!]
 }
 
@@ -574,6 +607,8 @@ func (ec *executionContext) fieldContext_Mutation_signUp(ctx context.Context, fi
 			switch field.Name {
 			case "user":
 				return ec.fieldContext_UserAuthResponse_user(ctx, field)
+			case "tokens":
+				return ec.fieldContext_UserAuthResponse_tokens(ctx, field)
 			case "errors":
 				return ec.fieldContext_UserAuthResponse_errors(ctx, field)
 			}
@@ -702,6 +737,8 @@ func (ec *executionContext) fieldContext_Query_signIn(ctx context.Context, field
 			switch field.Name {
 			case "user":
 				return ec.fieldContext_UserAuthResponse_user(ctx, field)
+			case "tokens":
+				return ec.fieldContext_UserAuthResponse_tokens(ctx, field)
 			case "errors":
 				return ec.fieldContext_UserAuthResponse_errors(ctx, field)
 			}
@@ -846,6 +883,94 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TokenResponse_refreshToken(ctx context.Context, field graphql.CollectedField, obj *model.TokenResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TokenResponse_refreshToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RefreshToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TokenResponse_refreshToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TokenResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TokenResponse_accessToken(ctx context.Context, field graphql.CollectedField, obj *model.TokenResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TokenResponse_accessToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AccessToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TokenResponse_accessToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TokenResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1257,6 +1382,53 @@ func (ec *executionContext) fieldContext_UserAuthResponse_user(ctx context.Conte
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserAuthResponse_tokens(ctx context.Context, field graphql.CollectedField, obj *model.UserAuthResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserAuthResponse_tokens(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tokens, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.TokenResponse)
+	fc.Result = res
+	return ec.marshalOTokenResponse2ᚖhappᚋgraphᚋmodelᚐTokenResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserAuthResponse_tokens(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserAuthResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "refreshToken":
+				return ec.fieldContext_TokenResponse_refreshToken(ctx, field)
+			case "accessToken":
+				return ec.fieldContext_TokenResponse_accessToken(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TokenResponse", field.Name)
 		},
 	}
 	return fc, nil
@@ -3339,6 +3511,41 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
+var tokenResponseImplementors = []string{"TokenResponse"}
+
+func (ec *executionContext) _TokenResponse(ctx context.Context, sel ast.SelectionSet, obj *model.TokenResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, tokenResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TokenResponse")
+		case "refreshToken":
+
+			out.Values[i] = ec._TokenResponse_refreshToken(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "accessToken":
+
+			out.Values[i] = ec._TokenResponse_accessToken(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var userImplementors = []string{"User"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *ent.User) graphql.Marshaler {
@@ -3468,6 +3675,10 @@ func (ec *executionContext) _UserAuthResponse(ctx context.Context, sel ast.Selec
 		case "user":
 
 			out.Values[i] = ec._UserAuthResponse_user(ctx, field, obj)
+
+		case "tokens":
+
+			out.Values[i] = ec._UserAuthResponse_tokens(ctx, field, obj)
 
 		case "errors":
 
@@ -4207,6 +4418,13 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOTokenResponse2ᚖhappᚋgraphᚋmodelᚐTokenResponse(ctx context.Context, sel ast.SelectionSet, v *model.TokenResponse) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._TokenResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOUser2ᚖhappᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {

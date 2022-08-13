@@ -22,8 +22,14 @@ input SignInInput {
   password: String!
 }
 
+type TokenResponse {
+  refreshToken: String!
+  accessToken: String!
+}
+
 type UserAuthResponse {
   user: User
+  tokens: TokenResponse
   errors: [ErrorResponse!]
 }
 
