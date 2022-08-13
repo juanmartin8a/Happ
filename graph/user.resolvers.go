@@ -12,6 +12,7 @@ import (
 	"happ/graph/generated"
 	"happ/graph/model"
 	"happ/hash"
+	"happ/jwtActions"
 	userValidation "happ/resolverUtils"
 	"log"
 	"net/mail"
@@ -69,8 +70,14 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 		}, nil
 	}
 
+	tokens := jwtActions.CreateTokens(user)
+
+	fmt.Println(tokens)
+	fmt.Println(err)
+
 	return &model.UserAuthResponse{
-		User: user,
+		User:   user,
+		Tokens: tokens,
 	}, nil
 }
 
@@ -128,8 +135,11 @@ func (r *queryResolver) SignIn(ctx context.Context, input model.SignInInput) (*m
 		}, nil
 	}
 
+	tokens := jwtActions.CreateTokens(user)
+
 	return &model.UserAuthResponse{
-		User: user,
+		User:   user,
+		Tokens: tokens,
 	}, nil
 	// panic(fmt.Errorf("not implemented"))
 }
