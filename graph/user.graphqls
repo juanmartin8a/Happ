@@ -37,6 +37,7 @@ type Query {
   user(
     username: String!
   ): User,
+  userAccess: User,
   signIn(
     input: SignInInput!
   ): UserAuthResponse

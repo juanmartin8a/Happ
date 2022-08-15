@@ -7,6 +7,7 @@ require (
 	entgo.io/ent v0.11.1
 	github.com/99designs/gqlgen v0.17.13
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/spf13/viper v1.12.0
@@ -25,7 +26,6 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect

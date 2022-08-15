@@ -13,7 +13,9 @@ import (
 	"happ/graph/model"
 	"happ/hash"
 	"happ/jwtActions"
+	customMiddleware "happ/middleware"
 	userValidation "happ/resolverUtils"
+	"happ/utils"
 	"log"
 	"net/mail"
 	"strconv"
@@ -84,6 +86,21 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, username string) (*ent.User, error) {
 	return r.client.User.Query().Where(user.Username(username)).Only(ctx)
+}
+
+// UserAccess is the resolver for the userAccess field.
+func (r *queryResolver) UserAccess(ctx context.Context) (*ent.User, error) {
+	ec, err := customMiddleware.EchoContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userId, err := utils.GetUserIdFromJWT(ec.Request().Header.Get("Authorization"))
+	if err != nil {
+		return &ent.User{}, fmt.Errorf("access denied")
+	}
+
+	return r.client.User.Query().Where(user.ID(userId)).Only(ctx)
 }
 
 // SignIn is the resolver for the signIn field.

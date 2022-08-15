@@ -5,6 +5,7 @@ import (
 	"happ/config"
 	"happ/database"
 	"happ/graph"
+	customMiddleware "happ/middleware"
 	"log"
 	"os"
 
@@ -25,6 +26,8 @@ func main() {
 	config.ReadConfig(config.ReadConfigOption{})
 
 	e := echo.New()
+
+	e.Use(customMiddleware.EchoContextMiddleware)
 
 	e.Use(middleware.Recover())
 
