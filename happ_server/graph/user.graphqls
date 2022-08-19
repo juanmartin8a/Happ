@@ -38,13 +38,19 @@ type Query {
     username: String!
   ): User,
   userAccess: User,
-  signIn(
-    input: SignInInput!
-  ): UserAuthResponse
 }
 
 type Mutation {
   signUp(
     input: SignUpInput!
-  ): UserAuthResponse
+  ): UserAuthResponse,
+  signIn(
+    input: SignInInput!
+  ): UserAuthResponse,
+  signOut(
+    token: String!
+  ): Boolean!
+  refreshTokens(
+    token: String!
+  ): TokenResponse
 }

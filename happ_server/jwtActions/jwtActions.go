@@ -2,9 +2,10 @@ package jwtActions
 
 import (
 	"fmt"
-	"happ/ent"
 	"happ/graph/model"
+	redisUtils "happ/utils/redis"
 	"io/ioutil"
+	"math/rand"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -12,7 +13,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func CreateTokens(user *ent.User) *model.TokenResponse {
+func CreateTokens(userId string, prevRefreshToken string) *model.TokenResponse { //user *ent.User
 
 	accessDir, _ := filepath.Abs("./keys/access/rsa_private.pem")
 	refreshDir, _ := filepath.Abs("./keys/refresh/rsa_private.pem")
@@ -20,34 +21,51 @@ func CreateTokens(user *ent.User) *model.TokenResponse {
 	privAKey, _ := ioutil.ReadFile(accessDir)
 	privRKey, _ := ioutil.ReadFile(refreshDir)
 
-	iat := time.Now()
-	exp := iat.Add(time.Hour * 24)
+	timeToExpAccess := time.Second * 60 * 60 * 24
+	timeToExpRefresh := time.Second * 60 * 60 * 24 * 3
 
-	userId := user.ID
-	username := user.Username
+	iat := time.Now()
+	expAccess := iat.Add(timeToExpAccess)
+	expRefresh := iat.Add(timeToExpRefresh)
+
+	// userIdString := strconv.Itoa(userId)
+	randomInt := rand.Intn(9999-0+1) + 0
 	roles := []string{"user"}
 
-	payload := &JWTPayload{
+	payloadAccess := &JWTPayload{
 		RegisteredClaims: &jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(exp),
+			ExpiresAt: jwt.NewNumericDate(expAccess),
 			IssuedAt:  jwt.NewNumericDate(iat),
 		},
-		Id:       strconv.Itoa(userId),
-		Username: username,
-		Roles:    roles,
+		Id:        userId,
+		RandomInt: strconv.Itoa(randomInt),
+		Roles:     roles,
 	}
 
-	accessT := jwt.NewWithClaims(jwt.SigningMethodRS256, payload)
-	refreshT := jwt.NewWithClaims(jwt.SigningMethodRS256, payload)
+	payloadRefresh := &JWTPayload{
+		RegisteredClaims: &jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expRefresh),
+			IssuedAt:  jwt.NewNumericDate(iat),
+		},
+		Id:        userId,
+		RandomInt: strconv.Itoa(randomInt),
+		Roles:     roles,
+	}
 
-	accessT.Claims = payload
-	refreshT.Claims = payload
+	accessT := jwt.NewWithClaims(jwt.SigningMethodRS256, payloadAccess)
+	refreshT := jwt.NewWithClaims(jwt.SigningMethodRS256, payloadRefresh)
 
 	accessKey, _ := jwt.ParseRSAPrivateKeyFromPEM(privAKey)
 	refreshKey, _ := jwt.ParseRSAPrivateKeyFromPEM(privRKey)
 
 	accessToken, _ := accessT.SignedString(accessKey)
 	refreshToken, _ := refreshT.SignedString(refreshKey)
+
+	redisUtils.RefreshTokenToRedis(userId, timeToExpAccess, refreshToken)
+
+	if prevRefreshToken != "" {
+		redisUtils.DeleteTokenFromRedis("" + userId + "_" + prevRefreshToken)
+	}
 
 	return &model.TokenResponse{
 		AccessToken:  accessToken,

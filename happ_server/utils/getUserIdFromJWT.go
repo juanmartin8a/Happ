@@ -17,7 +17,6 @@ func GetUserIdFromJWT(authorizationHeader string) (int, error) {
 	}
 
 	userId, _ := strconv.Atoi(payload["Id"].(string))
-	fmt.Println(userId)
 
 	return userId, nil
 }

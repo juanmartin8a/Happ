@@ -16,6 +16,7 @@ import (
 	customMiddleware "happ/middleware"
 	userValidation "happ/resolverUtils"
 	"happ/utils"
+	redisUtils "happ/utils/redis"
 	"log"
 	"net/mail"
 	"strconv"
@@ -24,7 +25,6 @@ import (
 
 // SignUp is the resolver for the signUp field.
 func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) (*model.UserAuthResponse, error) {
-	fmt.Println(input)
 
 	errors, _ := userValidation.SignUpInputValidator(input, r.client, ctx)
 
@@ -72,7 +72,7 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 		}, nil
 	}
 
-	tokens := jwtActions.CreateTokens(user)
+	tokens := jwtActions.CreateTokens(strconv.Itoa(user.ID), "")
 
 	fmt.Println(tokens)
 	fmt.Println(err)
@@ -83,28 +83,8 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 	}, nil
 }
 
-// User is the resolver for the user field.
-func (r *queryResolver) User(ctx context.Context, username string) (*ent.User, error) {
-	return r.client.User.Query().Where(user.Username(username)).Only(ctx)
-}
-
-// UserAccess is the resolver for the userAccess field.
-func (r *queryResolver) UserAccess(ctx context.Context) (*ent.User, error) {
-	ec, err := customMiddleware.EchoContextFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	userId, err := utils.GetUserIdFromJWT(ec.Request().Header.Get("Authorization"))
-	if err != nil {
-		return &ent.User{}, fmt.Errorf("access denied")
-	}
-
-	return r.client.User.Query().Where(user.ID(userId)).Only(ctx)
-}
-
 // SignIn is the resolver for the signIn field.
-func (r *queryResolver) SignIn(ctx context.Context, input model.SignInInput) (*model.UserAuthResponse, error) {
+func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) (*model.UserAuthResponse, error) {
 	_, err := mail.ParseAddress(input.UsernameOrEmail)
 
 	var whereVal predicate.User
@@ -152,13 +132,68 @@ func (r *queryResolver) SignIn(ctx context.Context, input model.SignInInput) (*m
 		}, nil
 	}
 
-	tokens := jwtActions.CreateTokens(user)
+	tokens := jwtActions.CreateTokens(strconv.Itoa(user.ID), "")
 
 	return &model.UserAuthResponse{
 		User:   user,
 		Tokens: tokens,
 	}, nil
-	// panic(fmt.Errorf("not implemented"))
+}
+
+// SignOut is the resolver for the signOut field.
+func (r *mutationResolver) SignOut(ctx context.Context, token string) (bool, error) {
+	ec, err := customMiddleware.EchoContextFromContext(ctx)
+	if err != nil {
+		return true, err
+	}
+
+	userId, err := utils.GetUserIdFromJWT(ec.Request().Header.Get("Authorization"))
+	if err != nil {
+		return true, fmt.Errorf("access denied")
+	}
+
+	redisUtils.DeleteTokenFromRedis("" + strconv.Itoa(userId) + "_" + token)
+
+	return true, nil
+}
+
+// RefreshTokens is the resolver for the refreshTokens field.
+func (r *mutationResolver) RefreshTokens(ctx context.Context, token string) (*model.TokenResponse, error) {
+	// const resJWT = await readJWTPayload(token, true);
+
+	payload, err := jwtActions.ValidateToken(token, true)
+	if err != nil {
+		return nil, fmt.Errorf("access denied")
+	}
+
+	redisRes := redisUtils.VerifyTokenFromRedis("" + payload["Id"].(string) + "_" + token)
+	if !redisRes {
+		return nil, fmt.Errorf("access denied")
+	}
+
+	tokens := jwtActions.CreateTokens(payload["Id"].(string), token)
+
+	return tokens, nil
+}
+
+// User is the resolver for the user field.
+func (r *queryResolver) User(ctx context.Context, username string) (*ent.User, error) {
+	return r.client.User.Query().Where(user.Username(username)).Only(ctx)
+}
+
+// UserAccess is the resolver for the userAccess field.
+func (r *queryResolver) UserAccess(ctx context.Context) (*ent.User, error) {
+	ec, err := customMiddleware.EchoContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userId, err := utils.GetUserIdFromJWT(ec.Request().Header.Get("Authorization"))
+	if err != nil {
+		return &ent.User{}, fmt.Errorf("access denied")
+	}
+
+	return r.client.User.Query().Where(user.ID(userId)).Only(ctx)
 }
 
 // Birthday is the resolver for the birthday field.
