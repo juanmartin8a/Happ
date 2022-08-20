@@ -13,7 +13,8 @@ import (
 	"happ/graph/model"
 	"happ/hash"
 	"happ/jwtActions"
-	customMiddleware "happ/middleware"
+
+	// customMiddleware "happ/middleware"
 	userValidation "happ/resolverUtils"
 	"happ/utils"
 	redisUtils "happ/utils/redis"
@@ -142,17 +143,12 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 
 // SignOut is the resolver for the signOut field.
 func (r *mutationResolver) SignOut(ctx context.Context, token string) (bool, error) {
-	ec, err := customMiddleware.EchoContextFromContext(ctx)
-	if err != nil {
-		return true, err
-	}
 
-	userId, err := utils.GetUserIdFromJWT(ec.Request().Header.Get("Authorization"))
-	if err != nil {
-		return true, fmt.Errorf("access denied")
-	}
+	userId, err := utils.IsAuth(ctx)
 
-	redisUtils.DeleteTokenFromRedis("" + strconv.Itoa(userId) + "_" + token)
+	if err == nil {
+		redisUtils.DeleteTokenFromRedis("" + strconv.Itoa(*userId) + "_" + token)
+	}
 
 	return true, nil
 }
@@ -183,17 +179,13 @@ func (r *queryResolver) User(ctx context.Context, username string) (*ent.User, e
 
 // UserAccess is the resolver for the userAccess field.
 func (r *queryResolver) UserAccess(ctx context.Context) (*ent.User, error) {
-	ec, err := customMiddleware.EchoContextFromContext(ctx)
+
+	userId, err := utils.IsAuth(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	userId, err := utils.GetUserIdFromJWT(ec.Request().Header.Get("Authorization"))
-	if err != nil {
-		return &ent.User{}, fmt.Errorf("access denied")
-	}
-
-	return r.client.User.Query().Where(user.ID(userId)).Only(ctx)
+	return r.client.User.Query().Where(user.ID(*userId)).Only(ctx)
 }
 
 // Birthday is the resolver for the birthday field.

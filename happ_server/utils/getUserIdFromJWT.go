@@ -7,16 +7,16 @@ import (
 	"strings"
 )
 
-func GetUserIdFromJWT(authorizationHeader string) (int, error) {
+func GetUserIdFromJWT(authorizationHeader string) (*int, error) {
 
 	token := strings.TrimPrefix(authorizationHeader, "Bearer ")
 
 	payload, err := jwtActions.ValidateToken(token, false)
 	if err != nil {
-		return -1, fmt.Errorf("access denied")
+		return nil, fmt.Errorf("access denied")
 	}
 
 	userId, _ := strconv.Atoi(payload["Id"].(string))
 
-	return userId, nil
+	return &userId, nil
 }
