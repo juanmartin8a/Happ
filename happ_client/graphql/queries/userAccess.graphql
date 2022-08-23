@@ -1,0 +1,7 @@
+query UserAccess() {
+  userAccess {
+    id
+    name
+    username
+  }
+}

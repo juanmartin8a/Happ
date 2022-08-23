@@ -13,8 +13,6 @@ import (
 	"happ/graph/model"
 	"happ/hash"
 	"happ/jwtActions"
-
-	// customMiddleware "happ/middleware"
 	userValidation "happ/resolverUtils"
 	"happ/utils"
 	redisUtils "happ/utils/redis"
@@ -26,7 +24,6 @@ import (
 
 // SignUp is the resolver for the signUp field.
 func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) (*model.UserAuthResponse, error) {
-
 	errors, _ := userValidation.SignUpInputValidator(input, r.client, ctx)
 
 	if len(errors) > 0 {
@@ -37,7 +34,6 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 
 	msInt, _ := strconv.ParseInt(input.Birthday, 10, 64)
 	birthday := time.Unix(0, msInt*int64(time.Millisecond))
-	fmt.Println(birthday)
 
 	p := &hash.Params{
 		Memory:      64 * 1024, // 64 MB
@@ -143,7 +139,6 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 
 // SignOut is the resolver for the signOut field.
 func (r *mutationResolver) SignOut(ctx context.Context, token string) (bool, error) {
-
 	userId, err := utils.IsAuth(ctx)
 
 	if err == nil {
@@ -159,12 +154,12 @@ func (r *mutationResolver) RefreshTokens(ctx context.Context, token string) (*mo
 
 	payload, err := jwtActions.ValidateToken(token, true)
 	if err != nil {
-		return nil, fmt.Errorf("access denied")
+		return nil, fmt.Errorf("refresh token access denied")
 	}
 
 	redisRes := redisUtils.VerifyTokenFromRedis("" + payload["Id"].(string) + "_" + token)
 	if !redisRes {
-		return nil, fmt.Errorf("access denied")
+		return nil, fmt.Errorf("refresh token access denied")
 	}
 
 	tokens := jwtActions.CreateTokens(payload["Id"].(string), token)
@@ -179,7 +174,6 @@ func (r *queryResolver) User(ctx context.Context, username string) (*ent.User, e
 
 // UserAccess is the resolver for the userAccess field.
 func (r *queryResolver) UserAccess(ctx context.Context) (*ent.User, error) {
-
 	userId, err := utils.IsAuth(ctx)
 	if err != nil {
 		return nil, err
@@ -239,3 +233,13 @@ func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *userResolver) ID(ctx context.Context, obj *ent.User) (float64, error) {
+	panic(fmt.Errorf("not implemented"))
+}
