@@ -222,6 +222,35 @@ Map<String, dynamic> _$SignUpInputToJson(SignUpInput instance) =>
       'birthday': instance.birthday,
     };
 
+UserFromId$Query$User _$UserFromId$Query$UserFromJson(
+        Map<String, dynamic> json) =>
+    UserFromId$Query$User()
+      ..id = (json['id'] as num).toDouble()
+      ..name = json['name'] as String
+      ..username = json['username'] as String
+      ..email = json['email'] as String;
+
+Map<String, dynamic> _$UserFromId$Query$UserToJson(
+        UserFromId$Query$User instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'username': instance.username,
+      'email': instance.email,
+    };
+
+UserFromId$Query _$UserFromId$QueryFromJson(Map<String, dynamic> json) =>
+    UserFromId$Query()
+      ..userFromId = json['userFromId'] == null
+          ? null
+          : UserFromId$Query$User.fromJson(
+              json['userFromId'] as Map<String, dynamic>);
+
+Map<String, dynamic> _$UserFromId$QueryToJson(UserFromId$Query instance) =>
+    <String, dynamic>{
+      'userFromId': instance.userFromId?.toJson(),
+    };
+
 UserAccess$Query$User _$UserAccess$Query$UserFromJson(
         Map<String, dynamic> json) =>
     UserAccess$Query$User()
@@ -247,6 +276,33 @@ UserAccess$Query _$UserAccess$QueryFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$UserAccess$QueryToJson(UserAccess$Query instance) =>
     <String, dynamic>{
       'userAccess': instance.userAccess?.toJson(),
+    };
+
+SearchUsers$Query$User _$SearchUsers$Query$UserFromJson(
+        Map<String, dynamic> json) =>
+    SearchUsers$Query$User()
+      ..id = (json['id'] as num).toDouble()
+      ..username = json['username'] as String
+      ..name = json['name'] as String;
+
+Map<String, dynamic> _$SearchUsers$Query$UserToJson(
+        SearchUsers$Query$User instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'username': instance.username,
+      'name': instance.name,
+    };
+
+SearchUsers$Query _$SearchUsers$QueryFromJson(Map<String, dynamic> json) =>
+    SearchUsers$Query()
+      ..searchUsers = (json['searchUsers'] as List<dynamic>)
+          .map(
+              (e) => SearchUsers$Query$User.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+Map<String, dynamic> _$SearchUsers$QueryToJson(SearchUsers$Query instance) =>
+    <String, dynamic>{
+      'searchUsers': instance.searchUsers.map((e) => e.toJson()).toList(),
     };
 
 RefreshTokensArguments _$RefreshTokensArgumentsFromJson(
@@ -279,4 +335,27 @@ SignUpArguments _$SignUpArgumentsFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SignUpArgumentsToJson(SignUpArguments instance) =>
     <String, dynamic>{
       'input': instance.input.toJson(),
+    };
+
+UserFromIdArguments _$UserFromIdArgumentsFromJson(Map<String, dynamic> json) =>
+    UserFromIdArguments(
+      id: json['id'] as int,
+    );
+
+Map<String, dynamic> _$UserFromIdArgumentsToJson(
+        UserFromIdArguments instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+    };
+
+SearchUsersArguments _$SearchUsersArgumentsFromJson(
+        Map<String, dynamic> json) =>
+    SearchUsersArguments(
+      search: json['search'] as String,
+    );
+
+Map<String, dynamic> _$SearchUsersArgumentsToJson(
+        SearchUsersArguments instance) =>
+    <String, dynamic>{
+      'search': instance.search,
     };

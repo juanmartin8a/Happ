@@ -29,6 +29,12 @@ type Query {
   user(
     username: String!
   ): User,
+  userFromId(
+    id: Int!
+  ): User,
+  searchUsers(
+    search: String!
+  ): [User!]!,
   userAccess: User,
 }
 

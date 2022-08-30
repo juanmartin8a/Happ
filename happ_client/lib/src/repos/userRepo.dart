@@ -75,7 +75,6 @@ class UserRepo {
     }
   }
 
-  //Future<RefreshTokens$Mutation$TokenResponse> refreshTokens(String token) async {
   Future<QueryResult> refreshTokens(String token) async {
     final result = await client.mutate(
       UserOptions().refreshTokensMutationOptions(token)
@@ -92,6 +91,36 @@ class UserRepo {
     }
 
     return result;
+  }
+
+  Future<UserFromId$Query$User> getUser(
+    int userId
+  ) async {
+    final result = await client.query(
+      UserOptions().userFromIdQueryOptions(userId)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return UserFromId$Query$User.fromJson(
+        (result.data as Map<String, dynamic>)["userFromId"]
+      );
+    }
+  }
+
+  Future<SearchUsers$Query> searchUsers(
+    String search
+  ) async {
+    final result = await client.query(
+      UserOptions().searchUsersQueryOptions(search)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return SearchUsers$Query.fromJson(result.data as Map<String, dynamic>);
+    }
   }
 
 }

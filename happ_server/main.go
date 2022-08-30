@@ -2,12 +2,15 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"happ/config"
 	"happ/database"
 	"happ/graph"
 	customMiddleware "happ/middleware"
+	meilisearchUtils "happ/utils/meilisearch"
 	"log"
 	"os"
+	"reflect"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -58,6 +61,18 @@ func main() {
 			playground.Handler("GraphQL", "/query").ServeHTTP(c.Response(), c.Request())
 			return nil
 		})
+	}
+
+	// meilisearchUtils.AddUserToMeili()
+	// meilisearchUtils.UpdateUserFromMeili()
+
+	users, _ := meilisearchUtils.GetUsersFromMeili("juan")
+	fmt.Println(users)
+	for _, user := range users {
+		fmt.Println(user.(map[string]interface{})["username"].(string))
+		fmt.Println(reflect.TypeOf(user.(map[string]interface{})["username"].(string)))
+		// sapo := mapstructure.Decode(user, &UserDoc{})
+		// fmt.Println(sapo)
 	}
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)

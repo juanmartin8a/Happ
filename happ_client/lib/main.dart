@@ -1,6 +1,7 @@
 import 'package:happ_client/src/client/customLink.dart';
 import 'package:happ_client/src/screens/auth/signIn.dart';
 import 'package:happ_client/src/screens/auth/signUp.dart';
+import 'package:happ_client/src/screens/search/search.dart';
 import 'package:happ_client/src/utils/jwt.dart';
 import 'package:happ_client/src/wrapper.dart';
 import 'package:flutter/material.dart';
@@ -88,6 +89,15 @@ class MyApp extends ConsumerWidget {
         path: '/sign_up',
         builder: (BuildContext context, GoRouterState state) => const SignUp(),
       ),
+      // GoRoute(
+      //   path: '/search',
+      //   pageBuilder: (context, state) =>  MaterialPageRoute(
+          
+      //     // fullscreenDialog: false,
+      //     builder: (context) => Search(),
+      //   ),
+      //   // builder: (BuildContext context, GoRouterState state) => const SignUp(),
+      // ),
       // GoRoute(
       //   path: '/:id',
       //   builder: (context, state) {

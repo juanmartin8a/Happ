@@ -15,10 +15,12 @@ import (
 	"happ/jwtActions"
 	userValidation "happ/resolverUtils"
 	"happ/utils"
+	meilisearchUtils "happ/utils/meilisearch"
 	redisUtils "happ/utils/redis"
 	"log"
 	"net/mail"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -64,6 +66,21 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 				Message: "Could not create user",
 			},
 		)
+		return &model.UserAuthResponse{
+			Errors: errors,
+		}, nil
+	}
+
+	res := meilisearchUtils.AddUserToMeili(user)
+	if !res {
+		errors = append(
+			errors,
+			&model.ErrorResponse{
+				Field:   "global",
+				Message: "Could not create user",
+			},
+		)
+		r.client.User.DeleteOneID(user.ID).Exec(ctx)
 		return &model.UserAuthResponse{
 			Errors: errors,
 		}, nil
@@ -170,6 +187,44 @@ func (r *mutationResolver) RefreshTokens(ctx context.Context, token string) (*mo
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, username string) (*ent.User, error) {
 	return r.client.User.Query().Where(user.Username(username)).Only(ctx)
+}
+
+// UserFromID is the resolver for the userFromId field.
+func (r *queryResolver) UserFromID(ctx context.Context, id int) (*ent.User, error) {
+	return r.client.User.Query().Where(user.ID(id)).Only(ctx)
+}
+
+// SearchUsers is the resolver for the searchUsers field.
+func (r *queryResolver) SearchUsers(ctx context.Context, search string) ([]*ent.User, error) {
+	trimmedSearch := strings.TrimSpace(search)
+
+	var users []*ent.User
+	res, err := meilisearchUtils.GetUsersFromMeili(trimmedSearch)
+	if err != nil {
+		fmt.Println(res)
+		// return nil, err
+
+		// or show empty array of users
+		return users, nil
+	}
+
+	if len(res) == 0 {
+		return users, nil
+	}
+
+	for _, user := range res {
+		users = append(
+			users,
+			&ent.User{
+				ID:       int(user.(map[string]interface{})["id"].(float64)),
+				Username: user.(map[string]interface{})["username"].(string),
+				Name:     user.(map[string]interface{})["name"].(string),
+			},
+		)
+	}
+
+	return users, nil
+	// panic(fmt.Errorf("not implemented"))
 }
 
 // UserAccess is the resolver for the userAccess field.

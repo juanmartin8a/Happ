@@ -60,12 +60,12 @@ class UserOptions {
   }
 
   QueryOptions userAccessQueryOptions() {
-    QueryOptions mutationOptions = QueryOptions(
+    QueryOptions queryOptions = QueryOptions(
       document: UserAccessQuery().document,
       fetchPolicy: FetchPolicy.networkOnly
     );
 
-    return mutationOptions;
+    return queryOptions;
   }
 
   MutationOptions refreshTokensMutationOptions(String token) {
@@ -83,4 +83,37 @@ class UserOptions {
 
     return mutationOptions;
   }
+
+  QueryOptions userFromIdQueryOptions(int id) {
+    QueryOptions queryOptions = QueryOptions(
+      document: UserFromIdQuery(
+        variables: UserFromIdArguments(
+          id: id,
+        )
+      ).document,
+      variables: {
+        "id": id
+      },
+      fetchPolicy: FetchPolicy.networkOnly
+    );
+
+    return queryOptions;
+  }
+
+  QueryOptions searchUsersQueryOptions(String search) {
+    QueryOptions queryOptions = QueryOptions(
+      document: SearchUsersQuery(
+        variables: SearchUsersArguments(
+          search: search,
+        )
+      ).document,
+      variables: {
+        "search": search
+      },
+      fetchPolicy: FetchPolicy.networkOnly
+    );
+
+    return queryOptions;
+  }
+
 }

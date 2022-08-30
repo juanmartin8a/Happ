@@ -13,13 +13,13 @@ class SignInController extends StateNotifier<SignInState> {
 
   void signIn(String usernameOrEmail, String password) async {
     state = SignInLoadingState();
-    // try {
+    try {
       final res = await userRepo.signIn(usernameOrEmail, password);
       state = SignInDoneState(signInRes: res);
-    // } catch (e) {
-    //   print(e);
-    //   state = SignInErrorState();
-    // }
+    } catch (e) {
+      print(e);
+      state = SignInErrorState();
+    }
   }
 }
 

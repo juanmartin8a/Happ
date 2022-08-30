@@ -19,13 +19,13 @@ class SignUpController extends StateNotifier<SignUpState> {
     String birthday
   ) async {
     state = SignUpLoadingState();
-    // try {
+    try {
       final res = await userRepo.signUp(name, username, email, password, birthday);
       state = SignUpDoneState(signUpRes: res);
-    // } catch (e) {
-    //   print(e);
-    //   state = SignUpErrorState();
-    // }
+    } catch (e) {
+      print(e);
+      state = SignUpErrorState();
+    }
   }
 
   void setBirthday(String birthdayVal) {

@@ -286,6 +286,42 @@ class SignUpInput extends JsonSerializable with EquatableMixin {
 }
 
 @JsonSerializable(explicitToJson: true)
+class UserFromId$Query$User extends JsonSerializable with EquatableMixin {
+  UserFromId$Query$User();
+
+  factory UserFromId$Query$User.fromJson(Map<String, dynamic> json) =>
+      _$UserFromId$Query$UserFromJson(json);
+
+  late double id;
+
+  late String name;
+
+  late String username;
+
+  late String email;
+
+  @override
+  List<Object?> get props => [id, name, username, email];
+  @override
+  Map<String, dynamic> toJson() => _$UserFromId$Query$UserToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class UserFromId$Query extends JsonSerializable with EquatableMixin {
+  UserFromId$Query();
+
+  factory UserFromId$Query.fromJson(Map<String, dynamic> json) =>
+      _$UserFromId$QueryFromJson(json);
+
+  UserFromId$Query$User? userFromId;
+
+  @override
+  List<Object?> get props => [userFromId];
+  @override
+  Map<String, dynamic> toJson() => _$UserFromId$QueryToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
 class UserAccess$Query$User extends JsonSerializable with EquatableMixin {
   UserAccess$Query$User();
 
@@ -317,6 +353,40 @@ class UserAccess$Query extends JsonSerializable with EquatableMixin {
   List<Object?> get props => [userAccess];
   @override
   Map<String, dynamic> toJson() => _$UserAccess$QueryToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class SearchUsers$Query$User extends JsonSerializable with EquatableMixin {
+  SearchUsers$Query$User();
+
+  factory SearchUsers$Query$User.fromJson(Map<String, dynamic> json) =>
+      _$SearchUsers$Query$UserFromJson(json);
+
+  late double id;
+
+  late String username;
+
+  late String name;
+
+  @override
+  List<Object?> get props => [id, username, name];
+  @override
+  Map<String, dynamic> toJson() => _$SearchUsers$Query$UserToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class SearchUsers$Query extends JsonSerializable with EquatableMixin {
+  SearchUsers$Query();
+
+  factory SearchUsers$Query.fromJson(Map<String, dynamic> json) =>
+      _$SearchUsers$QueryFromJson(json);
+
+  late List<SearchUsers$Query$User> searchUsers;
+
+  @override
+  List<Object?> get props => [searchUsers];
+  @override
+  Map<String, dynamic> toJson() => _$SearchUsers$QueryToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -650,6 +720,94 @@ class SignUpMutation extends GraphQLQuery<SignUp$Mutation, SignUpArguments> {
       SignUp$Mutation.fromJson(json);
 }
 
+@JsonSerializable(explicitToJson: true)
+class UserFromIdArguments extends JsonSerializable with EquatableMixin {
+  UserFromIdArguments({required this.id});
+
+  @override
+  factory UserFromIdArguments.fromJson(Map<String, dynamic> json) =>
+      _$UserFromIdArgumentsFromJson(json);
+
+  late int id;
+
+  @override
+  List<Object?> get props => [id];
+  @override
+  Map<String, dynamic> toJson() => _$UserFromIdArgumentsToJson(this);
+}
+
+final USER_FROM_ID_QUERY_DOCUMENT_OPERATION_NAME = 'UserFromId';
+final USER_FROM_ID_QUERY_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+      type: OperationType.query,
+      name: NameNode(value: 'UserFromId'),
+      variableDefinitions: [
+        VariableDefinitionNode(
+            variable: VariableNode(name: NameNode(value: 'id')),
+            type: NamedTypeNode(name: NameNode(value: 'Int'), isNonNull: true),
+            defaultValue: DefaultValueNode(value: null),
+            directives: [])
+      ],
+      directives: [],
+      selectionSet: SelectionSetNode(selections: [
+        FieldNode(
+            name: NameNode(value: 'userFromId'),
+            alias: null,
+            arguments: [
+              ArgumentNode(
+                  name: NameNode(value: 'id'),
+                  value: VariableNode(name: NameNode(value: 'id')))
+            ],
+            directives: [],
+            selectionSet: SelectionSetNode(selections: [
+              FieldNode(
+                  name: NameNode(value: 'id'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: null),
+              FieldNode(
+                  name: NameNode(value: 'name'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: null),
+              FieldNode(
+                  name: NameNode(value: 'username'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: null),
+              FieldNode(
+                  name: NameNode(value: 'email'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: null)
+            ]))
+      ]))
+]);
+
+class UserFromIdQuery
+    extends GraphQLQuery<UserFromId$Query, UserFromIdArguments> {
+  UserFromIdQuery({required this.variables});
+
+  @override
+  final DocumentNode document = USER_FROM_ID_QUERY_DOCUMENT;
+
+  @override
+  final String operationName = USER_FROM_ID_QUERY_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final UserFromIdArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  UserFromId$Query parse(Map<String, dynamic> json) =>
+      UserFromId$Query.fromJson(json);
+}
+
 final USER_ACCESS_QUERY_DOCUMENT_OPERATION_NAME = 'UserAccess';
 final USER_ACCESS_QUERY_DOCUMENT = DocumentNode(definitions: [
   OperationDefinitionNode(
@@ -700,4 +858,87 @@ class UserAccessQuery extends GraphQLQuery<UserAccess$Query, JsonSerializable> {
   @override
   UserAccess$Query parse(Map<String, dynamic> json) =>
       UserAccess$Query.fromJson(json);
+}
+
+@JsonSerializable(explicitToJson: true)
+class SearchUsersArguments extends JsonSerializable with EquatableMixin {
+  SearchUsersArguments({required this.search});
+
+  @override
+  factory SearchUsersArguments.fromJson(Map<String, dynamic> json) =>
+      _$SearchUsersArgumentsFromJson(json);
+
+  late String search;
+
+  @override
+  List<Object?> get props => [search];
+  @override
+  Map<String, dynamic> toJson() => _$SearchUsersArgumentsToJson(this);
+}
+
+final SEARCH_USERS_QUERY_DOCUMENT_OPERATION_NAME = 'SearchUsers';
+final SEARCH_USERS_QUERY_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+      type: OperationType.query,
+      name: NameNode(value: 'SearchUsers'),
+      variableDefinitions: [
+        VariableDefinitionNode(
+            variable: VariableNode(name: NameNode(value: 'search')),
+            type:
+                NamedTypeNode(name: NameNode(value: 'String'), isNonNull: true),
+            defaultValue: DefaultValueNode(value: null),
+            directives: [])
+      ],
+      directives: [],
+      selectionSet: SelectionSetNode(selections: [
+        FieldNode(
+            name: NameNode(value: 'searchUsers'),
+            alias: null,
+            arguments: [
+              ArgumentNode(
+                  name: NameNode(value: 'search'),
+                  value: VariableNode(name: NameNode(value: 'search')))
+            ],
+            directives: [],
+            selectionSet: SelectionSetNode(selections: [
+              FieldNode(
+                  name: NameNode(value: 'id'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: null),
+              FieldNode(
+                  name: NameNode(value: 'username'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: null),
+              FieldNode(
+                  name: NameNode(value: 'name'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: null)
+            ]))
+      ]))
+]);
+
+class SearchUsersQuery
+    extends GraphQLQuery<SearchUsers$Query, SearchUsersArguments> {
+  SearchUsersQuery({required this.variables});
+
+  @override
+  final DocumentNode document = SEARCH_USERS_QUERY_DOCUMENT;
+
+  @override
+  final String operationName = SEARCH_USERS_QUERY_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final SearchUsersArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  SearchUsers$Query parse(Map<String, dynamic> json) =>
+      SearchUsers$Query.fromJson(json);
 }
