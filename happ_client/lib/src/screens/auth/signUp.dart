@@ -54,7 +54,7 @@ class SignUpWidgetState extends ConsumerState<SignUp> {
         ref.read(signUpProvider.notifier).signUp(name!, username!, email!, password!, birthday!);
       } else if (state is SignUpDoneState) {
         if (state.signUpRes.errors == null) {
-          final user = UserTypesConverter().convertCreateUserToUserAccessUser(state.signUpRes.user!);
+          final user = UserTypesConverter().convertToUserAccessUser(state.signUpRes.user!);
           ref.read(userAccessProvider.notifier).signUserIn(user);
           context.go('/');
         }

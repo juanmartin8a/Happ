@@ -23,7 +23,6 @@ class WrapperState extends ConsumerState<Wrapper> {
   @override
   void initState() {
     super.initState();
-    print("wrapper init");
     ref.read(userAccessProvider.notifier).userAccess();
   }
 
@@ -31,7 +30,6 @@ class WrapperState extends ConsumerState<Wrapper> {
 
   @override
   Widget build(BuildContext context) {
-    print("wrapper init 2");
 
     UserAccessState userAccessState = ref.watch(userAccessProvider);
 
@@ -41,7 +39,7 @@ class WrapperState extends ConsumerState<Wrapper> {
       case UserAccessGrantedState:
         // return Container(color: Colors.green);
         return Home(
-          userId: (userAccessState as UserAccessGrantedState).user.id.toInt()
+          user: (userAccessState as UserAccessGrantedState).user,
         );
       // case UserAccessDeniedState:
       default:

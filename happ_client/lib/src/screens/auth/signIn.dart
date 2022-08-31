@@ -57,7 +57,7 @@ class SignInWidgetState extends ConsumerState<SignIn> {
     ref.listen<SignInState>(signInProvider, ((previous, state) {
       if (state is SignInDoneState) {
         if (state.signInRes.errors == null) {
-          final user = UserTypesConverter().convertSignUserToUserAccessUser(state.signInRes.user!);
+          final user = UserTypesConverter().convertToUserAccessUser(state.signInRes.user!);
           ref.read(userAccessProvider.notifier).signUserIn(user);
           context.go('/');
         }

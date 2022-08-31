@@ -1,28 +1,42 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/riverpod/search/search.dart';
 import 'package:happ_client/src/utils/buttons/changeOnTap.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
+import 'package:uuid/uuid.dart';
 
 class SearchBar extends ConsumerStatefulWidget {
-  const SearchBar({Key? key}) : super(key: key);
+  const SearchBar({
+    Key? key
+  }) : super(key: key);
 
   @override
   ConsumerState<SearchBar> createState() => _SearchBarState();
 }
 
 class _SearchBarState extends ConsumerState<SearchBar> {
-  TextEditingController _textEditingController = TextEditingController();
-  FocusNode _focusNode = FocusNode();
+  final TextEditingController _textEditingController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      FocusScope.of(context).requestFocus(_focusNode);
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _textEditingController.dispose();
+    _focusNode.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      // color: Colors.red,
-      // padding: EdgeInsets.symmetric(horizontal: 12),
       height: 45,
       child: Row(
         children: [
@@ -30,25 +44,25 @@ class _SearchBarState extends ConsumerState<SearchBar> {
             child: Container(
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(20),
               ),
               height: 40,
               child: Row(
                 children: [
-                  FloatingActions(
+                  const FloatingActions(
                     icon: EvaIcons.searchOutline,
                     size: 28,
-                    color: Colors.grey[800]!,
-                    padding: const EdgeInsets.symmetric(
+                    color: Colors.black,
+                    padding: EdgeInsets.symmetric(
                       horizontal: 8,
                     ),
-                    key: const Key("searchBarIcon")
+                    key: Key("searchBarIcon")
                   ),
                   Expanded(
                     child: TextField(
                       textInputAction: TextInputAction.done,
-                      // focusNode: _focusNode,
+                      focusNode:  _focusNode,
                       controller: _textEditingController,
                       // cursorColor: Colors.black,
                       textAlignVertical: TextAlignVertical.center,
@@ -66,7 +80,7 @@ class _SearchBarState extends ConsumerState<SearchBar> {
                         contentPadding: const EdgeInsets.only(right: 8),
                         hintText: 'Search',
                         hintStyle: TextStyle(
-                          color: Colors.grey[600],
+                          color: Colors.grey[500],
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           height: 1.25
@@ -75,17 +89,6 @@ class _SearchBarState extends ConsumerState<SearchBar> {
                       ),
                       onChanged: (values) { 
                         ref.read(searchProvider.notifier).searchUsers(values);
-                        // if (values.length <= 0) {
-                        //   BlocProvider.of<CommentsOrUsersCubit>(context).setUsers(widget.id);
-                        // } else {
-                        //   BlocProvider.of<CommentsOrUsersCubit>(context).setComments(widget.id);
-                        // }
-                        // BlocProvider.of<SearchBloc>(context).add(
-                        //   SearchSubmitEvent(
-                        //     search: values,
-                        //     id: widget.id
-                        //   )
-                        // );
                       },
                     ),
                   ),
@@ -93,74 +96,44 @@ class _SearchBarState extends ConsumerState<SearchBar> {
               ),
             ),
           ),
-          // if (widget.focusState is TextFocusState)
           GestureDetector(
-            // onTap
-            onTapDown: (_) {
-              print("down");
-            },
-            onTapUp: (_) {
-              print("up");
-            },
             onTap: () {
-              print("aaaaa");
               _textEditingController.clear();
               FocusScope.of(context).unfocus();
-              // if ()
-              // BlocProvider.of<CommentsOrUsersCubit>(context).setUsers(widget.id);
-              // BlocProvider.of<SearchBloc>(context).add(
-              //   SearchSubmitEvent(
-              //     search: '',
-              //     id: widget.id
-              //   )
-              // );
-              // // BlocProvider.of<TextFocusUnfocusCubit>(context).focusUnfocus(false);
-              // Navigator.pop(context);
             },
-            child: 
-            // Builder(
-            //   builder: (context) {
-            //     Widget widget = 
-            //   }
-            // )
+            child:
             CustomGestureDetector(
               prevWidget: Container(
                 padding: const EdgeInsets.only(right: 8),
-                child:
-                const Text(
+                key: ValueKey<String>(const Uuid().v4()),
+                child: const Text(
                   "Cancel",
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 16,
                     fontWeight: FontWeight.w600
                   )
-                )
+                ),
               ),
               afterWidget: Container(
                 padding: const EdgeInsets.only(right: 8),
-                child:
-                Text(
+                key: ValueKey<String>(const Uuid().v4()),
+                child: Text(
                   "Cancel",
                   style: TextStyle(
-                    color: Colors.grey[600],
+                    color: Colors.grey[700],
                     fontSize: 16,
                     fontWeight: FontWeight.w600
                   )
                 )
               ),
+              onTap: () {
+                _textEditingController.clear();
+                FocusScope.of(context).unfocus();
+                Navigator.pop(context);
+              },
+              key: widget.key ?? const Key("cancelButton_searchBar")
             )
-            Container(
-              padding: const EdgeInsets.only(right: 8),
-              child:
-              const Text(
-                "Cancel",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600
-                )
-              )
-            ),
           )
         ],
       )

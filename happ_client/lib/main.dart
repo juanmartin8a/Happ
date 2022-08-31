@@ -1,13 +1,17 @@
+import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/client/customLink.dart';
 import 'package:happ_client/src/screens/auth/signIn.dart';
 import 'package:happ_client/src/screens/auth/signUp.dart';
+import 'package:happ_client/src/screens/profile/profile.dart';
 import 'package:happ_client/src/screens/search/search.dart';
 import 'package:happ_client/src/utils/jwt.dart';
+import 'package:happ_client/src/utils/user/userTypesConverter.dart';
 import 'package:happ_client/src/wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 import 'src/client/client.dart';
 
 void main() async {
@@ -89,25 +93,17 @@ class MyApp extends ConsumerWidget {
         path: '/sign_up',
         builder: (BuildContext context, GoRouterState state) => const SignUp(),
       ),
-      // GoRoute(
-      //   path: '/search',
-      //   pageBuilder: (context, state) =>  MaterialPageRoute(
-          
-      //     // fullscreenDialog: false,
-      //     builder: (context) => Search(),
-      //   ),
-      //   // builder: (BuildContext context, GoRouterState state) => const SignUp(),
-      // ),
-      // GoRoute(
-      //   path: '/:id',
-      //   builder: (context, state) {
-      //     // use state.params to get router parameter values
-      //     //final family = Families.family(state.params['fid']!);
-      //     final id = state.params['id'];
+      GoRoute(
+        path: '/profile',
+        builder: (BuildContext context, GoRouterState state) {
+          final userAccessUser = UserTypesConverter().convertToUserAccessUser(state.extra);
 
-      //     return MovieDetails(id: id.toString());
-      //   },
-      // ),
+          return Profile(
+            user: userAccessUser,
+            key: Key("user_id_${userAccessUser.id}")
+          );
+        }
+      ),
     ],
   );
 }

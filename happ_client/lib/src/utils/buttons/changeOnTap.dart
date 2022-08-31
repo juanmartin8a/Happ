@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 class CustomGestureDetector extends StatefulWidget {
@@ -18,29 +19,38 @@ class CustomGestureDetector extends StatefulWidget {
 class _CustomGestureDetectorState extends State<CustomGestureDetector> {
 
   bool onTapDown = false;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) {
-        setOnTapVar(true);
+        if (!isLoading) {
+          isLoading = true;
+          setOnTapVar(true);
+        }
       },
       onTapUp: (_) {
-        setOnTapVar(false);
+        Future.delayed(const Duration(milliseconds: 250), () {
+          isLoading = false;
+          setOnTapVar(false);
+        });
       },
       onTap: () {
         widget.onTap();
       },
       child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 50),
         child: onTapDown ? widget.afterWidget : widget.prevWidget
       )
     );
   }
 
   void setOnTapVar(bool val) {
-    setState(() {
-      onTapDown = val;
-    });
+    if (mounted) {
+      setState(() {
+        onTapDown = val;
+      });
+    }
   }
 }

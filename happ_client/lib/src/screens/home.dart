@@ -1,30 +1,33 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/screens/profile/profile.dart';
 import 'package:happ_client/src/screens/search/search.dart';
 import 'package:uuid/uuid.dart';
 
 class Home extends StatelessWidget {
-  final int userId;
+  final UserAccess$Query$User user;
   const Home({
-    required this.userId,
+    required this.user,
     Key? key
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final statusBar = MediaQuery.of(context).viewPadding.top;
-    return Material(
-      child: Stack(
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      body: Stack(
         children: [
           Center(
             child: PageView(
               children: [
                 Container(color: Colors.blue),
                 Profile(
-                  userId: userId,
-                  key: Key("user_id_$userId-${const Uuid().v4()}}")
+                  // userId: userId,
+                  user: user,
+                  key: Key("user_id_${user.id}")
                 ),
               ],
             )
@@ -54,13 +57,14 @@ class Home extends StatelessWidget {
                     const Spacer(),
                     GestureDetector(
                       onTap: () {
-                        showDialog(
+                        showGeneralDialog(
                           context: context,
-                          barrierDismissible: true,
-                          useSafeArea: false,
-                          barrierColor: Colors.black38,
-                          builder: (context) {
-                            return Search();
+                          // barrierDismissible: true,
+                          // useSafeArea: false,
+                          barrierColor: Colors.transparent,
+                          transitionDuration: const Duration(milliseconds: 200),
+                          pageBuilder: (context, anim1, anim2) {
+                            return Search(key: Key(const Uuid().v4()));
                           }
                         );
                       },

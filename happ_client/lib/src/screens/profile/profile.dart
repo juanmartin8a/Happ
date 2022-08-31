@@ -1,16 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/profile/profile.dart';
 import 'package:happ_client/src/riverpod/profile/profileState.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
 import 'package:uuid/uuid.dart';
 
 class Profile extends ConsumerStatefulWidget {
-  final int userId;
+  // final int userId;
+  final UserAccess$Query$User user;
   const Profile({
-    required this.userId,
-    required Key key
+    // required this.userId,
+    required this.user,
+    required Key key,
   }) : super(key: key);
 
   @override
@@ -21,17 +24,23 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
 
   String uuid = const Uuid().v4();
 
+  late int id;
+  late String username;
+  late String name;
+
   @override
   void initState() {
     super.initState();
-    // print("hello");
-    ref.read(profileProvider("userId:${widget.userId}_uuid:$uuid").notifier).getUser(widget.userId);
+    id = widget.user.id.toInt();
+    username = widget.user.username;
+    name = widget.user.name;
+    ref.read(profileProvider("userId:${widget.user.id}_uuid:$uuid").notifier).getUser(id);
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final profile = ref.watch(profileProvider("userId:${widget.userId}_uuid:$uuid"));
+    final profile = ref.watch(profileProvider("userId:${widget.user.id}_uuid:$uuid"));
 
     bool isLoading = false;
     bool hasError = false;
@@ -40,7 +49,12 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
       isLoading = true;
     } else if (profile is ProfileErrorState) {
       hasError = true;
+    } else if (profile is ProfileLoadedState) {
+      name = profile.user.name;
+      username = profile.user.username;
+      id = profile.user.id.toInt();
     }
+
 
     return Material(
       child: SafeArea(
@@ -70,14 +84,14 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                           padding: const EdgeInsets.only(left: 8),
                           color: Colors.grey[800]!,
                           size: 36,
-                          key: Key("goBack_${widget.userId}")
+                          key: Key("goBack_${widget.user.id.toInt()}")
                         )
                       ),
                       Center(
                         child: Text(
-                          isLoading || hasError
+                          hasError
                             ? "" 
-                            : (profile as ProfileLoadedState).user.username,
+                            : username,
                           style: TextStyle(
                             color: Colors.grey[800]!,
                             fontSize: 18,
@@ -91,7 +105,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                 ),
               ),
             ),
-            if (isLoading != true)
+            // if (isLoading != true)
             Expanded(
               child: hasError
               ? Container(
@@ -126,7 +140,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                       ),
                     ),
                     Text(
-                      (profile as ProfileLoadedState).user.name,
+                      name,
                       style: TextStyle(
                         color: Colors.grey[800]!,
                         fontSize: 20,
