@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 	"happ/ent"
+	"happ/ent/follow"
+	"happ/ent/friendship"
 	"happ/ent/predicate"
 	"happ/ent/user"
 	"happ/graph/generated"
@@ -182,6 +184,131 @@ func (r *mutationResolver) RefreshTokens(ctx context.Context, token string) (*mo
 	tokens := jwtActions.CreateTokens(payload["Id"].(string), token)
 
 	return tokens, nil
+}
+
+// AddOrRemoveUser is the resolver for the addOrRemoveUser field.
+func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int) (*model.AddResponse, error) {
+	userId, _ := utils.GetUserIdFromHeader(ctx)
+
+	// check if follow already exists
+	// if follow exists then delete follow
+	// 	 if there is a friend relationship delete it too
+	// if follow does not exist then create it and if other user follows too then create friendship
+
+	_, err := r.client.Follow.Query().
+		Where(follow.FollowerID(*userId)).
+		Where(follow.UserID(followUserID)).
+		Only(ctx)
+
+	// if error == nil then it means there is no error
+	if err == nil {
+		// if exists then it means user is unfollowing
+		// if friend relationship exists remove it
+		_, err = r.client.Friendship.Query().
+			Where(
+				friendship.And(
+					friendship.Or(
+						friendship.FriendID(*userId), friendship.UserID(*userId),
+					),
+					friendship.Or(
+						friendship.FriendID(followUserID), friendship.UserID(followUserID),
+					),
+				),
+			).
+			// Where(friendship.Or(friendship.FriendID(followUserID), friendship.UserID(followUserID))).
+			Only(ctx)
+
+		tx, _ := r.client.Tx(ctx)
+
+		if err == nil {
+			// if there is friend relationship then delete it
+			_, err = tx.Friendship.
+				Delete().
+				Where(
+					friendship.And(
+						friendship.Or(
+							friendship.FriendID(*userId), friendship.UserID(*userId),
+						),
+						friendship.Or(
+							friendship.FriendID(followUserID), friendship.UserID(followUserID),
+						),
+					),
+				).
+				Exec(ctx)
+			if err != nil {
+				tx.Rollback()
+				return &model.AddResponse{
+					Value:    0,
+					IsFriend: false,
+				}, nil
+			}
+		}
+		_, err = tx.Follow.
+			Delete().
+			Where(
+				follow.And(
+					follow.FollowerID(*userId),
+					follow.UserID(followUserID),
+				),
+			).
+			// DeleteOne(followRes).
+			Exec(ctx)
+		if err != nil {
+			tx.Rollback()
+			return &model.AddResponse{
+				Value:    0,
+				IsFriend: false,
+			}, nil
+		}
+		tx.Commit()
+
+		return &model.AddResponse{
+			Value:    -1,
+			IsFriend: false,
+		}, nil
+	}
+	// if it does not exist create it and if the other user follows too crete friend relationship
+
+	_, err = r.client.Follow.Query().
+		Where(follow.FollowerID(followUserID)).
+		Where(follow.UserID(*userId)).
+		Only(ctx)
+
+	tx, _ := r.client.Tx(ctx)
+
+	if err == nil {
+		// if other user follows then create friend relationship
+		_, err = tx.Friendship.Create().
+			SetFriendID(*userId).
+			SetUserID(followUserID).
+			Save(ctx)
+		if err != nil {
+			tx.Rollback()
+			return &model.AddResponse{
+				Value:    0,
+				IsFriend: true,
+			}, nil
+		}
+	}
+
+	_, err = tx.Follow.Create().
+		SetFollowerID(*userId).
+		SetUserID(followUserID).
+		Save(ctx)
+	if err != nil {
+		tx.Rollback()
+		return &model.AddResponse{
+			Value:    0,
+			IsFriend: true,
+		}, nil
+	}
+
+	tx.Commit()
+
+	return &model.AddResponse{
+		Value:    1,
+		IsFriend: true,
+	}, nil
 }
 
 // User is the resolver for the user field.

@@ -33,6 +33,7 @@ func createDBSchema(client *ent.Client) {
 	ctx := context.Background()
 	if err := client.Schema.Create(
 		ctx,
+		// migrate
 		migrate.WithDropIndex(true),
 		migrate.WithDropColumn(true),
 		migrate.WithForeignKeys(false),

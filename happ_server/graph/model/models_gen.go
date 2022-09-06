@@ -6,6 +6,11 @@ import (
 	"happ/ent"
 )
 
+type AddResponse struct {
+	Value    int  `json:"value"`
+	IsFriend bool `json:"isFriend"`
+}
+
 type ErrorResponse struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`

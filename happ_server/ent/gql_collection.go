@@ -23,6 +23,37 @@ func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*Us
 
 func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "friends":
+			var (
+				path  = append(path, field.Name)
+				query = &UserQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.withFriends = query
+		case "followers":
+			var (
+				path  = append(path, field.Name)
+				query = &UserQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.withFollowers = query
+		case "following":
+			var (
+				path  = append(path, field.Name)
+				query = &UserQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.withFollowing = query
+		}
+	}
 	return nil
 }
 

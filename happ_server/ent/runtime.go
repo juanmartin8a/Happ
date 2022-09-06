@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"happ/ent/follow"
+	"happ/ent/friendship"
 	"happ/ent/schema"
 	"happ/ent/user"
 	"time"
@@ -12,6 +14,18 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	followFields := schema.Follow{}.Fields()
+	_ = followFields
+	// followDescCreatedAt is the schema descriptor for created_at field.
+	followDescCreatedAt := followFields[2].Descriptor()
+	// follow.DefaultCreatedAt holds the default value on creation for the created_at field.
+	follow.DefaultCreatedAt = followDescCreatedAt.Default.(func() time.Time)
+	friendshipFields := schema.Friendship{}.Fields()
+	_ = friendshipFields
+	// friendshipDescCreatedAt is the schema descriptor for created_at field.
+	friendshipDescCreatedAt := friendshipFields[2].Descriptor()
+	// friendship.DefaultCreatedAt holds the default value on creation for the created_at field.
+	friendship.DefaultCreatedAt = friendshipDescCreatedAt.Default.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescName is the schema descriptor for name field.

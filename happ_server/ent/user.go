@@ -30,6 +30,73 @@ type User struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges UserEdges `json:"edges"`
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Friends holds the value of the friends edge.
+	Friends []*User `json:"friends,omitempty"`
+	// Followers holds the value of the followers edge.
+	Followers []*User `json:"followers,omitempty"`
+	// Following holds the value of the following edge.
+	Following []*User `json:"following,omitempty"`
+	// Friendships holds the value of the friendships edge.
+	Friendships []*Friendship `json:"friendships,omitempty"`
+	// Follow holds the value of the follow edge.
+	Follow []*Follow `json:"follow,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [5]bool
+	// totalCount holds the count of the edges above.
+	totalCount [3]*int
+}
+
+// FriendsOrErr returns the Friends value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FriendsOrErr() ([]*User, error) {
+	if e.loadedTypes[0] {
+		return e.Friends, nil
+	}
+	return nil, &NotLoadedError{edge: "friends"}
+}
+
+// FollowersOrErr returns the Followers value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FollowersOrErr() ([]*User, error) {
+	if e.loadedTypes[1] {
+		return e.Followers, nil
+	}
+	return nil, &NotLoadedError{edge: "followers"}
+}
+
+// FollowingOrErr returns the Following value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FollowingOrErr() ([]*User, error) {
+	if e.loadedTypes[2] {
+		return e.Following, nil
+	}
+	return nil, &NotLoadedError{edge: "following"}
+}
+
+// FriendshipsOrErr returns the Friendships value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FriendshipsOrErr() ([]*Friendship, error) {
+	if e.loadedTypes[3] {
+		return e.Friendships, nil
+	}
+	return nil, &NotLoadedError{edge: "friendships"}
+}
+
+// FollowOrErr returns the Follow value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FollowOrErr() ([]*Follow, error) {
+	if e.loadedTypes[4] {
+		return e.Follow, nil
+	}
+	return nil, &NotLoadedError{edge: "follow"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -109,6 +176,31 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryFriends queries the "friends" edge of the User entity.
+func (u *User) QueryFriends() *UserQuery {
+	return (&UserClient{config: u.config}).QueryFriends(u)
+}
+
+// QueryFollowers queries the "followers" edge of the User entity.
+func (u *User) QueryFollowers() *UserQuery {
+	return (&UserClient{config: u.config}).QueryFollowers(u)
+}
+
+// QueryFollowing queries the "following" edge of the User entity.
+func (u *User) QueryFollowing() *UserQuery {
+	return (&UserClient{config: u.config}).QueryFollowing(u)
+}
+
+// QueryFriendships queries the "friendships" edge of the User entity.
+func (u *User) QueryFriendships() *FriendshipQuery {
+	return (&UserClient{config: u.config}).QueryFriendships(u)
+}
+
+// QueryFollow queries the "follow" edge of the User entity.
+func (u *User) QueryFollow() *FollowQuery {
+	return (&UserClient{config: u.config}).QueryFollow(u)
 }
 
 // Update returns a builder for updating this User.

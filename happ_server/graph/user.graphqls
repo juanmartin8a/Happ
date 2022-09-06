@@ -33,6 +33,11 @@ type UserAuthResponse {
   errors: [ErrorResponse!]
 }
 
+type AddResponse {
+  value: Int!
+  isFriend: Boolean!
+}
+
 type Query {
   user(
     username: String!
@@ -59,4 +64,7 @@ type Mutation {
   refreshTokens(
     token: String!
   ): TokenResponse
+  addOrRemoveUser(
+    followUserId: Int!
+  ): AddResponse!
 }

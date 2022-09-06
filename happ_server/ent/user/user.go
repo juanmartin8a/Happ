@@ -25,8 +25,38 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeFriends holds the string denoting the friends edge name in mutations.
+	EdgeFriends = "friends"
+	// EdgeFollowers holds the string denoting the followers edge name in mutations.
+	EdgeFollowers = "followers"
+	// EdgeFollowing holds the string denoting the following edge name in mutations.
+	EdgeFollowing = "following"
+	// EdgeFriendships holds the string denoting the friendships edge name in mutations.
+	EdgeFriendships = "friendships"
+	// EdgeFollow holds the string denoting the follow edge name in mutations.
+	EdgeFollow = "follow"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// FriendsTable is the table that holds the friends relation/edge. The primary key declared below.
+	FriendsTable = "friendships"
+	// FollowersTable is the table that holds the followers relation/edge. The primary key declared below.
+	FollowersTable = "follows"
+	// FollowingTable is the table that holds the following relation/edge. The primary key declared below.
+	FollowingTable = "user_following"
+	// FriendshipsTable is the table that holds the friendships relation/edge.
+	FriendshipsTable = "friendships"
+	// FriendshipsInverseTable is the table name for the Friendship entity.
+	// It exists in this package in order to avoid circular dependency with the "friendship" package.
+	FriendshipsInverseTable = "friendships"
+	// FriendshipsColumn is the table column denoting the friendships relation/edge.
+	FriendshipsColumn = "user_id"
+	// FollowTable is the table that holds the follow relation/edge.
+	FollowTable = "follows"
+	// FollowInverseTable is the table name for the Follow entity.
+	// It exists in this package in order to avoid circular dependency with the "follow" package.
+	FollowInverseTable = "follows"
+	// FollowColumn is the table column denoting the follow relation/edge.
+	FollowColumn = "follower_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -40,6 +70,18 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
+
+var (
+	// FriendsPrimaryKey and FriendsColumn2 are the table columns denoting the
+	// primary key for the friends relation (M2M).
+	FriendsPrimaryKey = []string{"user_id", "friend_id"}
+	// FollowersPrimaryKey and FollowersColumn2 are the table columns denoting the
+	// primary key for the followers relation (M2M).
+	FollowersPrimaryKey = []string{"user_id", "follower_id"}
+	// FollowingPrimaryKey and FollowingColumn2 are the table columns denoting the
+	// primary key for the following relation (M2M).
+	FollowingPrimaryKey = []string{"user_id", "follower_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

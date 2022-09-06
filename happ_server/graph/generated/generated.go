@@ -46,16 +46,22 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AddResponse struct {
+		IsFriend func(childComplexity int) int
+		Value    func(childComplexity int) int
+	}
+
 	ErrorResponse struct {
 		Field   func(childComplexity int) int
 		Message func(childComplexity int) int
 	}
 
 	Mutation struct {
-		RefreshTokens func(childComplexity int, token string) int
-		SignIn        func(childComplexity int, input model.SignInInput) int
-		SignOut       func(childComplexity int, token string) int
-		SignUp        func(childComplexity int, input model.SignUpInput) int
+		AddOrRemoveUser func(childComplexity int, followUserID int) int
+		RefreshTokens   func(childComplexity int, token string) int
+		SignIn          func(childComplexity int, input model.SignInInput) int
+		SignOut         func(childComplexity int, token string) int
+		SignUp          func(childComplexity int, input model.SignUpInput) int
 	}
 
 	Query struct {
@@ -93,6 +99,7 @@ type MutationResolver interface {
 	SignIn(ctx context.Context, input model.SignInInput) (*model.UserAuthResponse, error)
 	SignOut(ctx context.Context, token string) (bool, error)
 	RefreshTokens(ctx context.Context, token string) (*model.TokenResponse, error)
+	AddOrRemoveUser(ctx context.Context, followUserID int) (*model.AddResponse, error)
 }
 type QueryResolver interface {
 	User(ctx context.Context, username string) (*ent.User, error)
@@ -122,6 +129,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "AddResponse.isFriend":
+		if e.complexity.AddResponse.IsFriend == nil {
+			break
+		}
+
+		return e.complexity.AddResponse.IsFriend(childComplexity), true
+
+	case "AddResponse.value":
+		if e.complexity.AddResponse.Value == nil {
+			break
+		}
+
+		return e.complexity.AddResponse.Value(childComplexity), true
+
 	case "ErrorResponse.field":
 		if e.complexity.ErrorResponse.Field == nil {
 			break
@@ -135,6 +156,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorResponse.Message(childComplexity), true
+
+	case "Mutation.addOrRemoveUser":
+		if e.complexity.Mutation.AddOrRemoveUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addOrRemoveUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddOrRemoveUser(childComplexity, args["followUserId"].(int)), true
 
 	case "Mutation.refreshTokens":
 		if e.complexity.Mutation.RefreshTokens == nil {
@@ -427,6 +460,11 @@ type UserAuthResponse {
   errors: [ErrorResponse!]
 }
 
+type AddResponse {
+  value: Int!
+  isFriend: Boolean!
+}
+
 type Query {
   user(
     username: String!
@@ -453,6 +491,9 @@ type Mutation {
   refreshTokens(
     token: String!
   ): TokenResponse
+  addOrRemoveUser(
+    followUserId: Int!
+  ): AddResponse!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -460,6 +501,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_addOrRemoveUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["followUserId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("followUserId"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["followUserId"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_refreshTokens_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -618,6 +674,94 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _AddResponse_value(ctx context.Context, field graphql.CollectedField, obj *model.AddResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AddResponse_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AddResponse_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AddResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AddResponse_isFriend(ctx context.Context, field graphql.CollectedField, obj *model.AddResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AddResponse_isFriend(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsFriend, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AddResponse_isFriend(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AddResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _ErrorResponse_field(ctx context.Context, field graphql.CollectedField, obj *model.ErrorResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ErrorResponse_field(ctx, field)
@@ -934,6 +1078,67 @@ func (ec *executionContext) fieldContext_Mutation_refreshTokens(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_refreshTokens_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addOrRemoveUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addOrRemoveUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddOrRemoveUser(rctx, fc.Args["followUserId"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.AddResponse)
+	fc.Result = res
+	return ec.marshalNAddResponse2ᚖhappᚋgraphᚋmodelᚐAddResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addOrRemoveUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "value":
+				return ec.fieldContext_AddResponse_value(ctx, field)
+			case "isFriend":
+				return ec.fieldContext_AddResponse_isFriend(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AddResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addOrRemoveUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3811,6 +4016,41 @@ func (ec *executionContext) unmarshalInputSignUpInput(ctx context.Context, obj i
 
 // region    **************************** object.gotpl ****************************
 
+var addResponseImplementors = []string{"AddResponse"}
+
+func (ec *executionContext) _AddResponse(ctx context.Context, sel ast.SelectionSet, obj *model.AddResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, addResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AddResponse")
+		case "value":
+
+			out.Values[i] = ec._AddResponse_value(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isFriend":
+
+			out.Values[i] = ec._AddResponse_isFriend(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var errorResponseImplementors = []string{"ErrorResponse"}
 
 func (ec *executionContext) _ErrorResponse(ctx context.Context, sel ast.SelectionSet, obj *model.ErrorResponse) graphql.Marshaler {
@@ -3892,6 +4132,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_refreshTokens(ctx, field)
 			})
 
+		case "addOrRemoveUser":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addOrRemoveUser(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4529,6 +4778,20 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) marshalNAddResponse2happᚋgraphᚋmodelᚐAddResponse(ctx context.Context, sel ast.SelectionSet, v model.AddResponse) graphql.Marshaler {
+	return ec._AddResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAddResponse2ᚖhappᚋgraphᚋmodelᚐAddResponse(ctx context.Context, sel ast.SelectionSet, v *model.AddResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AddResponse(ctx, sel, v)
+}
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)

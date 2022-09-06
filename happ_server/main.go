@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"happ/config"
 	"happ/database"
+	"happ/ent/migrate"
 	"happ/graph"
 	customMiddleware "happ/middleware"
 	meilisearchUtils "happ/utils/meilisearch"
@@ -44,7 +45,7 @@ func main() {
 		ctx,
 		// migrate.WithDropIndex(true),
 		// migrate.WithDropColumn(true),
-		// migrate.WithForeignKeys(false),
+		migrate.WithForeignKeys(false),
 	); err != nil {
 		log.Fatal("opening ent client", err)
 	}

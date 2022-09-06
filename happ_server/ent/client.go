@@ -9,10 +9,13 @@ import (
 
 	"happ/ent/migrate"
 
+	"happ/ent/follow"
+	"happ/ent/friendship"
 	"happ/ent/user"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -20,6 +23,10 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Follow is the client for interacting with the Follow builders.
+	Follow *FollowClient
+	// Friendship is the client for interacting with the Friendship builders.
+	Friendship *FriendshipClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// additional fields for node api
@@ -37,6 +44,8 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Follow = NewFollowClient(c.config)
+	c.Friendship = NewFriendshipClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -69,9 +78,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		User:   NewUserClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		Follow:     NewFollowClient(cfg),
+		Friendship: NewFriendshipClient(cfg),
+		User:       NewUserClient(cfg),
 	}, nil
 }
 
@@ -89,16 +100,18 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		User:   NewUserClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		Follow:     NewFollowClient(cfg),
+		Friendship: NewFriendshipClient(cfg),
+		User:       NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		User.
+//		Follow.
 //		Query().
 //		Count(ctx)
 //
@@ -121,7 +134,155 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Follow.Use(hooks...)
+	c.Friendship.Use(hooks...)
 	c.User.Use(hooks...)
+}
+
+// FollowClient is a client for the Follow schema.
+type FollowClient struct {
+	config
+}
+
+// NewFollowClient returns a client for the Follow from the given config.
+func NewFollowClient(c config) *FollowClient {
+	return &FollowClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `follow.Hooks(f(g(h())))`.
+func (c *FollowClient) Use(hooks ...Hook) {
+	c.hooks.Follow = append(c.hooks.Follow, hooks...)
+}
+
+// Create returns a builder for creating a Follow entity.
+func (c *FollowClient) Create() *FollowCreate {
+	mutation := newFollowMutation(c.config, OpCreate)
+	return &FollowCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Follow entities.
+func (c *FollowClient) CreateBulk(builders ...*FollowCreate) *FollowCreateBulk {
+	return &FollowCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Follow.
+func (c *FollowClient) Update() *FollowUpdate {
+	mutation := newFollowMutation(c.config, OpUpdate)
+	return &FollowUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FollowClient) UpdateOne(f *Follow) *FollowUpdateOne {
+	mutation := newFollowMutation(c.config, OpUpdateOne)
+	mutation.user = &f.UserID
+	mutation.follower = &f.FollowerID
+	return &FollowUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Follow.
+func (c *FollowClient) Delete() *FollowDelete {
+	mutation := newFollowMutation(c.config, OpDelete)
+	return &FollowDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Query returns a query builder for Follow.
+func (c *FollowClient) Query() *FollowQuery {
+	return &FollowQuery{
+		config: c.config,
+	}
+}
+
+// QueryUser queries the user edge of a Follow.
+func (c *FollowClient) QueryUser(f *Follow) *UserQuery {
+	return c.Query().
+		Where(follow.UserID(f.UserID), follow.FollowerID(f.FollowerID)).
+		QueryUser()
+}
+
+// QueryFollower queries the follower edge of a Follow.
+func (c *FollowClient) QueryFollower(f *Follow) *UserQuery {
+	return c.Query().
+		Where(follow.UserID(f.UserID), follow.FollowerID(f.FollowerID)).
+		QueryFollower()
+}
+
+// Hooks returns the client hooks.
+func (c *FollowClient) Hooks() []Hook {
+	return c.hooks.Follow
+}
+
+// FriendshipClient is a client for the Friendship schema.
+type FriendshipClient struct {
+	config
+}
+
+// NewFriendshipClient returns a client for the Friendship from the given config.
+func NewFriendshipClient(c config) *FriendshipClient {
+	return &FriendshipClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `friendship.Hooks(f(g(h())))`.
+func (c *FriendshipClient) Use(hooks ...Hook) {
+	c.hooks.Friendship = append(c.hooks.Friendship, hooks...)
+}
+
+// Create returns a builder for creating a Friendship entity.
+func (c *FriendshipClient) Create() *FriendshipCreate {
+	mutation := newFriendshipMutation(c.config, OpCreate)
+	return &FriendshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Friendship entities.
+func (c *FriendshipClient) CreateBulk(builders ...*FriendshipCreate) *FriendshipCreateBulk {
+	return &FriendshipCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Friendship.
+func (c *FriendshipClient) Update() *FriendshipUpdate {
+	mutation := newFriendshipMutation(c.config, OpUpdate)
+	return &FriendshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FriendshipClient) UpdateOne(f *Friendship) *FriendshipUpdateOne {
+	mutation := newFriendshipMutation(c.config, OpUpdateOne)
+	mutation.user = &f.UserID
+	mutation.friend = &f.FriendID
+	return &FriendshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Friendship.
+func (c *FriendshipClient) Delete() *FriendshipDelete {
+	mutation := newFriendshipMutation(c.config, OpDelete)
+	return &FriendshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Query returns a query builder for Friendship.
+func (c *FriendshipClient) Query() *FriendshipQuery {
+	return &FriendshipQuery{
+		config: c.config,
+	}
+}
+
+// QueryUser queries the user edge of a Friendship.
+func (c *FriendshipClient) QueryUser(f *Friendship) *UserQuery {
+	return c.Query().
+		Where(friendship.UserID(f.UserID), friendship.FriendID(f.FriendID)).
+		QueryUser()
+}
+
+// QueryFriend queries the friend edge of a Friendship.
+func (c *FriendshipClient) QueryFriend(f *Friendship) *UserQuery {
+	return c.Query().
+		Where(friendship.UserID(f.UserID), friendship.FriendID(f.FriendID)).
+		QueryFriend()
+}
+
+// Hooks returns the client hooks.
+func (c *FriendshipClient) Hooks() []Hook {
+	return c.hooks.Friendship
 }
 
 // UserClient is a client for the User schema.
@@ -207,6 +368,86 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryFriends queries the friends edge of a User.
+func (c *UserClient) QueryFriends(u *User) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.FriendsTable, user.FriendsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFollowers queries the followers edge of a User.
+func (c *UserClient) QueryFollowers(u *User) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.FollowersTable, user.FollowersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFollowing queries the following edge of a User.
+func (c *UserClient) QueryFollowing(u *User) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.FollowingTable, user.FollowingPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFriendships queries the friendships edge of a User.
+func (c *UserClient) QueryFriendships(u *User) *FriendshipQuery {
+	query := &FriendshipQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(friendship.Table, friendship.UserColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.FriendshipsTable, user.FriendshipsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFollow queries the follow edge of a User.
+func (c *UserClient) QueryFollow(u *User) *FollowQuery {
+	query := &FollowQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(follow.Table, follow.FollowerColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.FollowTable, user.FollowColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
