@@ -123,4 +123,20 @@ class UserRepo {
     }
   }
 
+  Future<AddOrRemoveUser$Mutation$AddResponse> addOrRemoveUser(
+    int followUserId
+  ) async {
+    final result = await client.mutate(
+      UserOptions().addOrRemoveUserMutationOptions(followUserId)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return AddOrRemoveUser$Mutation$AddResponse.fromJson(
+        (result.data as Map<String, dynamic>)["addOrRemoveUser"]
+      );
+    }
+  }
+
 }

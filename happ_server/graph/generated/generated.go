@@ -47,8 +47,9 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	AddResponse struct {
-		IsFriend func(childComplexity int) int
-		Value    func(childComplexity int) int
+		IsFriend  func(childComplexity int) int
+		Unchanged func(childComplexity int) int
+		Value     func(childComplexity int) int
 	}
 
 	ErrorResponse struct {
@@ -135,6 +136,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AddResponse.IsFriend(childComplexity), true
+
+	case "AddResponse.unchanged":
+		if e.complexity.AddResponse.Unchanged == nil {
+			break
+		}
+
+		return e.complexity.AddResponse.Unchanged(childComplexity), true
 
 	case "AddResponse.value":
 		if e.complexity.AddResponse.Value == nil {
@@ -462,6 +470,7 @@ type UserAuthResponse {
 
 type AddResponse {
   value: Int!
+  unchanged: Boolean!
   isFriend: Boolean!
 }
 
@@ -714,6 +723,50 @@ func (ec *executionContext) fieldContext_AddResponse_value(ctx context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AddResponse_unchanged(ctx context.Context, field graphql.CollectedField, obj *model.AddResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AddResponse_unchanged(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Unchanged, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AddResponse_unchanged(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AddResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1125,6 +1178,8 @@ func (ec *executionContext) fieldContext_Mutation_addOrRemoveUser(ctx context.Co
 			switch field.Name {
 			case "value":
 				return ec.fieldContext_AddResponse_value(ctx, field)
+			case "unchanged":
+				return ec.fieldContext_AddResponse_unchanged(ctx, field)
 			case "isFriend":
 				return ec.fieldContext_AddResponse_isFriend(ctx, field)
 			}
@@ -4029,6 +4084,13 @@ func (ec *executionContext) _AddResponse(ctx context.Context, sel ast.SelectionS
 		case "value":
 
 			out.Values[i] = ec._AddResponse_value(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "unchanged":
+
+			out.Values[i] = ec._AddResponse_unchanged(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

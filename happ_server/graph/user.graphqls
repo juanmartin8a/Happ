@@ -35,6 +35,7 @@ type UserAuthResponse {
 
 type AddResponse {
   value: Int!
+  unchanged: Boolean!
   isFriend: Boolean!
 }
 

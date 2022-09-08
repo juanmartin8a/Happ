@@ -116,4 +116,20 @@ class UserOptions {
     return queryOptions;
   }
 
+  MutationOptions addOrRemoveUserMutationOptions(int followUserId) {
+    MutationOptions  mutationOptions = MutationOptions(
+      document: AddOrRemoveUserMutation(
+        variables: AddOrRemoveUserArguments(
+          followUserId: followUserId
+        )
+      ).document,
+      variables: {
+        "followUserId": followUserId
+      },
+      fetchPolicy: FetchPolicy.networkOnly
+    );
+
+    return mutationOptions;
+  }
+
 }

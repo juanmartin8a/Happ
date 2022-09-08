@@ -236,10 +236,12 @@ func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int
 				).
 				Exec(ctx)
 			if err != nil {
+				// if it fails deleting friendship return isFriend true again and value of 0
 				tx.Rollback()
 				return &model.AddResponse{
-					Value:    0,
-					IsFriend: false,
+					Value:     1,
+					IsFriend:  true,
+					Unchanged: true,
 				}, nil
 			}
 		}
@@ -256,15 +258,17 @@ func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int
 		if err != nil {
 			tx.Rollback()
 			return &model.AddResponse{
-				Value:    0,
-				IsFriend: false,
+				Value:     1,
+				IsFriend:  false,
+				Unchanged: true,
 			}, nil
 		}
 		tx.Commit()
 
 		return &model.AddResponse{
-			Value:    -1,
-			IsFriend: false,
+			Value:     -1,
+			IsFriend:  false,
+			Unchanged: false,
 		}, nil
 	}
 	// if it does not exist create it and if the other user follows too crete friend relationship
@@ -276,6 +280,8 @@ func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int
 
 	tx, _ := r.client.Tx(ctx)
 
+	var createFriend bool = false
+
 	if err == nil {
 		// if other user follows then create friend relationship
 		_, err = tx.Friendship.Create().
@@ -285,10 +291,12 @@ func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int
 		if err != nil {
 			tx.Rollback()
 			return &model.AddResponse{
-				Value:    0,
-				IsFriend: true,
+				Value:     -1,
+				IsFriend:  false,
+				Unchanged: true,
 			}, nil
 		}
+		createFriend = true
 	}
 
 	_, err = tx.Follow.Create().
@@ -298,16 +306,33 @@ func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int
 	if err != nil {
 		tx.Rollback()
 		return &model.AddResponse{
-			Value:    0,
-			IsFriend: true,
+			Value:     -1,
+			IsFriend:  false,
+			Unchanged: true,
 		}, nil
 	}
 
 	tx.Commit()
 
+	// if error then return value of 0
+	// if remove user return value of -1
+	// if add user return value of 1
+	// if user is friend return friend == true
+	// if user was friend and not friend anymore return friend false and -1
+	// if value is 0 ignore isFriend
+
+	if createFriend {
+		return &model.AddResponse{
+			Value:     1,
+			IsFriend:  true,
+			Unchanged: false,
+		}, nil
+	}
+
 	return &model.AddResponse{
-		Value:    1,
-		IsFriend: true,
+		Value:     1,
+		IsFriend:  false,
+		Unchanged: false,
 	}, nil
 }
 
