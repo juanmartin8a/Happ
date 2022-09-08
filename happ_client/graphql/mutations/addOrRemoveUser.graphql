@@ -1,0 +1,8 @@
+mutation AddOrRemoveUser($followUserId: Int!) {
+  addOrRemoveUser(
+    followUserId: $followUserId
+  ) {
+    value
+    isFriend
+  }
+}

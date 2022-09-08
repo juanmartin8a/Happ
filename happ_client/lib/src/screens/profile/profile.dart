@@ -127,50 +127,152 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
               )
               : Container(
                 color: Colors.transparent,
-                child: Column(
+                child: 
+                Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      padding: const EdgeInsets.only(top: 16),
+                      // color: Colors.yellow,
                       child: Container(
                         height: 120,
                         decoration: const BoxDecoration(
-                          color: Colors.yellow,
+                          color: Colors.red,
                           shape: BoxShape.circle
                         ),
                       ),
                     ),
-                    Text(
-                      name,
-                      style: TextStyle(
-                        color: Colors.grey[800]!,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700
-                      ),
-                    ),
                     const SizedBox(
-                      height: 12
+                      height: 16
                     ),
                     Container(
-                      height: 28,
-                      width: 60,
-                      decoration: BoxDecoration(
-                        // color: Colors.blue,
-                        border: Border.all(color: Colors.grey[800]!, width: 2),
-                        borderRadius: BorderRadius.circular(14)
-                        // shape: BoxShape.circle
-                      ),
-                      child: Center(
-                        child: Text(
-                          "Add",
-                          style: TextStyle(
-                            color: Colors.grey[800]!,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            height: 1
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        // mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Juan Martin",
+                            style: TextStyle(
+                              color: Colors.grey[800]!,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              height: 1,
+                            ),
                           ),
+                          // const SizedBox(
+                          //   height: 16
+                          // ),
+                          // Text(
+                          //   ";)",
+                          //   style: TextStyle(
+                          //     color: Colors.grey[600]!,
+                          //     fontSize: 15,
+                          //     fontWeight: FontWeight.w500,
+                          //     height: 1,
+                          //   ),
+                          // ),
+                          const SizedBox(
+                            height: 16
+                          ),
+                          // Spacer(),
+                          Container(
+                            height: 32,
+                            width: 80,
+                            decoration: BoxDecoration(
+                              // color: Colors.black,
+                              border: Border.all(color: Colors.grey[800]!, width: 2),
+                              borderRadius: BorderRadius.circular(16)
+                              // shape: BoxShape.circle
+                            ),
+                            child:  Center(
+                              child: Text(
+                                "Add",
+                                style: TextStyle(
+                                  color: Colors.grey[800]!,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 16
+                          ),
+                          Text(
+                            ";)",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey[700]!,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                              height: 1,
+                            ),
+                          ),
+                        ],
+                      )
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: MediaQuery.of(context).size.width,
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        "Friends",
+                        style: TextStyle(
+                          color: Colors.grey[800]!,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700
                         ),
                       ),
                     ),
+                    Container(
+                      width: MediaQuery.of(context).size.width,
+                      height: 60,
+                      // padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: ListView.builder(
+                        itemCount: 10,
+                        shrinkWrap: true,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            width: 50,
+                            height: 50,
+                            margin: EdgeInsets.only(
+                              left: index == 0 ? 24 : 8,
+                              // top: 30,
+                              // horizontal: 8
+                            ),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle
+                            ),
+                          );
+                        }
+                      )
+                    ),
+                    // const SizedBox(
+                    //   height: 12
+                    // ),
+                    // Container(
+                    //   height: 28,
+                    //   width: 60,
+                    //   decoration: BoxDecoration(
+                    //     // color: Colors.blue,
+                    //     border: Border.all(color: Colors.grey[800]!, width: 2),
+                    //     borderRadius: BorderRadius.circular(14)
+                    //     // shape: BoxShape.circle
+                    //   ),
+                    //   child: Center(
+                    //     child: Text(
+                    //       "Add",
+                    //       style: TextStyle(
+                    //         color: Colors.grey[800]!,
+                    //         fontSize: 15,
+                    //         fontWeight: FontWeight.w600,
+                    //         height: 1
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 )
               )

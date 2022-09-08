@@ -305,6 +305,31 @@ Map<String, dynamic> _$SearchUsers$QueryToJson(SearchUsers$Query instance) =>
       'searchUsers': instance.searchUsers.map((e) => e.toJson()).toList(),
     };
 
+AddOrRemoveUser$Mutation$AddResponse
+    _$AddOrRemoveUser$Mutation$AddResponseFromJson(Map<String, dynamic> json) =>
+        AddOrRemoveUser$Mutation$AddResponse()
+          ..value = json['value'] as int
+          ..isFriend = json['isFriend'] as bool;
+
+Map<String, dynamic> _$AddOrRemoveUser$Mutation$AddResponseToJson(
+        AddOrRemoveUser$Mutation$AddResponse instance) =>
+    <String, dynamic>{
+      'value': instance.value,
+      'isFriend': instance.isFriend,
+    };
+
+AddOrRemoveUser$Mutation _$AddOrRemoveUser$MutationFromJson(
+        Map<String, dynamic> json) =>
+    AddOrRemoveUser$Mutation()
+      ..addOrRemoveUser = AddOrRemoveUser$Mutation$AddResponse.fromJson(
+          json['addOrRemoveUser'] as Map<String, dynamic>);
+
+Map<String, dynamic> _$AddOrRemoveUser$MutationToJson(
+        AddOrRemoveUser$Mutation instance) =>
+    <String, dynamic>{
+      'addOrRemoveUser': instance.addOrRemoveUser.toJson(),
+    };
+
 RefreshTokensArguments _$RefreshTokensArgumentsFromJson(
         Map<String, dynamic> json) =>
     RefreshTokensArguments(
@@ -358,4 +383,16 @@ Map<String, dynamic> _$SearchUsersArgumentsToJson(
         SearchUsersArguments instance) =>
     <String, dynamic>{
       'search': instance.search,
+    };
+
+AddOrRemoveUserArguments _$AddOrRemoveUserArgumentsFromJson(
+        Map<String, dynamic> json) =>
+    AddOrRemoveUserArguments(
+      followUserId: json['followUserId'] as int,
+    );
+
+Map<String, dynamic> _$AddOrRemoveUserArgumentsToJson(
+        AddOrRemoveUserArguments instance) =>
+    <String, dynamic>{
+      'followUserId': instance.followUserId,
     };

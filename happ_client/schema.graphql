@@ -9,20 +9,38 @@ type User {
   updatedAt: String!
 }
 
-type TokenResponse {
-  refreshToken: String!
-  accessToken: String!
-}
-
 type ErrorResponse {
   field: String!
   message: String!
+}
+
+input SignUpInput {
+  name: String!
+  username: String!
+  email: String!
+  password: String!
+  birthday: String!
+}
+
+input SignInInput {
+  usernameOrEmail: String!
+  password: String!
+}
+
+type TokenResponse {
+  refreshToken: String!
+  accessToken: String!
 }
 
 type UserAuthResponse {
   user: User
   tokens: TokenResponse
   errors: [ErrorResponse!]
+}
+
+type AddResponse {
+  value: Int!
+  isFriend: Boolean!
 }
 
 type Query {
@@ -51,17 +69,7 @@ type Mutation {
   refreshTokens(
     token: String!
   ): TokenResponse
-}
-
-input SignUpInput {
-  name: String!
-  username: String!
-  email: String!
-  password: String!
-  birthday: String!
-}
-
-input SignInInput {
-  usernameOrEmail: String!
-  password: String!
+  addOrRemoveUser(
+    followUserId: Int!
+  ): AddResponse!
 }

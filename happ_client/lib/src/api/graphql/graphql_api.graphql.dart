@@ -390,6 +390,41 @@ class SearchUsers$Query extends JsonSerializable with EquatableMixin {
 }
 
 @JsonSerializable(explicitToJson: true)
+class AddOrRemoveUser$Mutation$AddResponse extends JsonSerializable
+    with EquatableMixin {
+  AddOrRemoveUser$Mutation$AddResponse();
+
+  factory AddOrRemoveUser$Mutation$AddResponse.fromJson(
+          Map<String, dynamic> json) =>
+      _$AddOrRemoveUser$Mutation$AddResponseFromJson(json);
+
+  late int value;
+
+  late bool isFriend;
+
+  @override
+  List<Object?> get props => [value, isFriend];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$AddOrRemoveUser$Mutation$AddResponseToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class AddOrRemoveUser$Mutation extends JsonSerializable with EquatableMixin {
+  AddOrRemoveUser$Mutation();
+
+  factory AddOrRemoveUser$Mutation.fromJson(Map<String, dynamic> json) =>
+      _$AddOrRemoveUser$MutationFromJson(json);
+
+  late AddOrRemoveUser$Mutation$AddResponse addOrRemoveUser;
+
+  @override
+  List<Object?> get props => [addOrRemoveUser];
+  @override
+  Map<String, dynamic> toJson() => _$AddOrRemoveUser$MutationToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
 class RefreshTokensArguments extends JsonSerializable with EquatableMixin {
   RefreshTokensArguments({required this.token});
 
@@ -941,4 +976,81 @@ class SearchUsersQuery
   @override
   SearchUsers$Query parse(Map<String, dynamic> json) =>
       SearchUsers$Query.fromJson(json);
+}
+
+@JsonSerializable(explicitToJson: true)
+class AddOrRemoveUserArguments extends JsonSerializable with EquatableMixin {
+  AddOrRemoveUserArguments({required this.followUserId});
+
+  @override
+  factory AddOrRemoveUserArguments.fromJson(Map<String, dynamic> json) =>
+      _$AddOrRemoveUserArgumentsFromJson(json);
+
+  late int followUserId;
+
+  @override
+  List<Object?> get props => [followUserId];
+  @override
+  Map<String, dynamic> toJson() => _$AddOrRemoveUserArgumentsToJson(this);
+}
+
+final ADD_OR_REMOVE_USER_MUTATION_DOCUMENT_OPERATION_NAME = 'AddOrRemoveUser';
+final ADD_OR_REMOVE_USER_MUTATION_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+      type: OperationType.mutation,
+      name: NameNode(value: 'AddOrRemoveUser'),
+      variableDefinitions: [
+        VariableDefinitionNode(
+            variable: VariableNode(name: NameNode(value: 'followUserId')),
+            type: NamedTypeNode(name: NameNode(value: 'Int'), isNonNull: true),
+            defaultValue: DefaultValueNode(value: null),
+            directives: [])
+      ],
+      directives: [],
+      selectionSet: SelectionSetNode(selections: [
+        FieldNode(
+            name: NameNode(value: 'addOrRemoveUser'),
+            alias: null,
+            arguments: [
+              ArgumentNode(
+                  name: NameNode(value: 'followUserId'),
+                  value: VariableNode(name: NameNode(value: 'followUserId')))
+            ],
+            directives: [],
+            selectionSet: SelectionSetNode(selections: [
+              FieldNode(
+                  name: NameNode(value: 'value'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: null),
+              FieldNode(
+                  name: NameNode(value: 'isFriend'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: null)
+            ]))
+      ]))
+]);
+
+class AddOrRemoveUserMutation
+    extends GraphQLQuery<AddOrRemoveUser$Mutation, AddOrRemoveUserArguments> {
+  AddOrRemoveUserMutation({required this.variables});
+
+  @override
+  final DocumentNode document = ADD_OR_REMOVE_USER_MUTATION_DOCUMENT;
+
+  @override
+  final String operationName =
+      ADD_OR_REMOVE_USER_MUTATION_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final AddOrRemoveUserArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  AddOrRemoveUser$Mutation parse(Map<String, dynamic> json) =>
+      AddOrRemoveUser$Mutation.fromJson(json);
 }
