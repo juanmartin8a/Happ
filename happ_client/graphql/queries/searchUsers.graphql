@@ -3,5 +3,6 @@ query SearchUsers($search: String!) {
     id
     username
     name
+    followState
   }
 }

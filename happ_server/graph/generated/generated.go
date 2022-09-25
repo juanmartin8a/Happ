@@ -47,7 +47,6 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	AddResponse struct {
-		IsFriend  func(childComplexity int) int
 		Unchanged func(childComplexity int) int
 		Value     func(childComplexity int) int
 	}
@@ -58,7 +57,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddOrRemoveUser func(childComplexity int, followUserID int) int
+		AddOrRemoveUser func(childComplexity int, followUserID int, isFollow bool) int
 		RefreshTokens   func(childComplexity int, token string) int
 		SignIn          func(childComplexity int, input model.SignInInput) int
 		SignOut         func(childComplexity int, token string) int
@@ -78,14 +77,15 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		Birthday  func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		Email     func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		Password  func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
-		Username  func(childComplexity int) int
+		Birthday    func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		Email       func(childComplexity int) int
+		FollowState func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Password    func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
+		Username    func(childComplexity int) int
 	}
 
 	UserAuthResponse struct {
@@ -100,7 +100,7 @@ type MutationResolver interface {
 	SignIn(ctx context.Context, input model.SignInInput) (*model.UserAuthResponse, error)
 	SignOut(ctx context.Context, token string) (bool, error)
 	RefreshTokens(ctx context.Context, token string) (*model.TokenResponse, error)
-	AddOrRemoveUser(ctx context.Context, followUserID int) (*model.AddResponse, error)
+	AddOrRemoveUser(ctx context.Context, followUserID int, isFollow bool) (*model.AddResponse, error)
 }
 type QueryResolver interface {
 	User(ctx context.Context, username string) (*ent.User, error)
@@ -111,6 +111,7 @@ type QueryResolver interface {
 type UserResolver interface {
 	Birthday(ctx context.Context, obj *ent.User) (string, error)
 
+	FollowState(ctx context.Context, obj *ent.User) (bool, error)
 	CreatedAt(ctx context.Context, obj *ent.User) (string, error)
 	UpdatedAt(ctx context.Context, obj *ent.User) (string, error)
 }
@@ -129,13 +130,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
-
-	case "AddResponse.isFriend":
-		if e.complexity.AddResponse.IsFriend == nil {
-			break
-		}
-
-		return e.complexity.AddResponse.IsFriend(childComplexity), true
 
 	case "AddResponse.unchanged":
 		if e.complexity.AddResponse.Unchanged == nil {
@@ -175,7 +169,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddOrRemoveUser(childComplexity, args["followUserId"].(int)), true
+		return e.complexity.Mutation.AddOrRemoveUser(childComplexity, args["followUserId"].(int), args["isFollow"].(bool)), true
 
 	case "Mutation.refreshTokens":
 		if e.complexity.Mutation.RefreshTokens == nil {
@@ -302,6 +296,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Email(childComplexity), true
+
+	case "User.followState":
+		if e.complexity.User.FollowState == nil {
+			break
+		}
+
+		return e.complexity.User.FollowState(childComplexity), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -440,6 +441,7 @@ var sources = []*ast.Source{
   email: String!
   birthday: String!
   password: String!
+  followState: Boolean!
   createdAt: String!
   updatedAt: String!
 }
@@ -471,7 +473,7 @@ type UserAuthResponse {
 type AddResponse {
   value: Int!
   unchanged: Boolean!
-  isFriend: Boolean!
+  # isFriend: Boolean!
 }
 
 type Query {
@@ -502,6 +504,7 @@ type Mutation {
   ): TokenResponse
   addOrRemoveUser(
     followUserId: Int!
+    isFollow: Boolean!
   ): AddResponse!
 }`, BuiltIn: false},
 }
@@ -523,6 +526,15 @@ func (ec *executionContext) field_Mutation_addOrRemoveUser_args(ctx context.Cont
 		}
 	}
 	args["followUserId"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["isFollow"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isFollow"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["isFollow"] = arg1
 	return args, nil
 }
 
@@ -760,50 +772,6 @@ func (ec *executionContext) _AddResponse_unchanged(ctx context.Context, field gr
 }
 
 func (ec *executionContext) fieldContext_AddResponse_unchanged(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "AddResponse",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _AddResponse_isFriend(ctx context.Context, field graphql.CollectedField, obj *model.AddResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AddResponse_isFriend(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IsFriend, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_AddResponse_isFriend(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AddResponse",
 		Field:      field,
@@ -1151,7 +1119,7 @@ func (ec *executionContext) _Mutation_addOrRemoveUser(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddOrRemoveUser(rctx, fc.Args["followUserId"].(int))
+		return ec.resolvers.Mutation().AddOrRemoveUser(rctx, fc.Args["followUserId"].(int), fc.Args["isFollow"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1180,8 +1148,6 @@ func (ec *executionContext) fieldContext_Mutation_addOrRemoveUser(ctx context.Co
 				return ec.fieldContext_AddResponse_value(ctx, field)
 			case "unchanged":
 				return ec.fieldContext_AddResponse_unchanged(ctx, field)
-			case "isFriend":
-				return ec.fieldContext_AddResponse_isFriend(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AddResponse", field.Name)
 		},
@@ -1248,6 +1214,8 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 				return ec.fieldContext_User_birthday(ctx, field)
 			case "password":
 				return ec.fieldContext_User_password(ctx, field)
+			case "followState":
+				return ec.fieldContext_User_followState(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -1318,6 +1286,8 @@ func (ec *executionContext) fieldContext_Query_userFromId(ctx context.Context, f
 				return ec.fieldContext_User_birthday(ctx, field)
 			case "password":
 				return ec.fieldContext_User_password(ctx, field)
+			case "followState":
+				return ec.fieldContext_User_followState(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -1391,6 +1361,8 @@ func (ec *executionContext) fieldContext_Query_searchUsers(ctx context.Context, 
 				return ec.fieldContext_User_birthday(ctx, field)
 			case "password":
 				return ec.fieldContext_User_password(ctx, field)
+			case "followState":
+				return ec.fieldContext_User_followState(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -1461,6 +1433,8 @@ func (ec *executionContext) fieldContext_Query_userAccess(ctx context.Context, f
 				return ec.fieldContext_User_birthday(ctx, field)
 			case "password":
 				return ec.fieldContext_User_password(ctx, field)
+			case "followState":
+				return ec.fieldContext_User_followState(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -1953,6 +1927,50 @@ func (ec *executionContext) fieldContext_User_password(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _User_followState(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_followState(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().FollowState(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_followState(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _User_createdAt(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_User_createdAt(ctx, field)
 	if err != nil {
@@ -2089,6 +2107,8 @@ func (ec *executionContext) fieldContext_UserAuthResponse_user(ctx context.Conte
 				return ec.fieldContext_User_birthday(ctx, field)
 			case "password":
 				return ec.fieldContext_User_password(ctx, field)
+			case "followState":
+				return ec.fieldContext_User_followState(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -4095,13 +4115,6 @@ func (ec *executionContext) _AddResponse(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "isFriend":
-
-			out.Values[i] = ec._AddResponse_isFriend(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4439,6 +4452,26 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "followState":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_followState(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "createdAt":
 			field := field
 

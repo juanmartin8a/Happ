@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 type Friendship struct {
@@ -26,6 +27,8 @@ func (Friendship) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("user_id"),
 		field.Int("friend_id"),
+		field.Bool("user_id_friend"),
+		field.Bool("friend_id_friend"),
 		field.Time("created_at").
 			Default(time.Now).
 			SchemaType(map[string]string{
@@ -49,5 +52,13 @@ func (Friendship) Edges() []ent.Edge {
 			Required().
 			Unique().
 			Field("friend_id"),
+	}
+}
+
+// Indexes
+func (Friendship) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("user_id", "friend_id").
+			Unique(),
 	}
 }

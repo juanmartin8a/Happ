@@ -5,6 +5,7 @@ type User {
   email: String!
   birthday: String!
   password: String!
+  followState: Boolean!
   createdAt: String!
   updatedAt: String!
 }
@@ -36,7 +37,7 @@ type UserAuthResponse {
 type AddResponse {
   value: Int!
   unchanged: Boolean!
-  isFriend: Boolean!
+  # isFriend: Boolean!
 }
 
 type Query {
@@ -67,5 +68,6 @@ type Mutation {
   ): TokenResponse
   addOrRemoveUser(
     followUserId: Int!
+    isFollow: Boolean!
   ): AddResponse!
 }

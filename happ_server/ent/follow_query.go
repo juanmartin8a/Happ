@@ -17,13 +17,12 @@ import (
 // FollowQuery is the builder for querying Follow entities.
 type FollowQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.Follow
-	// eager-loading edges.
+	limit        *int
+	offset       *int
+	unique       *bool
+	order        []OrderFunc
+	fields       []string
+	predicates   []predicate.Follow
 	withUser     *UserQuery
 	withFollower *UserQuery
 	modifiers    []func(*sql.Selector)
@@ -347,65 +346,77 @@ func (fq *FollowQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Follo
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-
 	if query := fq.withUser; query != nil {
-		ids := make([]int, 0, len(nodes))
-		nodeids := make(map[int][]*Follow)
-		for i := range nodes {
-			fk := nodes[i].UserID
-			if _, ok := nodeids[fk]; !ok {
-				ids = append(ids, fk)
-			}
-			nodeids[fk] = append(nodeids[fk], nodes[i])
-		}
-		query.Where(user.IDIn(ids...))
-		neighbors, err := query.All(ctx)
-		if err != nil {
+		if err := fq.loadUser(ctx, query, nodes, nil,
+			func(n *Follow, e *User) { n.Edges.User = e }); err != nil {
 			return nil, err
 		}
-		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
-			}
-			for i := range nodes {
-				nodes[i].Edges.User = n
-			}
-		}
 	}
-
 	if query := fq.withFollower; query != nil {
-		ids := make([]int, 0, len(nodes))
-		nodeids := make(map[int][]*Follow)
-		for i := range nodes {
-			fk := nodes[i].FollowerID
-			if _, ok := nodeids[fk]; !ok {
-				ids = append(ids, fk)
-			}
-			nodeids[fk] = append(nodeids[fk], nodes[i])
-		}
-		query.Where(user.IDIn(ids...))
-		neighbors, err := query.All(ctx)
-		if err != nil {
+		if err := fq.loadFollower(ctx, query, nodes, nil,
+			func(n *Follow, e *User) { n.Edges.Follower = e }); err != nil {
 			return nil, err
 		}
-		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "follower_id" returned %v`, n.ID)
-			}
-			for i := range nodes {
-				nodes[i].Edges.Follower = n
-			}
-		}
 	}
-
 	for i := range fq.loadTotal {
 		if err := fq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (fq *FollowQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Follow, init func(*Follow), assign func(*Follow, *User)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Follow)
+	for i := range nodes {
+		fk := nodes[i].UserID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (fq *FollowQuery) loadFollower(ctx context.Context, query *UserQuery, nodes []*Follow, init func(*Follow), assign func(*Follow, *User)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Follow)
+	for i := range nodes {
+		fk := nodes[i].FollowerID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "follower_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (fq *FollowQuery) sqlCount(ctx context.Context) (int, error) {

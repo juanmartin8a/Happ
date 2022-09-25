@@ -13,6 +13,10 @@ const (
 	FieldUserID = "user_id"
 	// FieldFriendID holds the string denoting the friend_id field in the database.
 	FieldFriendID = "friend_id"
+	// FieldUserIDFriend holds the string denoting the user_id_friend field in the database.
+	FieldUserIDFriend = "user_id_friend"
+	// FieldFriendIDFriend holds the string denoting the friend_id_friend field in the database.
+	FieldFriendIDFriend = "friend_id_friend"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
@@ -43,6 +47,8 @@ const (
 var Columns = []string{
 	FieldUserID,
 	FieldFriendID,
+	FieldUserIDFriend,
+	FieldFriendIDFriend,
 	FieldCreatedAt,
 }
 

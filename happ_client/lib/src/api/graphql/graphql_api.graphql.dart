@@ -298,10 +298,10 @@ class UserFromId$Query$User extends JsonSerializable with EquatableMixin {
 
   late String username;
 
-  late String email;
+  late bool followState;
 
   @override
-  List<Object?> get props => [id, name, username, email];
+  List<Object?> get props => [id, name, username, followState];
   @override
   Map<String, dynamic> toJson() => _$UserFromId$Query$UserToJson(this);
 }
@@ -368,8 +368,10 @@ class SearchUsers$Query$User extends JsonSerializable with EquatableMixin {
 
   late String name;
 
+  late bool followState;
+
   @override
-  List<Object?> get props => [id, username, name];
+  List<Object?> get props => [id, username, name, followState];
   @override
   Map<String, dynamic> toJson() => _$SearchUsers$Query$UserToJson(this);
 }
@@ -400,10 +402,10 @@ class AddOrRemoveUser$Mutation$AddResponse extends JsonSerializable
 
   late int value;
 
-  late bool isFriend;
+  late bool unchanged;
 
   @override
-  List<Object?> get props => [value, isFriend];
+  List<Object?> get props => [value, unchanged];
   @override
   Map<String, dynamic> toJson() =>
       _$AddOrRemoveUser$Mutation$AddResponseToJson(this);
@@ -814,7 +816,7 @@ final USER_FROM_ID_QUERY_DOCUMENT = DocumentNode(definitions: [
                   directives: [],
                   selectionSet: null),
               FieldNode(
-                  name: NameNode(value: 'email'),
+                  name: NameNode(value: 'followState'),
                   alias: null,
                   arguments: [],
                   directives: [],
@@ -953,6 +955,12 @@ final SEARCH_USERS_QUERY_DOCUMENT = DocumentNode(definitions: [
                   alias: null,
                   arguments: [],
                   directives: [],
+                  selectionSet: null),
+              FieldNode(
+                  name: NameNode(value: 'followState'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
                   selectionSet: null)
             ]))
       ]))
@@ -980,7 +988,8 @@ class SearchUsersQuery
 
 @JsonSerializable(explicitToJson: true)
 class AddOrRemoveUserArguments extends JsonSerializable with EquatableMixin {
-  AddOrRemoveUserArguments({required this.followUserId});
+  AddOrRemoveUserArguments(
+      {required this.followUserId, required this.isFollow});
 
   @override
   factory AddOrRemoveUserArguments.fromJson(Map<String, dynamic> json) =>
@@ -988,8 +997,10 @@ class AddOrRemoveUserArguments extends JsonSerializable with EquatableMixin {
 
   late int followUserId;
 
+  late bool isFollow;
+
   @override
-  List<Object?> get props => [followUserId];
+  List<Object?> get props => [followUserId, isFollow];
   @override
   Map<String, dynamic> toJson() => _$AddOrRemoveUserArgumentsToJson(this);
 }
@@ -1004,6 +1015,12 @@ final ADD_OR_REMOVE_USER_MUTATION_DOCUMENT = DocumentNode(definitions: [
             variable: VariableNode(name: NameNode(value: 'followUserId')),
             type: NamedTypeNode(name: NameNode(value: 'Int'), isNonNull: true),
             defaultValue: DefaultValueNode(value: null),
+            directives: []),
+        VariableDefinitionNode(
+            variable: VariableNode(name: NameNode(value: 'isFollow')),
+            type: NamedTypeNode(
+                name: NameNode(value: 'Boolean'), isNonNull: true),
+            defaultValue: DefaultValueNode(value: null),
             directives: [])
       ],
       directives: [],
@@ -1014,7 +1031,10 @@ final ADD_OR_REMOVE_USER_MUTATION_DOCUMENT = DocumentNode(definitions: [
             arguments: [
               ArgumentNode(
                   name: NameNode(value: 'followUserId'),
-                  value: VariableNode(name: NameNode(value: 'followUserId')))
+                  value: VariableNode(name: NameNode(value: 'followUserId'))),
+              ArgumentNode(
+                  name: NameNode(value: 'isFollow'),
+                  value: VariableNode(name: NameNode(value: 'isFollow')))
             ],
             directives: [],
             selectionSet: SelectionSetNode(selections: [
@@ -1025,7 +1045,7 @@ final ADD_OR_REMOVE_USER_MUTATION_DOCUMENT = DocumentNode(definitions: [
                   directives: [],
                   selectionSet: null),
               FieldNode(
-                  name: NameNode(value: 'isFriend'),
+                  name: NameNode(value: 'unchanged'),
                   alias: null,
                   arguments: [],
                   directives: [],

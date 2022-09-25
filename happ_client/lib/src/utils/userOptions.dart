@@ -116,15 +116,17 @@ class UserOptions {
     return queryOptions;
   }
 
-  MutationOptions addOrRemoveUserMutationOptions(int followUserId) {
+  MutationOptions addOrRemoveUserMutationOptions(int followUserId, bool isFollow) {
     MutationOptions  mutationOptions = MutationOptions(
       document: AddOrRemoveUserMutation(
         variables: AddOrRemoveUserArguments(
-          followUserId: followUserId
+          followUserId: followUserId,
+          isFollow: isFollow
         )
       ).document,
       variables: {
-        "followUserId": followUserId
+        "followUserId": followUserId,
+        "isFollow": isFollow
       },
       fetchPolicy: FetchPolicy.networkOnly
     );

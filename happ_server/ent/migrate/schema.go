@@ -10,6 +10,7 @@ import (
 var (
 	// FollowsColumns holds the columns for the "follows" table.
 	FollowsColumns = []*schema.Column{
+		{Name: "valid", Type: field.TypeBool, Default: true},
 		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP", SchemaType: map[string]string{"mysql": "datetime"}},
 		{Name: "user_id", Type: field.TypeInt},
 		{Name: "follower_id", Type: field.TypeInt},
@@ -18,24 +19,33 @@ var (
 	FollowsTable = &schema.Table{
 		Name:       "follows",
 		Columns:    FollowsColumns,
-		PrimaryKey: []*schema.Column{FollowsColumns[1], FollowsColumns[2]},
+		PrimaryKey: []*schema.Column{FollowsColumns[2], FollowsColumns[3]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "follows_users_user",
-				Columns:    []*schema.Column{FollowsColumns[1]},
+				Columns:    []*schema.Column{FollowsColumns[2]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "follows_users_follower",
-				Columns:    []*schema.Column{FollowsColumns[2]},
+				Columns:    []*schema.Column{FollowsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "follow_user_id_follower_id",
+				Unique:  true,
+				Columns: []*schema.Column{FollowsColumns[2], FollowsColumns[3]},
 			},
 		},
 	}
 	// FriendshipsColumns holds the columns for the "friendships" table.
 	FriendshipsColumns = []*schema.Column{
+		{Name: "user_id_friend", Type: field.TypeBool},
+		{Name: "friend_id_friend", Type: field.TypeBool},
 		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP", SchemaType: map[string]string{"mysql": "datetime"}},
 		{Name: "user_id", Type: field.TypeInt},
 		{Name: "friend_id", Type: field.TypeInt},
@@ -44,19 +54,26 @@ var (
 	FriendshipsTable = &schema.Table{
 		Name:       "friendships",
 		Columns:    FriendshipsColumns,
-		PrimaryKey: []*schema.Column{FriendshipsColumns[1], FriendshipsColumns[2]},
+		PrimaryKey: []*schema.Column{FriendshipsColumns[3], FriendshipsColumns[4]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "friendships_users_user",
-				Columns:    []*schema.Column{FriendshipsColumns[1]},
+				Columns:    []*schema.Column{FriendshipsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "friendships_users_friend",
-				Columns:    []*schema.Column{FriendshipsColumns[2]},
+				Columns:    []*schema.Column{FriendshipsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "friendship_user_id_friend_id",
+				Unique:  true,
+				Columns: []*schema.Column{FriendshipsColumns[3], FriendshipsColumns[4]},
 			},
 		},
 	}

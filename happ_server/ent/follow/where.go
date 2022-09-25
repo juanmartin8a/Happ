@@ -24,6 +24,13 @@ func FollowerID(v int) predicate.Follow {
 	})
 }
 
+// Valid applies equality check predicate on the "valid" field. It's identical to ValidEQ.
+func Valid(v bool) predicate.Follow {
+	return predicate.Follow(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldValid), v))
+	})
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Follow {
 	return predicate.Follow(func(s *sql.Selector) {
@@ -52,12 +59,6 @@ func UserIDIn(vs ...int) predicate.Follow {
 		v[i] = vs[i]
 	}
 	return predicate.Follow(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldUserID), v...))
 	})
 }
@@ -69,12 +70,6 @@ func UserIDNotIn(vs ...int) predicate.Follow {
 		v[i] = vs[i]
 	}
 	return predicate.Follow(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldUserID), v...))
 	})
 }
@@ -100,12 +95,6 @@ func FollowerIDIn(vs ...int) predicate.Follow {
 		v[i] = vs[i]
 	}
 	return predicate.Follow(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldFollowerID), v...))
 	})
 }
@@ -117,13 +106,21 @@ func FollowerIDNotIn(vs ...int) predicate.Follow {
 		v[i] = vs[i]
 	}
 	return predicate.Follow(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldFollowerID), v...))
+	})
+}
+
+// ValidEQ applies the EQ predicate on the "valid" field.
+func ValidEQ(v bool) predicate.Follow {
+	return predicate.Follow(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldValid), v))
+	})
+}
+
+// ValidNEQ applies the NEQ predicate on the "valid" field.
+func ValidNEQ(v bool) predicate.Follow {
+	return predicate.Follow(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldValid), v))
 	})
 }
 
@@ -148,12 +145,6 @@ func CreatedAtIn(vs ...time.Time) predicate.Follow {
 		v[i] = vs[i]
 	}
 	return predicate.Follow(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldCreatedAt), v...))
 	})
 }
@@ -165,12 +156,6 @@ func CreatedAtNotIn(vs ...time.Time) predicate.Follow {
 		v[i] = vs[i]
 	}
 	return predicate.Follow(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldCreatedAt), v...))
 	})
 }

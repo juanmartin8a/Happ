@@ -13,6 +13,8 @@ const (
 	FieldUserID = "user_id"
 	// FieldFollowerID holds the string denoting the follower_id field in the database.
 	FieldFollowerID = "follower_id"
+	// FieldValid holds the string denoting the valid field in the database.
+	FieldValid = "valid"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
@@ -43,6 +45,7 @@ const (
 var Columns = []string{
 	FieldUserID,
 	FieldFollowerID,
+	FieldValid,
 	FieldCreatedAt,
 }
 
@@ -57,6 +60,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultValid holds the default value on creation for the "valid" field.
+	DefaultValid bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )

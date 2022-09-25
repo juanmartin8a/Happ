@@ -40,6 +40,20 @@ func (fu *FollowUpdate) SetFollowerID(i int) *FollowUpdate {
 	return fu
 }
 
+// SetValid sets the "valid" field.
+func (fu *FollowUpdate) SetValid(b bool) *FollowUpdate {
+	fu.mutation.SetValid(b)
+	return fu
+}
+
+// SetNillableValid sets the "valid" field if the given value is not nil.
+func (fu *FollowUpdate) SetNillableValid(b *bool) *FollowUpdate {
+	if b != nil {
+		fu.SetValid(*b)
+	}
+	return fu
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (fu *FollowUpdate) SetUser(u *User) *FollowUpdate {
 	return fu.SetUserID(u.ID)
@@ -162,6 +176,13 @@ func (fu *FollowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := fu.mutation.Valid(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: follow.FieldValid,
+		})
+	}
 	if fu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -260,6 +281,20 @@ func (fuo *FollowUpdateOne) SetUserID(i int) *FollowUpdateOne {
 // SetFollowerID sets the "follower_id" field.
 func (fuo *FollowUpdateOne) SetFollowerID(i int) *FollowUpdateOne {
 	fuo.mutation.SetFollowerID(i)
+	return fuo
+}
+
+// SetValid sets the "valid" field.
+func (fuo *FollowUpdateOne) SetValid(b bool) *FollowUpdateOne {
+	fuo.mutation.SetValid(b)
+	return fuo
+}
+
+// SetNillableValid sets the "valid" field if the given value is not nil.
+func (fuo *FollowUpdateOne) SetNillableValid(b *bool) *FollowUpdateOne {
+	if b != nil {
+		fuo.SetValid(*b)
+	}
 	return fuo
 }
 
@@ -416,6 +451,13 @@ func (fuo *FollowUpdateOne) sqlSave(ctx context.Context) (_node *Follow, err err
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := fuo.mutation.Valid(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: follow.FieldValid,
+		})
 	}
 	if fuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

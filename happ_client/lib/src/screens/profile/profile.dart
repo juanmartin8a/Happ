@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/profile/profile.dart';
 import 'package:happ_client/src/riverpod/profile/profileState.dart';
+import 'package:happ_client/src/screens/profile/widgets/addRemoveButton.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
 import 'package:uuid/uuid.dart';
 
@@ -27,6 +28,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
   late int id;
   late String username;
   late String name;
+  bool? followState;
 
   @override
   void initState() {
@@ -34,6 +36,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
     id = widget.user.id.toInt();
     username = widget.user.username;
     name = widget.user.name;
+    // followState = widget.user.followState;
     ref.read(profileProvider("userId:${widget.user.id}_uuid:$uuid").notifier).getUser(id);
   }
 
@@ -53,6 +56,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
       name = profile.user.name;
       username = profile.user.username;
       id = profile.user.id.toInt();
+      followState = profile.user.followState;
     }
 
 
@@ -174,27 +178,32 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                             height: 16
                           ),
                           // Spacer(),
-                          Container(
-                            height: 32,
-                            width: 80,
-                            decoration: BoxDecoration(
-                              // color: Colors.black,
-                              border: Border.all(color: Colors.grey[800]!, width: 2),
-                              borderRadius: BorderRadius.circular(16)
-                              // shape: BoxShape.circle
-                            ),
-                            child:  Center(
-                              child: Text(
-                                "Add",
-                                style: TextStyle(
-                                  color: Colors.grey[800]!,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1
-                                ),
-                              ),
-                            ),
+                          AddRemoveButton(
+                            isAdd: followState,
+                            userId: id,
+                            key: Key("profile_$id ${Uuid().v4()}")
                           ),
+                          // Container(
+                          //   height: 32,
+                          //   width: 80,
+                          //   decoration: BoxDecoration(
+                          //     // color: Colors.black,
+                          //     border: Border.all(color: Colors.grey[800]!, width: 2),
+                          //     borderRadius: BorderRadius.circular(16)
+                          //     // shape: BoxShape.circle
+                          //   ),
+                          //   child:  Center(
+                          //     child: Text(
+                          //       "Add",
+                          //       style: TextStyle(
+                          //         color: Colors.grey[800]!,
+                          //         fontSize: 16,
+                          //         fontWeight: FontWeight.w600,
+                          //         height: 1
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
                           const SizedBox(
                             height: 16
                           ),

@@ -40,6 +40,18 @@ func (fu *FriendshipUpdate) SetFriendID(i int) *FriendshipUpdate {
 	return fu
 }
 
+// SetUserIDFriend sets the "user_id_friend" field.
+func (fu *FriendshipUpdate) SetUserIDFriend(b bool) *FriendshipUpdate {
+	fu.mutation.SetUserIDFriend(b)
+	return fu
+}
+
+// SetFriendIDFriend sets the "friend_id_friend" field.
+func (fu *FriendshipUpdate) SetFriendIDFriend(b bool) *FriendshipUpdate {
+	fu.mutation.SetFriendIDFriend(b)
+	return fu
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (fu *FriendshipUpdate) SetUser(u *User) *FriendshipUpdate {
 	return fu.SetUserID(u.ID)
@@ -162,6 +174,20 @@ func (fu *FriendshipUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := fu.mutation.UserIDFriend(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: friendship.FieldUserIDFriend,
+		})
+	}
+	if value, ok := fu.mutation.FriendIDFriend(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: friendship.FieldFriendIDFriend,
+		})
+	}
 	if fu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -260,6 +286,18 @@ func (fuo *FriendshipUpdateOne) SetUserID(i int) *FriendshipUpdateOne {
 // SetFriendID sets the "friend_id" field.
 func (fuo *FriendshipUpdateOne) SetFriendID(i int) *FriendshipUpdateOne {
 	fuo.mutation.SetFriendID(i)
+	return fuo
+}
+
+// SetUserIDFriend sets the "user_id_friend" field.
+func (fuo *FriendshipUpdateOne) SetUserIDFriend(b bool) *FriendshipUpdateOne {
+	fuo.mutation.SetUserIDFriend(b)
+	return fuo
+}
+
+// SetFriendIDFriend sets the "friend_id_friend" field.
+func (fuo *FriendshipUpdateOne) SetFriendIDFriend(b bool) *FriendshipUpdateOne {
+	fuo.mutation.SetFriendIDFriend(b)
 	return fuo
 }
 
@@ -416,6 +454,20 @@ func (fuo *FriendshipUpdateOne) sqlSave(ctx context.Context) (_node *Friendship,
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := fuo.mutation.UserIDFriend(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: friendship.FieldUserIDFriend,
+		})
+	}
+	if value, ok := fuo.mutation.FriendIDFriend(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: friendship.FieldFriendIDFriend,
+		})
 	}
 	if fuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

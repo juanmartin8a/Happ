@@ -228,7 +228,7 @@ UserFromId$Query$User _$UserFromId$Query$UserFromJson(
       ..id = (json['id'] as num).toDouble()
       ..name = json['name'] as String
       ..username = json['username'] as String
-      ..email = json['email'] as String;
+      ..followState = json['followState'] as bool;
 
 Map<String, dynamic> _$UserFromId$Query$UserToJson(
         UserFromId$Query$User instance) =>
@@ -236,7 +236,7 @@ Map<String, dynamic> _$UserFromId$Query$UserToJson(
       'id': instance.id,
       'name': instance.name,
       'username': instance.username,
-      'email': instance.email,
+      'followState': instance.followState,
     };
 
 UserFromId$Query _$UserFromId$QueryFromJson(Map<String, dynamic> json) =>
@@ -283,7 +283,8 @@ SearchUsers$Query$User _$SearchUsers$Query$UserFromJson(
     SearchUsers$Query$User()
       ..id = (json['id'] as num).toDouble()
       ..username = json['username'] as String
-      ..name = json['name'] as String;
+      ..name = json['name'] as String
+      ..followState = json['followState'] as bool;
 
 Map<String, dynamic> _$SearchUsers$Query$UserToJson(
         SearchUsers$Query$User instance) =>
@@ -291,6 +292,7 @@ Map<String, dynamic> _$SearchUsers$Query$UserToJson(
       'id': instance.id,
       'username': instance.username,
       'name': instance.name,
+      'followState': instance.followState,
     };
 
 SearchUsers$Query _$SearchUsers$QueryFromJson(Map<String, dynamic> json) =>
@@ -309,13 +311,13 @@ AddOrRemoveUser$Mutation$AddResponse
     _$AddOrRemoveUser$Mutation$AddResponseFromJson(Map<String, dynamic> json) =>
         AddOrRemoveUser$Mutation$AddResponse()
           ..value = json['value'] as int
-          ..isFriend = json['isFriend'] as bool;
+          ..unchanged = json['unchanged'] as bool;
 
 Map<String, dynamic> _$AddOrRemoveUser$Mutation$AddResponseToJson(
         AddOrRemoveUser$Mutation$AddResponse instance) =>
     <String, dynamic>{
       'value': instance.value,
-      'isFriend': instance.isFriend,
+      'unchanged': instance.unchanged,
     };
 
 AddOrRemoveUser$Mutation _$AddOrRemoveUser$MutationFromJson(
@@ -389,10 +391,12 @@ AddOrRemoveUserArguments _$AddOrRemoveUserArgumentsFromJson(
         Map<String, dynamic> json) =>
     AddOrRemoveUserArguments(
       followUserId: json['followUserId'] as int,
+      isFollow: json['isFollow'] as bool,
     );
 
 Map<String, dynamic> _$AddOrRemoveUserArgumentsToJson(
         AddOrRemoveUserArguments instance) =>
     <String, dynamic>{
       'followUserId': instance.followUserId,
+      'isFollow': instance.isFollow,
     };

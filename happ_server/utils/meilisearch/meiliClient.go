@@ -15,3 +15,9 @@ func GetMeiliUsersIndex() *meilisearch.Index {
 	index := client.Index("users")
 	return index
 }
+
+func GetMeiliFollowIndex() *meilisearch.Index {
+	client := GetMeiliClient()
+	index := client.Index("follows")
+	return index
+}

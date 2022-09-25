@@ -35,6 +35,7 @@ type FollowMutation struct {
 	config
 	op              Op
 	typ             string
+	valid           *bool
 	created_at      *time.Time
 	clearedFields   map[string]struct{}
 	user            *int
@@ -120,6 +121,25 @@ func (m *FollowMutation) FollowerID() (r int, exists bool) {
 // ResetFollowerID resets all changes to the "follower_id" field.
 func (m *FollowMutation) ResetFollowerID() {
 	m.follower = nil
+}
+
+// SetValid sets the "valid" field.
+func (m *FollowMutation) SetValid(b bool) {
+	m.valid = &b
+}
+
+// Valid returns the value of the "valid" field in the mutation.
+func (m *FollowMutation) Valid() (r bool, exists bool) {
+	v := m.valid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetValid resets all changes to the "valid" field.
+func (m *FollowMutation) ResetValid() {
+	m.valid = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -212,12 +232,15 @@ func (m *FollowMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FollowMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.user != nil {
 		fields = append(fields, follow.FieldUserID)
 	}
 	if m.follower != nil {
 		fields = append(fields, follow.FieldFollowerID)
+	}
+	if m.valid != nil {
+		fields = append(fields, follow.FieldValid)
 	}
 	if m.created_at != nil {
 		fields = append(fields, follow.FieldCreatedAt)
@@ -234,6 +257,8 @@ func (m *FollowMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case follow.FieldFollowerID:
 		return m.FollowerID()
+	case follow.FieldValid:
+		return m.Valid()
 	case follow.FieldCreatedAt:
 		return m.CreatedAt()
 	}
@@ -265,6 +290,13 @@ func (m *FollowMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetFollowerID(v)
+		return nil
+	case follow.FieldValid:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValid(v)
 		return nil
 	case follow.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -330,6 +362,9 @@ func (m *FollowMutation) ResetField(name string) error {
 		return nil
 	case follow.FieldFollowerID:
 		m.ResetFollowerID()
+		return nil
+	case follow.FieldValid:
+		m.ResetValid()
 		return nil
 	case follow.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -435,17 +470,19 @@ func (m *FollowMutation) ResetEdge(name string) error {
 // FriendshipMutation represents an operation that mutates the Friendship nodes in the graph.
 type FriendshipMutation struct {
 	config
-	op            Op
-	typ           string
-	created_at    *time.Time
-	clearedFields map[string]struct{}
-	user          *int
-	cleareduser   bool
-	friend        *int
-	clearedfriend bool
-	done          bool
-	oldValue      func(context.Context) (*Friendship, error)
-	predicates    []predicate.Friendship
+	op               Op
+	typ              string
+	user_id_friend   *bool
+	friend_id_friend *bool
+	created_at       *time.Time
+	clearedFields    map[string]struct{}
+	user             *int
+	cleareduser      bool
+	friend           *int
+	clearedfriend    bool
+	done             bool
+	oldValue         func(context.Context) (*Friendship, error)
+	predicates       []predicate.Friendship
 }
 
 var _ ent.Mutation = (*FriendshipMutation)(nil)
@@ -522,6 +559,44 @@ func (m *FriendshipMutation) FriendID() (r int, exists bool) {
 // ResetFriendID resets all changes to the "friend_id" field.
 func (m *FriendshipMutation) ResetFriendID() {
 	m.friend = nil
+}
+
+// SetUserIDFriend sets the "user_id_friend" field.
+func (m *FriendshipMutation) SetUserIDFriend(b bool) {
+	m.user_id_friend = &b
+}
+
+// UserIDFriend returns the value of the "user_id_friend" field in the mutation.
+func (m *FriendshipMutation) UserIDFriend() (r bool, exists bool) {
+	v := m.user_id_friend
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUserIDFriend resets all changes to the "user_id_friend" field.
+func (m *FriendshipMutation) ResetUserIDFriend() {
+	m.user_id_friend = nil
+}
+
+// SetFriendIDFriend sets the "friend_id_friend" field.
+func (m *FriendshipMutation) SetFriendIDFriend(b bool) {
+	m.friend_id_friend = &b
+}
+
+// FriendIDFriend returns the value of the "friend_id_friend" field in the mutation.
+func (m *FriendshipMutation) FriendIDFriend() (r bool, exists bool) {
+	v := m.friend_id_friend
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFriendIDFriend resets all changes to the "friend_id_friend" field.
+func (m *FriendshipMutation) ResetFriendIDFriend() {
+	m.friend_id_friend = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -614,12 +689,18 @@ func (m *FriendshipMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FriendshipMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 5)
 	if m.user != nil {
 		fields = append(fields, friendship.FieldUserID)
 	}
 	if m.friend != nil {
 		fields = append(fields, friendship.FieldFriendID)
+	}
+	if m.user_id_friend != nil {
+		fields = append(fields, friendship.FieldUserIDFriend)
+	}
+	if m.friend_id_friend != nil {
+		fields = append(fields, friendship.FieldFriendIDFriend)
 	}
 	if m.created_at != nil {
 		fields = append(fields, friendship.FieldCreatedAt)
@@ -636,6 +717,10 @@ func (m *FriendshipMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case friendship.FieldFriendID:
 		return m.FriendID()
+	case friendship.FieldUserIDFriend:
+		return m.UserIDFriend()
+	case friendship.FieldFriendIDFriend:
+		return m.FriendIDFriend()
 	case friendship.FieldCreatedAt:
 		return m.CreatedAt()
 	}
@@ -667,6 +752,20 @@ func (m *FriendshipMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetFriendID(v)
+		return nil
+	case friendship.FieldUserIDFriend:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserIDFriend(v)
+		return nil
+	case friendship.FieldFriendIDFriend:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFriendIDFriend(v)
 		return nil
 	case friendship.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -732,6 +831,12 @@ func (m *FriendshipMutation) ResetField(name string) error {
 		return nil
 	case friendship.FieldFriendID:
 		m.ResetFriendID()
+		return nil
+	case friendship.FieldUserIDFriend:
+		m.ResetUserIDFriend()
+		return nil
+	case friendship.FieldFriendIDFriend:
+		m.ResetFriendIDFriend()
 		return nil
 	case friendship.FieldCreatedAt:
 		m.ResetCreatedAt()

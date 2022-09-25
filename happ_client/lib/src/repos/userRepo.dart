@@ -124,10 +124,11 @@ class UserRepo {
   }
 
   Future<AddOrRemoveUser$Mutation$AddResponse> addOrRemoveUser(
-    int followUserId
+    int followUserId,
+    bool isFollow
   ) async {
     final result = await client.mutate(
-      UserOptions().addOrRemoveUserMutationOptions(followUserId)
+      UserOptions().addOrRemoveUserMutationOptions(followUserId, isFollow)
     );
 
     if (result.hasException) {

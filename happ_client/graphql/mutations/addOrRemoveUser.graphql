@@ -1,8 +1,9 @@
-mutation AddOrRemoveUser($followUserId: Int!) {
+mutation AddOrRemoveUser($followUserId: Int!, $isFollow: Boolean!) {
   addOrRemoveUser(
     followUserId: $followUserId
+    isFollow: $isFollow
   ) {
     value
-    isFriend
+    unchanged
   }
 }

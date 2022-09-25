@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 type Follow struct {
@@ -26,6 +27,7 @@ func (Follow) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("user_id"),
 		field.Int("follower_id"),
+		field.Bool("valid").Default(true),
 		field.Time("created_at").
 			Default(time.Now).
 			SchemaType(map[string]string{
@@ -49,5 +51,13 @@ func (Follow) Edges() []ent.Edge {
 			Required().
 			Unique().
 			Field("follower_id"),
+	}
+}
+
+// Indexes
+func (Follow) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("user_id", "follower_id").
+			Unique(),
 	}
 }

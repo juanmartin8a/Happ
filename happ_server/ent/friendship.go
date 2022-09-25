@@ -19,6 +19,10 @@ type Friendship struct {
 	UserID int `json:"user_id,omitempty"`
 	// FriendID holds the value of the "friend_id" field.
 	FriendID int `json:"friend_id,omitempty"`
+	// UserIDFriend holds the value of the "user_id_friend" field.
+	UserIDFriend bool `json:"user_id_friend,omitempty"`
+	// FriendIDFriend holds the value of the "friend_id_friend" field.
+	FriendIDFriend bool `json:"friend_id_friend,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -44,8 +48,7 @@ type FriendshipEdges struct {
 func (e FriendshipEdges) UserOrErr() (*User, error) {
 	if e.loadedTypes[0] {
 		if e.User == nil {
-			// The edge user was loaded in eager-loading,
-			// but was not found.
+			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
 		return e.User, nil
@@ -58,8 +61,7 @@ func (e FriendshipEdges) UserOrErr() (*User, error) {
 func (e FriendshipEdges) FriendOrErr() (*User, error) {
 	if e.loadedTypes[1] {
 		if e.Friend == nil {
-			// The edge friend was loaded in eager-loading,
-			// but was not found.
+			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
 		return e.Friend, nil
@@ -72,6 +74,8 @@ func (*Friendship) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case friendship.FieldUserIDFriend, friendship.FieldFriendIDFriend:
+			values[i] = new(sql.NullBool)
 		case friendship.FieldUserID, friendship.FieldFriendID:
 			values[i] = new(sql.NullInt64)
 		case friendship.FieldCreatedAt:
@@ -102,6 +106,18 @@ func (f *Friendship) assignValues(columns []string, values []interface{}) error 
 				return fmt.Errorf("unexpected type %T for field friend_id", values[i])
 			} else if value.Valid {
 				f.FriendID = int(value.Int64)
+			}
+		case friendship.FieldUserIDFriend:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id_friend", values[i])
+			} else if value.Valid {
+				f.UserIDFriend = value.Bool
+			}
+		case friendship.FieldFriendIDFriend:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field friend_id_friend", values[i])
+			} else if value.Valid {
+				f.FriendIDFriend = value.Bool
 			}
 		case friendship.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -151,6 +167,12 @@ func (f *Friendship) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("friend_id=")
 	builder.WriteString(fmt.Sprintf("%v", f.FriendID))
+	builder.WriteString(", ")
+	builder.WriteString("user_id_friend=")
+	builder.WriteString(fmt.Sprintf("%v", f.UserIDFriend))
+	builder.WriteString(", ")
+	builder.WriteString("friend_id_friend=")
+	builder.WriteString(fmt.Sprintf("%v", f.FriendIDFriend))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(f.CreatedAt.Format(time.ANSIC))

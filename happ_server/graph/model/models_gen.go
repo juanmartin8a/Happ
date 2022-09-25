@@ -9,7 +9,6 @@ import (
 type AddResponse struct {
 	Value     int  `json:"value"`
 	Unchanged bool `json:"unchanged"`
-	IsFriend  bool `json:"isFriend"`
 }
 
 type ErrorResponse struct {

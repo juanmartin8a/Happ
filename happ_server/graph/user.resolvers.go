@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"happ/ent"
 	"happ/ent/follow"
-	"happ/ent/friendship"
 	"happ/ent/predicate"
 	"happ/ent/user"
 	"happ/graph/generated"
@@ -20,6 +19,7 @@ import (
 	meilisearchUtils "happ/utils/meilisearch"
 	redisUtils "happ/utils/redis"
 	"log"
+	"math"
 	"net/mail"
 	"strconv"
 	"strings"
@@ -187,151 +187,91 @@ func (r *mutationResolver) RefreshTokens(ctx context.Context, token string) (*mo
 }
 
 // AddOrRemoveUser is the resolver for the addOrRemoveUser field.
-func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int) (*model.AddResponse, error) {
+func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int, isFollow bool) (*model.AddResponse, error) {
 	userId, _ := utils.GetUserIdFromHeader(ctx)
+	// when user follows for first time create a "valid" row
+	// when user follows upsert follow and make it valid (just flip the valid value)
+	// when user unfollows make it invalid
 
-	// check if follow already exists
-	// if follow exists then delete follow
-	// 	 if there is a friend relationship delete it too
-	// if follow does not exist then create it and if other user follows too then create friendship
+	// current user that is following is always followerId
+	// if follow fails then dont create friendship
 
-	_, err := r.client.Follow.Query().
-		Where(follow.FollowerID(*userId)).
-		Where(follow.UserID(followUserID)).
-		Only(ctx)
+	if isFollow {
+		err := r.client.Follow.Create().
+			SetFollowerID(*userId).
+			SetUserID(followUserID).
+			SetValid(true).
+			OnConflict().
+			SetValid(true).
+			Exec(ctx)
+		if err != nil {
+			// if unchanged is true then ignore isFriend
+			// if unchanged is true then make isFriend false
+			// if unchaged is true value is 0
+			return &model.AddResponse{
+				Value:     0,
+				Unchanged: true,
+			}, nil
+		}
 
-	// if error == nil then it means there is no error
-	if err == nil {
-		// if exists then it means user is unfollowing
-		// if friend relationship exists remove it
-		_, err = r.client.Friendship.Query().
-			Where(
-				friendship.And(
-					friendship.Or(
-						friendship.FriendID(*userId), friendship.UserID(*userId),
-					),
-					friendship.Or(
-						friendship.FriendID(followUserID), friendship.UserID(followUserID),
-					),
-				),
-			).
-			// Where(friendship.Or(friendship.FriendID(followUserID), friendship.UserID(followUserID))).
-			Only(ctx)
-
-		tx, _ := r.client.Tx(ctx)
-
-		if err == nil {
-			// if there is friend relationship then delete it
-			_, err = tx.Friendship.
-				Delete().
+		res := meilisearchUtils.AddFollowToMeili(*userId, followUserID)
+		if !res {
+			_, _ = r.client.Follow.Update().
 				Where(
-					friendship.And(
-						friendship.Or(
-							friendship.FriendID(*userId), friendship.UserID(*userId),
-						),
-						friendship.Or(
-							friendship.FriendID(followUserID), friendship.UserID(followUserID),
-						),
+					follow.And(
+						follow.FollowerID(*userId),
+						follow.UserID(followUserID),
 					),
 				).
-				Exec(ctx)
-			if err != nil {
-				// if it fails deleting friendship return isFriend true again and value of 0
-				tx.Rollback()
-				return &model.AddResponse{
-					Value:     1,
-					IsFriend:  true,
-					Unchanged: true,
-				}, nil
-			}
+				SetValid(false).
+				Save(ctx)
+
+			return &model.AddResponse{
+				Value:     0,
+				Unchanged: true,
+			}, nil
 		}
-		_, err = tx.Follow.
-			Delete().
+
+		return &model.AddResponse{
+			Value:     1,
+			Unchanged: false,
+		}, nil
+	}
+
+	err := r.client.Follow.Create().
+		SetFollowerID(*userId).
+		SetUserID(followUserID).
+		SetValid(false).
+		OnConflict().
+		SetValid(false).
+		Exec(ctx)
+	if err != nil {
+		return &model.AddResponse{
+			Value:     0,
+			Unchanged: true,
+		}, nil
+	}
+
+	res := meilisearchUtils.RemoveFollowToMeili(*userId, followUserID)
+	if !res {
+		_, _ = r.client.Follow.Update().
 			Where(
 				follow.And(
 					follow.FollowerID(*userId),
 					follow.UserID(followUserID),
 				),
 			).
-			// DeleteOne(followRes).
-			Exec(ctx)
-		if err != nil {
-			tx.Rollback()
-			return &model.AddResponse{
-				Value:     1,
-				IsFriend:  false,
-				Unchanged: true,
-			}, nil
-		}
-		tx.Commit()
-
-		return &model.AddResponse{
-			Value:     -1,
-			IsFriend:  false,
-			Unchanged: false,
-		}, nil
-	}
-	// if it does not exist create it and if the other user follows too crete friend relationship
-
-	_, err = r.client.Follow.Query().
-		Where(follow.FollowerID(followUserID)).
-		Where(follow.UserID(*userId)).
-		Only(ctx)
-
-	tx, _ := r.client.Tx(ctx)
-
-	var createFriend bool = false
-
-	if err == nil {
-		// if other user follows then create friend relationship
-		_, err = tx.Friendship.Create().
-			SetFriendID(*userId).
-			SetUserID(followUserID).
+			SetValid(true). // asume user was following before
 			Save(ctx)
-		if err != nil {
-			tx.Rollback()
-			return &model.AddResponse{
-				Value:     -1,
-				IsFriend:  false,
-				Unchanged: true,
-			}, nil
-		}
-		createFriend = true
-	}
 
-	_, err = tx.Follow.Create().
-		SetFollowerID(*userId).
-		SetUserID(followUserID).
-		Save(ctx)
-	if err != nil {
-		tx.Rollback()
 		return &model.AddResponse{
-			Value:     -1,
-			IsFriend:  false,
+			Value:     0,
 			Unchanged: true,
 		}, nil
 	}
 
-	tx.Commit()
-
-	// if error then return value of 0
-	// if remove user return value of -1
-	// if add user return value of 1
-	// if user is friend return friend == true
-	// if user was friend and not friend anymore return friend false and -1
-	// if value is 0 ignore isFriend
-
-	if createFriend {
-		return &model.AddResponse{
-			Value:     1,
-			IsFriend:  true,
-			Unchanged: false,
-		}, nil
-	}
-
 	return &model.AddResponse{
-		Value:     1,
-		IsFriend:  false,
+		Value:     -1,
 		Unchanged: false,
 	}, nil
 }
@@ -400,6 +340,56 @@ func (r *userResolver) Birthday(ctx context.Context, obj *ent.User) (string, err
 	birthday := strconv.Itoa(birthdayTime)
 
 	return birthday, nil
+}
+
+// FollowState is the resolver for the followState field.
+func (r *userResolver) FollowState(ctx context.Context, obj *ent.User) (bool, error) {
+	userId, _ := utils.GetUserIdFromHeader(ctx)
+
+	if *userId == obj.ID {
+		return true, nil
+	}
+
+	lowestNumberUserId := math.Min(float64(*userId), float64(obj.ID))
+	highestNumberUserId := math.Max(float64(*userId), float64(obj.ID))
+
+	id := fmt.Sprintf("%s_%s", strconv.Itoa(int(highestNumberUserId)), strconv.Itoa(int(lowestNumberUserId)))
+
+	_, err := meilisearchUtils.GetFollowFromMeili(id)
+
+	if err == nil {
+		// if it exists return true
+		return true, nil
+	}
+
+	return false, nil
+	// userId, _ := utils.GetUserIdFromHeader(ctx)
+
+	// fmt.Println(*userId)
+	// fmt.Println(obj.ID)
+
+	// if *userId == obj.ID {
+	// 	return true, nil
+	// }
+
+	// ave, err := r.client.Follow.Query().
+	// 	Where(
+	// 		follow.And(
+	// 			follow.FollowerID(*userId),
+	// 			follow.UserID(obj.ID),
+	// 		),
+	// 	).
+	// 	Only(ctx)
+
+	// fmt.Println(ave)
+	// fmt.Println(err)
+
+	// if err == nil {
+	// 	// if it exists return true
+	// 	return true, nil
+	// }
+
+	// return false, nil
 }
 
 // CreatedAt is the resolver for the createdAt field.

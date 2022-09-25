@@ -19,6 +19,8 @@ type Follow struct {
 	UserID int `json:"user_id,omitempty"`
 	// FollowerID holds the value of the "follower_id" field.
 	FollowerID int `json:"follower_id,omitempty"`
+	// Valid holds the value of the "valid" field.
+	Valid bool `json:"valid,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -44,8 +46,7 @@ type FollowEdges struct {
 func (e FollowEdges) UserOrErr() (*User, error) {
 	if e.loadedTypes[0] {
 		if e.User == nil {
-			// The edge user was loaded in eager-loading,
-			// but was not found.
+			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
 		return e.User, nil
@@ -58,8 +59,7 @@ func (e FollowEdges) UserOrErr() (*User, error) {
 func (e FollowEdges) FollowerOrErr() (*User, error) {
 	if e.loadedTypes[1] {
 		if e.Follower == nil {
-			// The edge follower was loaded in eager-loading,
-			// but was not found.
+			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
 		return e.Follower, nil
@@ -72,6 +72,8 @@ func (*Follow) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case follow.FieldValid:
+			values[i] = new(sql.NullBool)
 		case follow.FieldUserID, follow.FieldFollowerID:
 			values[i] = new(sql.NullInt64)
 		case follow.FieldCreatedAt:
@@ -102,6 +104,12 @@ func (f *Follow) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field follower_id", values[i])
 			} else if value.Valid {
 				f.FollowerID = int(value.Int64)
+			}
+		case follow.FieldValid:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field valid", values[i])
+			} else if value.Valid {
+				f.Valid = value.Bool
 			}
 		case follow.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -151,6 +159,9 @@ func (f *Follow) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("follower_id=")
 	builder.WriteString(fmt.Sprintf("%v", f.FollowerID))
+	builder.WriteString(", ")
+	builder.WriteString("valid=")
+	builder.WriteString(fmt.Sprintf("%v", f.Valid))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(f.CreatedAt.Format(time.ANSIC))

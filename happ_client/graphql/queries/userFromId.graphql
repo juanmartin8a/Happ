@@ -3,6 +3,6 @@ query UserFromId($id: Int!) {
     id
     name
     username
-    email
+    followState
   }
 }
