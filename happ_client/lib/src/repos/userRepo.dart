@@ -41,6 +41,9 @@ class UserRepo {
           (result.data as Map<String, dynamic>)["signIn"]["tokens"]["accessToken"],
           (result.data as Map<String, dynamic>)["signIn"]["tokens"]["refreshToken"]
         );
+        var refreshToken = await JWT().getRefreshJWT();
+
+        print("refresh token is: $refreshToken");
       }
       print((result.data as Map<String, dynamic>)["signIn"]["user"]["id"].runtimeType);
       return SignIn$Mutation$UserAuthResponse.fromJson(
@@ -76,9 +79,12 @@ class UserRepo {
   }
 
   Future<QueryResult> refreshTokens(String token) async {
+    print("sapo");
     final result = await client.mutate(
       UserOptions().refreshTokensMutationOptions(token)
     );
+
+    print(result);
 
     if (result.hasException) {
       await JWT().deleteJWTS();
@@ -115,6 +121,8 @@ class UserRepo {
     final result = await client.query(
       UserOptions().searchUsersQueryOptions(search)
     );
+
+    print(result);
 
     if (result.hasException) {
       throw (result.exception as OperationException);

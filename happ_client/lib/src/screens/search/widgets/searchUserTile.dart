@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
+import 'package:happ_client/src/screens/search/widgets/saerchUserAddButton.dart';
+import 'package:uuid/uuid.dart';
 
 class SearchUserTile extends StatelessWidget {
+  final List<SearchUsers$Query$User> users;
   final SearchUsers$Query$User user;
   const SearchUserTile({
+    required this.users,
     required this.user,
     Key? key
   }) : super(key: key);
@@ -13,7 +17,7 @@ class SearchUserTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.push('/profile', extra: user);
+        // context.push('/profile', extra: user);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -81,22 +85,37 @@ class SearchUserTile extends StatelessWidget {
                 )
               ),
             ),
+            SearchUserAddButton(
+              users: users,
+              userId: user.id.toInt(),
+              isFollow: user.followState,
+              key: Key("addRemoveButton_${user.id}")
+            )
             // if (isSearchedUsers)
-            // Center(
-            //   child: GestureDetector(
-            //     onTap: () {
-            //       removeSearchedUser!();
-            //     },
-            //     child: Container(
-            //       color: Colors.transparent,
-            //       child: FloatingActions(
-            //         icon: EvaIcons.close,
-            //         padding: EdgeInsets.only(top: 8, bottom: 8, left: 4),
-            //         size: 18,
-            //         color: Colors.grey[600]!,
-            //         key: Key("searchedUsers_$id")
-            //       )
+            // GestureDetector(
+            //   onTap: () {
+                
+            //     // removeSearchedUser!();
+            //     // print("helo there");
+            //   },
+            //   child: Container(
+            //     height: 26,
+            //     width: 75,
+            //     decoration: BoxDecoration(
+            //       color: Colors.grey[200],
+            //       borderRadius: BorderRadius.circular(20)
             //     ),
+            //     child: Center(
+            //       child: Text(
+            //         "Added",
+            //         style: TextStyle(
+            //           color: Colors.grey[800],
+            //           fontSize: 15,
+            //           fontWeight: FontWeight.w600,
+            //           height: 1
+            //         )
+            //       ),
+            //     )
             //   ),
             // )
           ],

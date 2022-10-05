@@ -34,29 +34,29 @@ class AddRemoveUserController extends StateNotifier<AddRemoveState> {
       // return to see if unchaged is == true
       final res = await userRepo.addOrRemoveUser(followUserId, isFollow);
       // print(res);
-      if (res.value == 1) {
-        state = AddRemoveAddState(res: res, operationId: newOperationId,);
-      } else if (res.value == -1) {
-        state = AddRemoveRemoveState(res: res, operationId: newOperationId,);
-      } else if (res.value == 0) {
-        if (isFollow) {
-          state = AddRemoveAddState(
-            res: AddOrRemoveUser$Mutation$AddResponse.fromJson({
-              "value": -1,
-              "unchanged": false,
-            }),
-            operationId: newOperationId,
-          );
-        } else {
-          state = AddRemoveRemoveState(
-            res: AddOrRemoveUser$Mutation$AddResponse.fromJson({
-              "value": 1,
-              "unchanged": false,
-            }),
-            operationId: newOperationId,
-          );
-        }
-      }
+      // if (res.value == 1) {
+      //   state = AddRemoveAddState(res: res, operationId: newOperationId,);
+      // } else if (res.value == -1) {
+      //   state = AddRemoveRemoveState(res: res, operationId: newOperationId,);
+      // } else if (res.value == 0) {
+      //   if (isFollow) {
+      //     state = AddRemoveAddState(
+      //       res: AddOrRemoveUser$Mutation$AddResponse.fromJson({
+      //         "value": -1,
+      //         "unchanged": false,
+      //       }),
+      //       operationId: newOperationId,
+      //     );
+      //   } else {
+      //     state = AddRemoveRemoveState(
+      //       res: AddOrRemoveUser$Mutation$AddResponse.fromJson({
+      //         "value": 1,
+      //         "unchanged": false,
+      //       }),
+      //       operationId: newOperationId,
+      //     );
+      //   }
+      // }
     } catch (e) {
       print("errror :(");
       print(e);

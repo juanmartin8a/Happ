@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:happ_client/src/riverpod/addRemove/addRemove.dart';
+import 'package:happ_client/src/riverpod/addRemove/addRemoveState.dart';
 import 'package:happ_client/src/riverpod/search/search.dart';
 import 'package:happ_client/src/riverpod/search/searchState.dart';
 import 'package:happ_client/src/screens/search/widgets/searchUserTile.dart';
@@ -9,6 +11,7 @@ class SearchResults extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+
     SearchState searchUserState = ref.watch(searchProvider);
     if (searchUserState is !SearchLoadedState) {
       return const SizedBox();
@@ -53,7 +56,7 @@ class SearchResults extends ConsumerWidget {
           }
         }
         int searchUserResIndex = i - 1;
-        return SearchUserTile(user: searchUserState.searchUsersRes[searchUserResIndex]);
+        return SearchUserTile(users: searchUserState.searchUsersRes, user: searchUserState.searchUsersRes[searchUserResIndex]);
       }
     );
   }

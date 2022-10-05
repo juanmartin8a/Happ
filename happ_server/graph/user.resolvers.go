@@ -188,7 +188,23 @@ func (r *mutationResolver) RefreshTokens(ctx context.Context, token string) (*mo
 
 // AddOrRemoveUser is the resolver for the addOrRemoveUser field.
 func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int, isFollow bool) (*model.AddResponse, error) {
-	userId, _ := utils.GetUserIdFromHeader(ctx)
+
+	// passing current userId as a header is a bad idea because an attacker can impersonificate a user
+	// use jwt access token and extract user id from token
+	// if it fails then get refresh token and return both access and refresh tokens and retry operations
+	// it will not log user out because since refresh token has a long duration
+	// and tokens are refreshed each time user opens app
+	// then if user is logged in it should stay logged in
+	userId, authErr := utils.IsAuth(ctx)
+	fmt.Println(authErr)
+	if authErr != nil {
+		return nil, authErr
+	}
+
+	// fmt.Println("aaaaa")
+
+	// userId, _ := utils.GetUserIdFromHeader(ctx)
+
 	// when user follows for first time create a "valid" row
 	// when user follows upsert follow and make it valid (just flip the valid value)
 	// when user unfollows make it invalid

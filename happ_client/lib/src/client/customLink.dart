@@ -31,7 +31,7 @@ class CustomLink extends Link {
       if (refreshTokensResult.hasException) {
         // MeBloc(userRepo: _userRepo!)..add(MeSignOutEvent());
         _token = "";
-        // print("exception");
+        print("exception");
         throw Exception();
       }
       final refreshTokens = RefreshTokens$Mutation$TokenResponse.fromJson(
@@ -39,7 +39,7 @@ class CustomLink extends Link {
       );
       _token = refreshTokens.accessToken;
     } catch(err) {
-      // print("exception");
+      print("exception 2");
       throw Exception();
     }
   }
@@ -49,9 +49,8 @@ class CustomLink extends Link {
     NextLink forward,
     Response response,
   ) async* {
-
     if (response.errors != null && response.errors!.isNotEmpty &&
-    response.errors![0].message == 'Access Denied') {
+    response.errors![0].message == 'access denied') {
 
       try {
         await updateToken();
@@ -73,7 +72,7 @@ class CustomLink extends Link {
         headers: <String, String>{
           "Authorization": "Bearer $_token",
         },
-      ), 
+      ),
     );
 
     return updatedRequest;

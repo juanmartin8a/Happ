@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"time"
-
-	"github.com/go-redis/redis/v9"
 )
 
 var ctx = context.Background()
@@ -42,9 +40,5 @@ func VerifyTokenFromRedis(key string) bool {
 
 	_, err := redisClient.Get(ctx, key).Result()
 
-	// if err == redis.Nil {
-	// 	return false
-	// }
-
-	return err != redis.Nil
+	return err == nil // if redis res has no error return true otherwise false
 }

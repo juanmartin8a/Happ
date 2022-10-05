@@ -61,7 +61,7 @@ func CreateTokens(userId string, prevRefreshToken string) *model.TokenResponse {
 	accessToken, _ := accessT.SignedString(accessKey)
 	refreshToken, _ := refreshT.SignedString(refreshKey)
 
-	redisUtils.RefreshTokenToRedis(userId, timeToExpAccess, refreshToken)
+	redisUtils.RefreshTokenToRedis(userId, timeToExpRefresh, refreshToken)
 
 	if prevRefreshToken != "" {
 		redisUtils.DeleteTokenFromRedis("" + userId + "_" + prevRefreshToken)
