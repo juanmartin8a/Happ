@@ -67,6 +67,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
         left: false,
         top: true,
         child: Column(
+          // mainAxisSize: MainAxisSize.min,
           children: [
             Align(
               alignment: Alignment.topCenter,
@@ -77,7 +78,8 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                 child: Align(
                   alignment: Alignment.center,
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    // crossAxisAlignment: CrossAxisAlignment.stretch,
+                    
                     children: [
                       GestureDetector(
                         onTap: () {

@@ -6,6 +6,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Event is the predicate function for event builders.
+type Event func(*sql.Selector)
+
+// EventUser is the predicate function for eventuser builders.
+type EventUser func(*sql.Selector)
+
 // Follow is the predicate function for follow builders.
 type Follow func(*sql.Selector)
 

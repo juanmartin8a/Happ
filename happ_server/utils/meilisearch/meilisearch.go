@@ -16,9 +16,10 @@ func AddUserToMeili(user *ent.User) bool {
 
 	documents := []map[string]interface{}{
 		{
-			"id":       user.ID,
-			"username": user.Username,
-			"name":     user.Name,
+			"id":         user.ID,
+			"username":   user.Username,
+			"name":       user.Name,
+			"profilePic": user.ProfilePic,
 		},
 	}
 
@@ -37,7 +38,7 @@ func GetUsersFromMeili(search string) ([]interface{}, error) {
 		},
 	)
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 		return nil, err
 	}
 
@@ -97,7 +98,7 @@ func UpdateUserFromMeili() {
 	index := GetMeiliUsersIndex()
 
 	documents := []map[string]interface{}{
-		{"id": 1, "username": "juanmartin8a", "name": "Juan Martin"},
+		{"id": 1, "profilePic": "https://d3pvchlba3rmqp.cloudfront.net/userProfilePics/blueLobster.jpg"},
 	}
 	res, err := index.UpdateDocuments(documents)
 	fmt.Println(res)

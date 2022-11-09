@@ -4,6 +4,7 @@ package graph
 // will be copied through when generating and any unknown code will be moved to the end.
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"happ/ent"
@@ -16,15 +17,40 @@ import (
 	"happ/jwtActions"
 	userValidation "happ/resolverUtils"
 	"happ/utils"
+	"happ/utils/awsS3"
 	meilisearchUtils "happ/utils/meilisearch"
 	redisUtils "happ/utils/redis"
+	"io"
 	"log"
 	"math"
 	"net/mail"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/99designs/gqlgen/graphql"
+	"github.com/google/uuid"
 )
+
+// EventPics is the resolver for the eventPics field.
+func (r *eventResolver) EventPics(ctx context.Context, obj *ent.Event) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+// EventDate is the resolver for the eventDate field.
+func (r *eventResolver) EventDate(ctx context.Context, obj *ent.Event) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+// CreatedAt is the resolver for the createdAt field.
+func (r *eventResolver) CreatedAt(ctx context.Context, obj *ent.Event) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+// UpdatedAt is the resolver for the updatedAt field.
+func (r *eventResolver) UpdatedAt(ctx context.Context, obj *ent.Event) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
 
 // SignUp is the resolver for the signUp field.
 func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) (*model.UserAuthResponse, error) {
@@ -52,12 +78,15 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 		log.Fatal(err)
 	}
 
+	profilePicPath := "https://d3pvchlba3rmqp.cloudfront.net/userProfilePics/blueLobster.jpg"
+
 	user, e := r.client.User.Create().
 		SetName(input.Name).
 		SetUsername(input.Username).
 		SetEmail(input.Email).
 		SetBirthday(birthday).
 		SetPassword(encodedHash).
+		SetProfilePic(profilePicPath).
 		Save(ctx)
 
 	if e != nil {
@@ -188,7 +217,6 @@ func (r *mutationResolver) RefreshTokens(ctx context.Context, token string) (*mo
 
 // AddOrRemoveUser is the resolver for the addOrRemoveUser field.
 func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int, isFollow bool) (*model.AddResponse, error) {
-
 	// passing current userId as a header is a bad idea because an attacker can impersonificate a user
 	// use jwt access token and extract user id from token
 	// if it fails then get refresh token and return both access and refresh tokens and retry operations
@@ -292,6 +320,64 @@ func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int
 	}, nil
 }
 
+// NewEvent is the resolver for the newEvent field.
+func (r *mutationResolver) NewEvent(ctx context.Context, input model.NewEventInput) (*model.CreateEventResponse, error) {
+	eventPics := make([]string, len(input.EventPics))
+
+	for i := 0; i < len(input.EventPics); i++ { //i, picture := range input.EventPics {
+		content, err := io.ReadAll(input.EventPics[i].File)
+		if err != nil {
+			// could not read file #i
+			return nil, fmt.Errorf("could not read picture #%s", strconv.Itoa(i))
+		}
+
+		uuid := uuid.New()
+		uuidString := uuid.String()
+		key := "eventPictures/" + strconv.Itoa(i) + "-" + uuidString + ".jpg"
+
+		eventPics = append(eventPics, key)
+
+		file := bytes.NewReader(content)
+		uploadRes := awsS3.UploadToS3(key, file)
+		if !uploadRes {
+			// return error could not create event try again later
+			return nil, fmt.Errorf("could not create event, try again later")
+		}
+	}
+
+	msInt, _ := strconv.ParseInt(input.EventDate, 10, 64)
+	eventDate := time.Unix(0, msInt*int64(time.Millisecond))
+
+	event, err := r.client.Event.Create().
+		SetName(input.Name).
+		SetDescription(input.Description).
+		SetEventPics(eventPics).
+		SetEventDate(eventDate).
+		Save(ctx)
+	if err != nil {
+		// return error could not create event
+		return nil, fmt.Errorf("could not create event, try again later")
+	}
+
+	bulk := make([]*ent.EventUserCreate, len(input.EventUsers))
+
+	for i, id := range input.EventUsers {
+		bulk[i] = r.client.EventUser.Create().SetEventID(event.ID).SetUserID(id)
+	}
+
+	_, err = r.client.EventUser.CreateBulk(bulk...).Save(ctx)
+	if err != nil {
+		// return event and say that users could not be invited an error occured and
+		// try inviting them from the created event
+		return nil, fmt.Errorf("an error ocurred users could not be invited, you can try inviting them from the created event")
+	}
+
+	return &model.CreateEventResponse{
+		Event: event,
+		// Errors: &model.ErrorResponse{}[]
+	}, nil
+}
+
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, username string) (*ent.User, error) {
 	return r.client.User.Query().Where(user.Username(username)).Only(ctx)
@@ -309,7 +395,7 @@ func (r *queryResolver) SearchUsers(ctx context.Context, search string) ([]*ent.
 	var users []*ent.User
 	res, err := meilisearchUtils.GetUsersFromMeili(trimmedSearch)
 	if err != nil {
-		fmt.Println(res)
+		// fmt.Println(res)
 		// return nil, err
 
 		// or show empty array of users
@@ -324,9 +410,10 @@ func (r *queryResolver) SearchUsers(ctx context.Context, search string) ([]*ent.
 		users = append(
 			users,
 			&ent.User{
-				ID:       int(user.(map[string]interface{})["id"].(float64)),
-				Username: user.(map[string]interface{})["username"].(string),
-				Name:     user.(map[string]interface{})["name"].(string),
+				ID:         int(user.(map[string]interface{})["id"].(float64)),
+				Username:   user.(map[string]interface{})["username"].(string),
+				Name:       user.(map[string]interface{})["name"].(string),
+				ProfilePic: user.(map[string]interface{})["profilePic"].(string),
 			},
 		)
 	}
@@ -434,6 +521,9 @@ func (r *userResolver) UpdatedAt(ctx context.Context, obj *ent.User) (string, er
 	return updatedAt, nil
 }
 
+// Event returns generated.EventResolver implementation.
+func (r *Resolver) Event() generated.EventResolver { return &eventResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -443,6 +533,7 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 // User returns generated.UserResolver implementation.
 func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
 
+type eventResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
@@ -453,6 +544,18 @@ type userResolver struct{ *Resolver }
 //  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //    it when you're done.
 //  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *userResolver) ID(ctx context.Context, obj *ent.User) (float64, error) {
+func (r *createEventInputResolver) EventDate(ctx context.Context, obj *ent.CreateEventInput, data string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+func (r *createEventInputResolver) EventUsers(ctx context.Context, obj *ent.CreateEventInput, data []int) error {
+	panic(fmt.Errorf("not implemented"))
+}
+func (r *createEventInputResolver) EventPics(ctx context.Context, obj *ent.CreateEventInput, data []*graphql.Upload) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+type createEventInputResolver struct{ *Resolver }
+
+func (r *mutationResolver) CreateEvent(ctx context.Context, input ent.CreateEventInput) (*model.CreateEventResponse, error) {
 	panic(fmt.Errorf("not implemented"))
 }

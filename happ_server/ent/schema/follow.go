@@ -9,7 +9,6 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"entgo.io/ent/schema/index"
 )
 
 type Follow struct {
@@ -19,6 +18,8 @@ type Follow struct {
 func (Follow) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		field.ID("user_id", "follower_id"),
+		// entgql.QueryField(),
+		// entgql.Mutations(entgql.MutationCreate()),
 	}
 }
 
@@ -55,9 +56,9 @@ func (Follow) Edges() []ent.Edge {
 }
 
 // Indexes
-func (Follow) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("user_id", "follower_id").
-			Unique(),
-	}
-}
+// func (Follow) Indexes() []ent.Index {
+// 	return []ent.Index{
+// 		index.Fields("user_id", "follower_id").
+// 			Unique(),
+// 	}
+// }

@@ -8,6 +8,32 @@ import (
 	"happ/ent"
 )
 
+// The EventFunc type is an adapter to allow the use of ordinary
+// function as Event mutator.
+type EventFunc func(context.Context, *ent.EventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.EventMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EventMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The EventUserFunc type is an adapter to allow the use of ordinary
+// function as EventUser mutator.
+type EventUserFunc func(context.Context, *ent.EventUserMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EventUserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.EventUserMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EventUserMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The FollowFunc type is an adapter to allow the use of ordinary
 // function as Follow mutator.
 type FollowFunc func(context.Context, *ent.FollowMutation) (ent.Value, error)

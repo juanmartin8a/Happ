@@ -29,7 +29,11 @@ class SearchUserTile extends StatelessWidget {
               child: Container(
                 width: 50,
                 height: 50,
-                color: Colors.yellow
+                color: Colors.grey[350],
+                child: Image.network(
+                  user.profilePic,
+                  fit: BoxFit.cover
+                )
                 // child: ProfileImgLoader(
                 //   file: file,
                 //   isMe: id == CurrentUser.userId,
@@ -53,7 +57,7 @@ class SearchUserTile extends StatelessWidget {
                       user.name,
                       style: TextStyle(
                         color: Colors.grey[800],
-                        fontSize: 17,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                         height: 1
                       ),
@@ -76,7 +80,7 @@ class SearchUserTile extends StatelessWidget {
                       user.username,
                       style: TextStyle(
                         color: Colors.grey[700],
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w500,
                         height: 1
                       ),

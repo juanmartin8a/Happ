@@ -8,6 +8,50 @@ import (
 )
 
 var (
+	// EventsColumns holds the columns for the "events" table.
+	EventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "description", Type: field.TypeString},
+		{Name: "confirmed_count", Type: field.TypeInt},
+		{Name: "event_pics", Type: field.TypeJSON},
+		{Name: "event_date", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime"}},
+		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP", SchemaType: map[string]string{"mysql": "datetime"}},
+		{Name: "updated_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP", SchemaType: map[string]string{"mysql": "datetime"}},
+	}
+	// EventsTable holds the schema information for the "events" table.
+	EventsTable = &schema.Table{
+		Name:       "events",
+		Columns:    EventsColumns,
+		PrimaryKey: []*schema.Column{EventsColumns[0]},
+	}
+	// EventUsersColumns holds the columns for the "event_users" table.
+	EventUsersColumns = []*schema.Column{
+		{Name: "admin", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP", SchemaType: map[string]string{"mysql": "datetime"}},
+		{Name: "event_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// EventUsersTable holds the schema information for the "event_users" table.
+	EventUsersTable = &schema.Table{
+		Name:       "event_users",
+		Columns:    EventUsersColumns,
+		PrimaryKey: []*schema.Column{EventUsersColumns[2], EventUsersColumns[3]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "event_users_events_event",
+				Columns:    []*schema.Column{EventUsersColumns[2]},
+				RefColumns: []*schema.Column{EventsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "event_users_users_user",
+				Columns:    []*schema.Column{EventUsersColumns[3]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// FollowsColumns holds the columns for the "follows" table.
 	FollowsColumns = []*schema.Column{
 		{Name: "valid", Type: field.TypeBool, Default: true},
@@ -32,13 +76,6 @@ var (
 				Columns:    []*schema.Column{FollowsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "follow_user_id_follower_id",
-				Unique:  true,
-				Columns: []*schema.Column{FollowsColumns[2], FollowsColumns[3]},
 			},
 		},
 	}
@@ -69,13 +106,6 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "friendship_user_id_friend_id",
-				Unique:  true,
-				Columns: []*schema.Column{FriendshipsColumns[3], FriendshipsColumns[4]},
-			},
-		},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -83,6 +113,7 @@ var (
 		{Name: "name", Type: field.TypeString, Size: 255},
 		{Name: "username", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "email", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "profile_pic", Type: field.TypeString, Size: 255},
 		{Name: "birthday", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "date"}},
 		{Name: "password", Type: field.TypeString, Size: 255},
 		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP", SchemaType: map[string]string{"mysql": "datetime"}},
@@ -96,6 +127,8 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		EventsTable,
+		EventUsersTable,
 		FollowsTable,
 		FriendshipsTable,
 		UsersTable,
@@ -103,6 +136,8 @@ var (
 )
 
 func init() {
+	EventUsersTable.ForeignKeys[0].RefTable = EventsTable
+	EventUsersTable.ForeignKeys[1].RefTable = UsersTable
 	FollowsTable.ForeignKeys[0].RefTable = UsersTable
 	FollowsTable.ForeignKeys[1].RefTable = UsersTable
 	FriendshipsTable.ForeignKeys[0].RefTable = UsersTable

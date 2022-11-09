@@ -4,6 +4,22 @@ package ent
 
 import "context"
 
+func (e *Event) Users(ctx context.Context) ([]*User, error) {
+	result, err := e.Edges.UsersOrErr()
+	if IsNotLoaded(err) {
+		result, err = e.QueryUsers().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) Events(ctx context.Context) ([]*Event, error) {
+	result, err := u.Edges.EventsOrErr()
+	if IsNotLoaded(err) {
+		result, err = u.QueryEvents().All(ctx)
+	}
+	return result, err
+}
+
 func (u *User) Friends(ctx context.Context) ([]*User, error) {
 	result, err := u.Edges.FriendsOrErr()
 	if IsNotLoaded(err) {

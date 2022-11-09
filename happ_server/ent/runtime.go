@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"happ/ent/event"
+	"happ/ent/eventuser"
 	"happ/ent/follow"
 	"happ/ent/friendship"
 	"happ/ent/schema"
@@ -14,6 +16,48 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	eventFields := schema.Event{}.Fields()
+	_ = eventFields
+	// eventDescName is the schema descriptor for name field.
+	eventDescName := eventFields[0].Descriptor()
+	// event.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	event.NameValidator = func() func(string) error {
+		validators := eventDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// eventDescDescription is the schema descriptor for description field.
+	eventDescDescription := eventFields[1].Descriptor()
+	// event.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	event.DescriptionValidator = eventDescDescription.Validators[0].(func(string) error)
+	// eventDescCreatedAt is the schema descriptor for created_at field.
+	eventDescCreatedAt := eventFields[5].Descriptor()
+	// event.DefaultCreatedAt holds the default value on creation for the created_at field.
+	event.DefaultCreatedAt = eventDescCreatedAt.Default.(func() time.Time)
+	// eventDescUpdatedAt is the schema descriptor for updated_at field.
+	eventDescUpdatedAt := eventFields[6].Descriptor()
+	// event.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	event.DefaultUpdatedAt = eventDescUpdatedAt.Default.(func() time.Time)
+	eventuserFields := schema.EventUser{}.Fields()
+	_ = eventuserFields
+	// eventuserDescAdmin is the schema descriptor for admin field.
+	eventuserDescAdmin := eventuserFields[2].Descriptor()
+	// eventuser.DefaultAdmin holds the default value on creation for the admin field.
+	eventuser.DefaultAdmin = eventuserDescAdmin.Default.(bool)
+	// eventuserDescCreatedAt is the schema descriptor for created_at field.
+	eventuserDescCreatedAt := eventuserFields[3].Descriptor()
+	// eventuser.DefaultCreatedAt holds the default value on creation for the created_at field.
+	eventuser.DefaultCreatedAt = eventuserDescCreatedAt.Default.(func() time.Time)
 	followFields := schema.Follow{}.Fields()
 	_ = followFields
 	// followDescValid is the schema descriptor for valid field.
@@ -86,8 +130,26 @@ func init() {
 			return nil
 		}
 	}()
+	// userDescProfilePic is the schema descriptor for profile_pic field.
+	userDescProfilePic := userFields[3].Descriptor()
+	// user.ProfilePicValidator is a validator for the "profile_pic" field. It is called by the builders before save.
+	user.ProfilePicValidator = func() func(string) error {
+		validators := userDescProfilePic.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(profile_pic string) error {
+			for _, fn := range fns {
+				if err := fn(profile_pic); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// userDescPassword is the schema descriptor for password field.
-	userDescPassword := userFields[4].Descriptor()
+	userDescPassword := userFields[5].Descriptor()
 	// user.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	user.PasswordValidator = func() func(string) error {
 		validators := userDescPassword.Validators
@@ -105,11 +167,11 @@ func init() {
 		}
 	}()
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[5].Descriptor()
+	userDescCreatedAt := userFields[6].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[6].Descriptor()
+	userDescUpdatedAt := userFields[7].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 }

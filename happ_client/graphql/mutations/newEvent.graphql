@@ -1,0 +1,19 @@
+mutation NewEvent($input: NewEventInput!) {
+  newEvent(
+    input: $input
+  ) {
+    event {
+      id
+      name
+      description
+      confirmedCount
+      eventPics
+      createdAt
+      updatedAt
+    }
+    errors {
+      field
+      message
+    }
+  }
+}

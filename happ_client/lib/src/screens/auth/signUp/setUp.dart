@@ -89,7 +89,7 @@ class SetUpAccountState extends ConsumerState<SetUpAccount> with AutomaticKeepAl
             textAlignVertical: TextAlignVertical.center,
             keyboardAppearance: Brightness.dark,
             style: const TextStyle(
-              color: Colors.white,
+              color: Colors.black,
               fontSize: 16,
               fontWeight: FontWeight.w600,
               height: 1.25
@@ -143,7 +143,7 @@ class SetUpAccountState extends ConsumerState<SetUpAccount> with AutomaticKeepAl
             textAlignVertical: TextAlignVertical.center,
             keyboardAppearance: Brightness.dark,
             style: const TextStyle(
-              color: Colors.white,
+              color: Colors.black,
               fontSize: 16,
               fontWeight: FontWeight.w600,
               height: 1.25
@@ -212,6 +212,7 @@ class SetUpAccountState extends ConsumerState<SetUpAccount> with AutomaticKeepAl
               emailError == null &&
               passwordError == null
             ) {
+              print("aaaa");
               ref.read(signUpProvider.notifier).setData(
                 _usernameController.text.trim(), 
                 _emailController.text.trim(), 

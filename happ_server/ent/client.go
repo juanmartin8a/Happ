@@ -10,6 +10,8 @@ import (
 
 	"happ/ent/migrate"
 
+	"happ/ent/event"
+	"happ/ent/eventuser"
 	"happ/ent/follow"
 	"happ/ent/friendship"
 	"happ/ent/user"
@@ -24,6 +26,10 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Event is the client for interacting with the Event builders.
+	Event *EventClient
+	// EventUser is the client for interacting with the EventUser builders.
+	EventUser *EventUserClient
 	// Follow is the client for interacting with the Follow builders.
 	Follow *FollowClient
 	// Friendship is the client for interacting with the Friendship builders.
@@ -45,6 +51,8 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Event = NewEventClient(c.config)
+	c.EventUser = NewEventUserClient(c.config)
 	c.Follow = NewFollowClient(c.config)
 	c.Friendship = NewFriendshipClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -81,6 +89,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:        ctx,
 		config:     cfg,
+		Event:      NewEventClient(cfg),
+		EventUser:  NewEventUserClient(cfg),
 		Follow:     NewFollowClient(cfg),
 		Friendship: NewFriendshipClient(cfg),
 		User:       NewUserClient(cfg),
@@ -103,6 +113,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:        ctx,
 		config:     cfg,
+		Event:      NewEventClient(cfg),
+		EventUser:  NewEventUserClient(cfg),
 		Follow:     NewFollowClient(cfg),
 		Friendship: NewFriendshipClient(cfg),
 		User:       NewUserClient(cfg),
@@ -112,7 +124,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Follow.
+//		Event.
 //		Query().
 //		Count(ctx)
 //
@@ -135,9 +147,206 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Event.Use(hooks...)
+	c.EventUser.Use(hooks...)
 	c.Follow.Use(hooks...)
 	c.Friendship.Use(hooks...)
 	c.User.Use(hooks...)
+}
+
+// EventClient is a client for the Event schema.
+type EventClient struct {
+	config
+}
+
+// NewEventClient returns a client for the Event from the given config.
+func NewEventClient(c config) *EventClient {
+	return &EventClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `event.Hooks(f(g(h())))`.
+func (c *EventClient) Use(hooks ...Hook) {
+	c.hooks.Event = append(c.hooks.Event, hooks...)
+}
+
+// Create returns a builder for creating a Event entity.
+func (c *EventClient) Create() *EventCreate {
+	mutation := newEventMutation(c.config, OpCreate)
+	return &EventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Event entities.
+func (c *EventClient) CreateBulk(builders ...*EventCreate) *EventCreateBulk {
+	return &EventCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Event.
+func (c *EventClient) Update() *EventUpdate {
+	mutation := newEventMutation(c.config, OpUpdate)
+	return &EventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EventClient) UpdateOne(e *Event) *EventUpdateOne {
+	mutation := newEventMutation(c.config, OpUpdateOne, withEvent(e))
+	return &EventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EventClient) UpdateOneID(id int) *EventUpdateOne {
+	mutation := newEventMutation(c.config, OpUpdateOne, withEventID(id))
+	return &EventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Event.
+func (c *EventClient) Delete() *EventDelete {
+	mutation := newEventMutation(c.config, OpDelete)
+	return &EventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EventClient) DeleteOne(e *Event) *EventDeleteOne {
+	return c.DeleteOneID(e.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *EventClient) DeleteOneID(id int) *EventDeleteOne {
+	builder := c.Delete().Where(event.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EventDeleteOne{builder}
+}
+
+// Query returns a query builder for Event.
+func (c *EventClient) Query() *EventQuery {
+	return &EventQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Event entity by its id.
+func (c *EventClient) Get(ctx context.Context, id int) (*Event, error) {
+	return c.Query().Where(event.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EventClient) GetX(ctx context.Context, id int) *Event {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUsers queries the users edge of a Event.
+func (c *EventClient) QueryUsers(e *Event) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(event.Table, event.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, event.UsersTable, event.UsersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEventUsers queries the event_users edge of a Event.
+func (c *EventClient) QueryEventUsers(e *Event) *EventUserQuery {
+	query := &EventUserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(event.Table, event.FieldID, id),
+			sqlgraph.To(eventuser.Table, eventuser.EventColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, event.EventUsersTable, event.EventUsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EventClient) Hooks() []Hook {
+	return c.hooks.Event
+}
+
+// EventUserClient is a client for the EventUser schema.
+type EventUserClient struct {
+	config
+}
+
+// NewEventUserClient returns a client for the EventUser from the given config.
+func NewEventUserClient(c config) *EventUserClient {
+	return &EventUserClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `eventuser.Hooks(f(g(h())))`.
+func (c *EventUserClient) Use(hooks ...Hook) {
+	c.hooks.EventUser = append(c.hooks.EventUser, hooks...)
+}
+
+// Create returns a builder for creating a EventUser entity.
+func (c *EventUserClient) Create() *EventUserCreate {
+	mutation := newEventUserMutation(c.config, OpCreate)
+	return &EventUserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EventUser entities.
+func (c *EventUserClient) CreateBulk(builders ...*EventUserCreate) *EventUserCreateBulk {
+	return &EventUserCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EventUser.
+func (c *EventUserClient) Update() *EventUserUpdate {
+	mutation := newEventUserMutation(c.config, OpUpdate)
+	return &EventUserUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EventUserClient) UpdateOne(eu *EventUser) *EventUserUpdateOne {
+	mutation := newEventUserMutation(c.config, OpUpdateOne)
+	mutation.event = &eu.EventID
+	mutation.user = &eu.UserID
+	return &EventUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EventUser.
+func (c *EventUserClient) Delete() *EventUserDelete {
+	mutation := newEventUserMutation(c.config, OpDelete)
+	return &EventUserDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Query returns a query builder for EventUser.
+func (c *EventUserClient) Query() *EventUserQuery {
+	return &EventUserQuery{
+		config: c.config,
+	}
+}
+
+// QueryEvent queries the event edge of a EventUser.
+func (c *EventUserClient) QueryEvent(eu *EventUser) *EventQuery {
+	return c.Query().
+		Where(eventuser.EventID(eu.EventID), eventuser.UserID(eu.UserID)).
+		QueryEvent()
+}
+
+// QueryUser queries the user edge of a EventUser.
+func (c *EventUserClient) QueryUser(eu *EventUser) *UserQuery {
+	return c.Query().
+		Where(eventuser.EventID(eu.EventID), eventuser.UserID(eu.UserID)).
+		QueryUser()
+}
+
+// Hooks returns the client hooks.
+func (c *EventUserClient) Hooks() []Hook {
+	return c.hooks.EventUser
 }
 
 // FollowClient is a client for the Follow schema.
@@ -371,6 +580,22 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 	return obj
 }
 
+// QueryEvents queries the events edge of a User.
+func (c *UserClient) QueryEvents(u *User) *EventQuery {
+	query := &EventQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(event.Table, event.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.EventsTable, user.EventsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryFriends queries the friends edge of a User.
 func (c *UserClient) QueryFriends(u *User) *UserQuery {
 	query := &UserQuery{config: c.config}
@@ -412,6 +637,22 @@ func (c *UserClient) QueryFollowing(u *User) *UserQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, user.FollowingTable, user.FollowingPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEventUser queries the event_user edge of a User.
+func (c *UserClient) QueryEventUser(u *User) *EventUserQuery {
+	query := &EventUserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(eventuser.Table, eventuser.UserColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.EventUserTable, user.EventUserColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

@@ -1,3 +1,5 @@
+scalar Upload
+
 type User {
   id: Int!
   name: String!
@@ -6,6 +8,18 @@ type User {
   birthday: String!
   password: String!
   followState: Boolean!
+  createdAt: String!
+  updatedAt: String!
+  profilePic: String!
+}
+
+type Event {
+  id: Int!
+  name: String!
+  description: String!
+  confirmedCount: Int!
+  eventPics: String!
+  eventDate: String!
   createdAt: String!
   updatedAt: String!
 }
@@ -23,6 +37,14 @@ input SignInInput {
   password: String!
 }
 
+input NewEventInput {
+  name: String!
+  description: String!
+  eventDate: String!
+  eventUsers: [Int!]!
+  eventPics: [Upload!]!
+}
+
 type TokenResponse {
   refreshToken: String!
   accessToken: String!
@@ -31,6 +53,11 @@ type TokenResponse {
 type UserAuthResponse {
   user: User
   tokens: TokenResponse
+  errors: [ErrorResponse!]
+}
+
+type CreateEventResponse {
+  event: Event
   errors: [ErrorResponse!]
 }
 
@@ -70,4 +97,7 @@ type Mutation {
     followUserId: Int!
     isFollow: Boolean!
   ): AddResponse!
+  newEvent(
+    input: NewEventInput!
+  ): CreateEventResponse!
 }

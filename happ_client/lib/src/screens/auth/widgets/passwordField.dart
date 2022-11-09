@@ -32,7 +32,7 @@ class _PasswordFieldState extends State<PasswordField> {
         // textAlign: TextAlign.center,
         keyboardAppearance: Brightness.dark,
         style: const TextStyle(
-          color: Colors.white,
+          color: Colors.black,
           fontSize: 16,
           fontWeight: FontWeight.w600,
           height: 1.25

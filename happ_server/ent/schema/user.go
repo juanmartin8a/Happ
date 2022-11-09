@@ -10,6 +10,14 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
+// func (User) Annotations() []schema.Annotation {
+// 	return []schema.Annotation{
+// 		// field.ID("user_id", "follower_id"),
+// 		entgql.QueryField(),
+// 		entgql.Mutations(entgql.MutationCreate()),
+// 	}
+// }
+
 // User holds the schema definition for the User entity.
 type User struct {
 	ent.Schema
@@ -29,6 +37,9 @@ func (User) Fields() []ent.Field {
 			NotEmpty().
 			MaxLen(255).
 			Unique(),
+		field.String("profile_pic").
+			NotEmpty().
+			MaxLen(255),
 		field.Time("birthday").
 			SchemaType(map[string]string{
 				dialect.MySQL: "date",
@@ -60,6 +71,9 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("events", Event.Type).
+			Ref("users").
+			Through("event_user", EventUser.Type),
 		edge.To("friends", User.Type).
 			Through("friendships", Friendship.Type),
 		edge.To("following", User.Type).

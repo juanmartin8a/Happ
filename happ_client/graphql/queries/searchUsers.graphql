@@ -4,5 +4,6 @@ query SearchUsers($search: String!) {
     username
     name
     followState
+    profilePic
   }
 }

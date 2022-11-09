@@ -22,6 +22,8 @@ type User struct {
 	Username string `json:"username,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
+	// ProfilePic holds the value of the "profile_pic" field.
+	ProfilePic string `json:"profile_pic,omitempty"`
 	// Birthday holds the value of the "birthday" field.
 	Birthday time.Time `json:"birthday,omitempty"`
 	// Password holds the value of the "password" field.
@@ -37,27 +39,40 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
+	// Events holds the value of the events edge.
+	Events []*Event `json:"events,omitempty"`
 	// Friends holds the value of the friends edge.
 	Friends []*User `json:"friends,omitempty"`
 	// Followers holds the value of the followers edge.
 	Followers []*User `json:"followers,omitempty"`
 	// Following holds the value of the following edge.
 	Following []*User `json:"following,omitempty"`
+	// EventUser holds the value of the event_user edge.
+	EventUser []*EventUser `json:"event_user,omitempty"`
 	// Friendships holds the value of the friendships edge.
 	Friendships []*Friendship `json:"friendships,omitempty"`
 	// Follow holds the value of the follow edge.
 	Follow []*Follow `json:"follow,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [7]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]*int
+	totalCount [4]*int
+}
+
+// EventsOrErr returns the Events value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) EventsOrErr() ([]*Event, error) {
+	if e.loadedTypes[0] {
+		return e.Events, nil
+	}
+	return nil, &NotLoadedError{edge: "events"}
 }
 
 // FriendsOrErr returns the Friends value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FriendsOrErr() ([]*User, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		return e.Friends, nil
 	}
 	return nil, &NotLoadedError{edge: "friends"}
@@ -66,7 +81,7 @@ func (e UserEdges) FriendsOrErr() ([]*User, error) {
 // FollowersOrErr returns the Followers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FollowersOrErr() ([]*User, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Followers, nil
 	}
 	return nil, &NotLoadedError{edge: "followers"}
@@ -75,16 +90,25 @@ func (e UserEdges) FollowersOrErr() ([]*User, error) {
 // FollowingOrErr returns the Following value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FollowingOrErr() ([]*User, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.Following, nil
 	}
 	return nil, &NotLoadedError{edge: "following"}
 }
 
+// EventUserOrErr returns the EventUser value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) EventUserOrErr() ([]*EventUser, error) {
+	if e.loadedTypes[4] {
+		return e.EventUser, nil
+	}
+	return nil, &NotLoadedError{edge: "event_user"}
+}
+
 // FriendshipsOrErr returns the Friendships value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FriendshipsOrErr() ([]*Friendship, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[5] {
 		return e.Friendships, nil
 	}
 	return nil, &NotLoadedError{edge: "friendships"}
@@ -93,7 +117,7 @@ func (e UserEdges) FriendshipsOrErr() ([]*Friendship, error) {
 // FollowOrErr returns the Follow value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FollowOrErr() ([]*Follow, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[6] {
 		return e.Follow, nil
 	}
 	return nil, &NotLoadedError{edge: "follow"}
@@ -106,7 +130,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldName, user.FieldUsername, user.FieldEmail, user.FieldPassword:
+		case user.FieldName, user.FieldUsername, user.FieldEmail, user.FieldProfilePic, user.FieldPassword:
 			values[i] = new(sql.NullString)
 		case user.FieldBirthday, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -149,6 +173,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.Email = value.String
 			}
+		case user.FieldProfilePic:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field profile_pic", values[i])
+			} else if value.Valid {
+				u.ProfilePic = value.String
+			}
 		case user.FieldBirthday:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field birthday", values[i])
@@ -178,6 +208,11 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 	return nil
 }
 
+// QueryEvents queries the "events" edge of the User entity.
+func (u *User) QueryEvents() *EventQuery {
+	return (&UserClient{config: u.config}).QueryEvents(u)
+}
+
 // QueryFriends queries the "friends" edge of the User entity.
 func (u *User) QueryFriends() *UserQuery {
 	return (&UserClient{config: u.config}).QueryFriends(u)
@@ -191,6 +226,11 @@ func (u *User) QueryFollowers() *UserQuery {
 // QueryFollowing queries the "following" edge of the User entity.
 func (u *User) QueryFollowing() *UserQuery {
 	return (&UserClient{config: u.config}).QueryFollowing(u)
+}
+
+// QueryEventUser queries the "event_user" edge of the User entity.
+func (u *User) QueryEventUser() *EventUserQuery {
+	return (&UserClient{config: u.config}).QueryEventUser(u)
 }
 
 // QueryFriendships queries the "friendships" edge of the User entity.
@@ -234,6 +274,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("email=")
 	builder.WriteString(u.Email)
+	builder.WriteString(", ")
+	builder.WriteString("profile_pic=")
+	builder.WriteString(u.ProfilePic)
 	builder.WriteString(", ")
 	builder.WriteString("birthday=")
 	builder.WriteString(u.Birthday.Format(time.ANSIC))

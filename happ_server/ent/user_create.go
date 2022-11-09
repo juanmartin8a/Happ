@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"happ/ent/event"
 	"happ/ent/user"
 	"time"
 
@@ -37,6 +38,12 @@ func (uc *UserCreate) SetUsername(s string) *UserCreate {
 // SetEmail sets the "email" field.
 func (uc *UserCreate) SetEmail(s string) *UserCreate {
 	uc.mutation.SetEmail(s)
+	return uc
+}
+
+// SetProfilePic sets the "profile_pic" field.
+func (uc *UserCreate) SetProfilePic(s string) *UserCreate {
+	uc.mutation.SetProfilePic(s)
 	return uc
 }
 
@@ -78,6 +85,21 @@ func (uc *UserCreate) SetNillableUpdatedAt(t *time.Time) *UserCreate {
 		uc.SetUpdatedAt(*t)
 	}
 	return uc
+}
+
+// AddEventIDs adds the "events" edge to the Event entity by IDs.
+func (uc *UserCreate) AddEventIDs(ids ...int) *UserCreate {
+	uc.mutation.AddEventIDs(ids...)
+	return uc
+}
+
+// AddEvents adds the "events" edges to the Event entity.
+func (uc *UserCreate) AddEvents(e ...*Event) *UserCreate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uc.AddEventIDs(ids...)
 }
 
 // AddFriendIDs adds the "friends" edge to the User entity by IDs.
@@ -238,6 +260,14 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
+	if _, ok := uc.mutation.ProfilePic(); !ok {
+		return &ValidationError{Name: "profile_pic", err: errors.New(`ent: missing required field "User.profile_pic"`)}
+	}
+	if v, ok := uc.mutation.ProfilePic(); ok {
+		if err := user.ProfilePicValidator(v); err != nil {
+			return &ValidationError{Name: "profile_pic", err: fmt.Errorf(`ent: validator failed for field "User.profile_pic": %w`, err)}
+		}
+	}
 	if _, ok := uc.mutation.Birthday(); !ok {
 		return &ValidationError{Name: "birthday", err: errors.New(`ent: missing required field "User.birthday"`)}
 	}
@@ -307,6 +337,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		})
 		_node.Email = value
 	}
+	if value, ok := uc.mutation.ProfilePic(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldProfilePic,
+		})
+		_node.ProfilePic = value
+	}
 	if value, ok := uc.mutation.Birthday(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -338,6 +376,29 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := uc.mutation.EventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.EventsTable,
+			Columns: user.EventsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: event.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &EventUserCreate{config: uc.config, mutation: newEventUserMutation(uc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := uc.mutation.FriendsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -494,6 +555,18 @@ func (u *UserUpsert) UpdateEmail() *UserUpsert {
 	return u
 }
 
+// SetProfilePic sets the "profile_pic" field.
+func (u *UserUpsert) SetProfilePic(v string) *UserUpsert {
+	u.Set(user.FieldProfilePic, v)
+	return u
+}
+
+// UpdateProfilePic sets the "profile_pic" field to the value that was provided on create.
+func (u *UserUpsert) UpdateProfilePic() *UserUpsert {
+	u.SetExcluded(user.FieldProfilePic)
+	return u
+}
+
 // SetBirthday sets the "birthday" field.
 func (u *UserUpsert) SetBirthday(v time.Time) *UserUpsert {
 	u.Set(user.FieldBirthday, v)
@@ -631,6 +704,20 @@ func (u *UserUpsertOne) SetEmail(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateEmail() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateEmail()
+	})
+}
+
+// SetProfilePic sets the "profile_pic" field.
+func (u *UserUpsertOne) SetProfilePic(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetProfilePic(v)
+	})
+}
+
+// UpdateProfilePic sets the "profile_pic" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateProfilePic() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateProfilePic()
 	})
 }
 
@@ -943,6 +1030,20 @@ func (u *UserUpsertBulk) SetEmail(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateEmail() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateEmail()
+	})
+}
+
+// SetProfilePic sets the "profile_pic" field.
+func (u *UserUpsertBulk) SetProfilePic(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetProfilePic(v)
+	})
+}
+
+// UpdateProfilePic sets the "profile_pic" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateProfilePic() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateProfilePic()
 	})
 }
 

@@ -102,6 +102,13 @@ func Email(v string) predicate.User {
 	})
 }
 
+// ProfilePic applies equality check predicate on the "profile_pic" field. It's identical to ProfilePicEQ.
+func ProfilePic(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldProfilePic), v))
+	})
+}
+
 // Birthday applies equality check predicate on the "birthday" field. It's identical to BirthdayEQ.
 func Birthday(v time.Time) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -427,6 +434,105 @@ func EmailContainsFold(v string) predicate.User {
 	})
 }
 
+// ProfilePicEQ applies the EQ predicate on the "profile_pic" field.
+func ProfilePicEQ(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldProfilePic), v))
+	})
+}
+
+// ProfilePicNEQ applies the NEQ predicate on the "profile_pic" field.
+func ProfilePicNEQ(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldProfilePic), v))
+	})
+}
+
+// ProfilePicIn applies the In predicate on the "profile_pic" field.
+func ProfilePicIn(vs ...string) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldProfilePic), v...))
+	})
+}
+
+// ProfilePicNotIn applies the NotIn predicate on the "profile_pic" field.
+func ProfilePicNotIn(vs ...string) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldProfilePic), v...))
+	})
+}
+
+// ProfilePicGT applies the GT predicate on the "profile_pic" field.
+func ProfilePicGT(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldProfilePic), v))
+	})
+}
+
+// ProfilePicGTE applies the GTE predicate on the "profile_pic" field.
+func ProfilePicGTE(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldProfilePic), v))
+	})
+}
+
+// ProfilePicLT applies the LT predicate on the "profile_pic" field.
+func ProfilePicLT(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldProfilePic), v))
+	})
+}
+
+// ProfilePicLTE applies the LTE predicate on the "profile_pic" field.
+func ProfilePicLTE(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldProfilePic), v))
+	})
+}
+
+// ProfilePicContains applies the Contains predicate on the "profile_pic" field.
+func ProfilePicContains(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldProfilePic), v))
+	})
+}
+
+// ProfilePicHasPrefix applies the HasPrefix predicate on the "profile_pic" field.
+func ProfilePicHasPrefix(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldProfilePic), v))
+	})
+}
+
+// ProfilePicHasSuffix applies the HasSuffix predicate on the "profile_pic" field.
+func ProfilePicHasSuffix(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldProfilePic), v))
+	})
+}
+
+// ProfilePicEqualFold applies the EqualFold predicate on the "profile_pic" field.
+func ProfilePicEqualFold(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldProfilePic), v))
+	})
+}
+
+// ProfilePicContainsFold applies the ContainsFold predicate on the "profile_pic" field.
+func ProfilePicContainsFold(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldProfilePic), v))
+	})
+}
+
 // BirthdayEQ applies the EQ predicate on the "birthday" field.
 func BirthdayEQ(v time.Time) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -718,6 +824,34 @@ func UpdatedAtLTE(v time.Time) predicate.User {
 	})
 }
 
+// HasEvents applies the HasEdge predicate on the "events" edge.
+func HasEvents() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EventsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, EventsTable, EventsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEventsWith applies the HasEdge predicate on the "events" edge with a given conditions (other predicates).
+func HasEventsWith(preds ...predicate.Event) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EventsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, EventsTable, EventsPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasFriends applies the HasEdge predicate on the "friends" edge.
 func HasFriends() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -793,6 +927,34 @@ func HasFollowingWith(preds ...predicate.User) predicate.User {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(Table, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, FollowingTable, FollowingPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEventUser applies the HasEdge predicate on the "event_user" edge.
+func HasEventUser() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EventUserTable, EventUserColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, EventUserTable, EventUserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEventUserWith applies the HasEdge predicate on the "event_user" edge with a given conditions (other predicates).
+func HasEventUserWith(preds ...predicate.EventUser) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EventUserInverseTable, EventUserColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, EventUserTable, EventUserColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

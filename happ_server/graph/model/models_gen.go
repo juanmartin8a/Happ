@@ -4,6 +4,8 @@ package model
 
 import (
 	"happ/ent"
+
+	"github.com/99designs/gqlgen/graphql"
 )
 
 type AddResponse struct {
@@ -11,9 +13,22 @@ type AddResponse struct {
 	Unchanged bool `json:"unchanged"`
 }
 
+type CreateEventResponse struct {
+	Event  *ent.Event       `json:"event"`
+	Errors []*ErrorResponse `json:"errors"`
+}
+
 type ErrorResponse struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
+}
+
+type NewEventInput struct {
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	EventDate   string            `json:"eventDate"`
+	EventUsers  []int             `json:"eventUsers"`
+	EventPics   []*graphql.Upload `json:"eventPics"`
 }
 
 type SignInInput struct {

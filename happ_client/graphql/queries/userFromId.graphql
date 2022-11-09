@@ -4,5 +4,6 @@ query UserFromId($id: Int!) {
     name
     username
     followState
+    profilePic
   }
 }

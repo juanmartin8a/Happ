@@ -9,7 +9,6 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"entgo.io/ent/schema/index"
 )
 
 type Friendship struct {
@@ -19,6 +18,8 @@ type Friendship struct {
 func (Friendship) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		field.ID("user_id", "friend_id"),
+		// entgql.QueryField(),
+		// entgql.Mutations(entgql.MutationCreate()),
 	}
 }
 
@@ -56,9 +57,9 @@ func (Friendship) Edges() []ent.Edge {
 }
 
 // Indexes
-func (Friendship) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("user_id", "friend_id").
-			Unique(),
-	}
-}
+// func (Friendship) Indexes() []ent.Index {
+// 	return []ent.Index{
+// 		index.Fields("user_id", "friend_id").
+// 			Unique(),
+// 	}
+// }

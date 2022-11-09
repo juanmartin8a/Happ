@@ -5,6 +5,8 @@ import 'package:artemis/artemis.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:equatable/equatable.dart';
 import 'package:gql/ast.dart';
+import 'package:http/http.dart';
+import 'package:happ_client/src/api/graphql/upload_serializer.dart';
 part 'graphql_api.graphql.g.dart';
 
 @JsonSerializable(explicitToJson: true)
@@ -40,6 +42,159 @@ class RefreshTokens$Mutation extends JsonSerializable with EquatableMixin {
   List<Object?> get props => [refreshTokens];
   @override
   Map<String, dynamic> toJson() => _$RefreshTokens$MutationToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class AddOrRemoveUser$Mutation$AddResponse extends JsonSerializable
+    with EquatableMixin {
+  AddOrRemoveUser$Mutation$AddResponse();
+
+  factory AddOrRemoveUser$Mutation$AddResponse.fromJson(
+          Map<String, dynamic> json) =>
+      _$AddOrRemoveUser$Mutation$AddResponseFromJson(json);
+
+  late int value;
+
+  late bool unchanged;
+
+  @override
+  List<Object?> get props => [value, unchanged];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$AddOrRemoveUser$Mutation$AddResponseToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class AddOrRemoveUser$Mutation extends JsonSerializable with EquatableMixin {
+  AddOrRemoveUser$Mutation();
+
+  factory AddOrRemoveUser$Mutation.fromJson(Map<String, dynamic> json) =>
+      _$AddOrRemoveUser$MutationFromJson(json);
+
+  late AddOrRemoveUser$Mutation$AddResponse addOrRemoveUser;
+
+  @override
+  List<Object?> get props => [addOrRemoveUser];
+  @override
+  Map<String, dynamic> toJson() => _$AddOrRemoveUser$MutationToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class NewEvent$Mutation$CreateEventResponse$Event extends JsonSerializable
+    with EquatableMixin {
+  NewEvent$Mutation$CreateEventResponse$Event();
+
+  factory NewEvent$Mutation$CreateEventResponse$Event.fromJson(
+          Map<String, dynamic> json) =>
+      _$NewEvent$Mutation$CreateEventResponse$EventFromJson(json);
+
+  late int id;
+
+  late String name;
+
+  late String description;
+
+  late int confirmedCount;
+
+  late String eventPics;
+
+  late String createdAt;
+
+  late String updatedAt;
+
+  @override
+  List<Object?> get props =>
+      [id, name, description, confirmedCount, eventPics, createdAt, updatedAt];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$NewEvent$Mutation$CreateEventResponse$EventToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class NewEvent$Mutation$CreateEventResponse$ErrorResponse
+    extends JsonSerializable with EquatableMixin {
+  NewEvent$Mutation$CreateEventResponse$ErrorResponse();
+
+  factory NewEvent$Mutation$CreateEventResponse$ErrorResponse.fromJson(
+          Map<String, dynamic> json) =>
+      _$NewEvent$Mutation$CreateEventResponse$ErrorResponseFromJson(json);
+
+  late String field;
+
+  late String message;
+
+  @override
+  List<Object?> get props => [field, message];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$NewEvent$Mutation$CreateEventResponse$ErrorResponseToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class NewEvent$Mutation$CreateEventResponse extends JsonSerializable
+    with EquatableMixin {
+  NewEvent$Mutation$CreateEventResponse();
+
+  factory NewEvent$Mutation$CreateEventResponse.fromJson(
+          Map<String, dynamic> json) =>
+      _$NewEvent$Mutation$CreateEventResponseFromJson(json);
+
+  NewEvent$Mutation$CreateEventResponse$Event? event;
+
+  List<NewEvent$Mutation$CreateEventResponse$ErrorResponse>? errors;
+
+  @override
+  List<Object?> get props => [event, errors];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$NewEvent$Mutation$CreateEventResponseToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class NewEvent$Mutation extends JsonSerializable with EquatableMixin {
+  NewEvent$Mutation();
+
+  factory NewEvent$Mutation.fromJson(Map<String, dynamic> json) =>
+      _$NewEvent$MutationFromJson(json);
+
+  late NewEvent$Mutation$CreateEventResponse newEvent;
+
+  @override
+  List<Object?> get props => [newEvent];
+  @override
+  Map<String, dynamic> toJson() => _$NewEvent$MutationToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class NewEventInput extends JsonSerializable with EquatableMixin {
+  NewEventInput(
+      {required this.name,
+      required this.description,
+      required this.eventDate,
+      required this.eventUsers,
+      required this.eventPics});
+
+  factory NewEventInput.fromJson(Map<String, dynamic> json) =>
+      _$NewEventInputFromJson(json);
+
+  late String name;
+
+  late String description;
+
+  late String eventDate;
+
+  late List<int> eventUsers;
+
+  @JsonKey(
+      fromJson: fromGraphQLListUploadToDartListMultipartFile,
+      toJson: fromDartListMultipartFileToGraphQLListUpload)
+  late List<MultipartFile> eventPics;
+
+  @override
+  List<Object?> get props =>
+      [name, description, eventDate, eventUsers, eventPics];
+  @override
+  Map<String, dynamic> toJson() => _$NewEventInputToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -300,8 +455,10 @@ class UserFromId$Query$User extends JsonSerializable with EquatableMixin {
 
   late bool followState;
 
+  late String profilePic;
+
   @override
-  List<Object?> get props => [id, name, username, followState];
+  List<Object?> get props => [id, name, username, followState, profilePic];
   @override
   Map<String, dynamic> toJson() => _$UserFromId$Query$UserToJson(this);
 }
@@ -370,8 +527,10 @@ class SearchUsers$Query$User extends JsonSerializable with EquatableMixin {
 
   late bool followState;
 
+  late String profilePic;
+
   @override
-  List<Object?> get props => [id, username, name, followState];
+  List<Object?> get props => [id, username, name, followState, profilePic];
   @override
   Map<String, dynamic> toJson() => _$SearchUsers$Query$UserToJson(this);
 }
@@ -389,41 +548,6 @@ class SearchUsers$Query extends JsonSerializable with EquatableMixin {
   List<Object?> get props => [searchUsers];
   @override
   Map<String, dynamic> toJson() => _$SearchUsers$QueryToJson(this);
-}
-
-@JsonSerializable(explicitToJson: true)
-class AddOrRemoveUser$Mutation$AddResponse extends JsonSerializable
-    with EquatableMixin {
-  AddOrRemoveUser$Mutation$AddResponse();
-
-  factory AddOrRemoveUser$Mutation$AddResponse.fromJson(
-          Map<String, dynamic> json) =>
-      _$AddOrRemoveUser$Mutation$AddResponseFromJson(json);
-
-  late int value;
-
-  late bool unchanged;
-
-  @override
-  List<Object?> get props => [value, unchanged];
-  @override
-  Map<String, dynamic> toJson() =>
-      _$AddOrRemoveUser$Mutation$AddResponseToJson(this);
-}
-
-@JsonSerializable(explicitToJson: true)
-class AddOrRemoveUser$Mutation extends JsonSerializable with EquatableMixin {
-  AddOrRemoveUser$Mutation();
-
-  factory AddOrRemoveUser$Mutation.fromJson(Map<String, dynamic> json) =>
-      _$AddOrRemoveUser$MutationFromJson(json);
-
-  late AddOrRemoveUser$Mutation$AddResponse addOrRemoveUser;
-
-  @override
-  List<Object?> get props => [addOrRemoveUser];
-  @override
-  Map<String, dynamic> toJson() => _$AddOrRemoveUser$MutationToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -501,6 +625,228 @@ class RefreshTokensMutation
   @override
   RefreshTokens$Mutation parse(Map<String, dynamic> json) =>
       RefreshTokens$Mutation.fromJson(json);
+}
+
+@JsonSerializable(explicitToJson: true)
+class AddOrRemoveUserArguments extends JsonSerializable with EquatableMixin {
+  AddOrRemoveUserArguments(
+      {required this.followUserId, required this.isFollow});
+
+  @override
+  factory AddOrRemoveUserArguments.fromJson(Map<String, dynamic> json) =>
+      _$AddOrRemoveUserArgumentsFromJson(json);
+
+  late int followUserId;
+
+  late bool isFollow;
+
+  @override
+  List<Object?> get props => [followUserId, isFollow];
+  @override
+  Map<String, dynamic> toJson() => _$AddOrRemoveUserArgumentsToJson(this);
+}
+
+final ADD_OR_REMOVE_USER_MUTATION_DOCUMENT_OPERATION_NAME = 'AddOrRemoveUser';
+final ADD_OR_REMOVE_USER_MUTATION_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+      type: OperationType.mutation,
+      name: NameNode(value: 'AddOrRemoveUser'),
+      variableDefinitions: [
+        VariableDefinitionNode(
+            variable: VariableNode(name: NameNode(value: 'followUserId')),
+            type: NamedTypeNode(name: NameNode(value: 'Int'), isNonNull: true),
+            defaultValue: DefaultValueNode(value: null),
+            directives: []),
+        VariableDefinitionNode(
+            variable: VariableNode(name: NameNode(value: 'isFollow')),
+            type: NamedTypeNode(
+                name: NameNode(value: 'Boolean'), isNonNull: true),
+            defaultValue: DefaultValueNode(value: null),
+            directives: [])
+      ],
+      directives: [],
+      selectionSet: SelectionSetNode(selections: [
+        FieldNode(
+            name: NameNode(value: 'addOrRemoveUser'),
+            alias: null,
+            arguments: [
+              ArgumentNode(
+                  name: NameNode(value: 'followUserId'),
+                  value: VariableNode(name: NameNode(value: 'followUserId'))),
+              ArgumentNode(
+                  name: NameNode(value: 'isFollow'),
+                  value: VariableNode(name: NameNode(value: 'isFollow')))
+            ],
+            directives: [],
+            selectionSet: SelectionSetNode(selections: [
+              FieldNode(
+                  name: NameNode(value: 'value'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: null),
+              FieldNode(
+                  name: NameNode(value: 'unchanged'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: null)
+            ]))
+      ]))
+]);
+
+class AddOrRemoveUserMutation
+    extends GraphQLQuery<AddOrRemoveUser$Mutation, AddOrRemoveUserArguments> {
+  AddOrRemoveUserMutation({required this.variables});
+
+  @override
+  final DocumentNode document = ADD_OR_REMOVE_USER_MUTATION_DOCUMENT;
+
+  @override
+  final String operationName =
+      ADD_OR_REMOVE_USER_MUTATION_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final AddOrRemoveUserArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  AddOrRemoveUser$Mutation parse(Map<String, dynamic> json) =>
+      AddOrRemoveUser$Mutation.fromJson(json);
+}
+
+@JsonSerializable(explicitToJson: true)
+class NewEventArguments extends JsonSerializable with EquatableMixin {
+  NewEventArguments({required this.input});
+
+  @override
+  factory NewEventArguments.fromJson(Map<String, dynamic> json) =>
+      _$NewEventArgumentsFromJson(json);
+
+  late NewEventInput input;
+
+  @override
+  List<Object?> get props => [input];
+  @override
+  Map<String, dynamic> toJson() => _$NewEventArgumentsToJson(this);
+}
+
+final NEW_EVENT_MUTATION_DOCUMENT_OPERATION_NAME = 'NewEvent';
+final NEW_EVENT_MUTATION_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+      type: OperationType.mutation,
+      name: NameNode(value: 'NewEvent'),
+      variableDefinitions: [
+        VariableDefinitionNode(
+            variable: VariableNode(name: NameNode(value: 'input')),
+            type: NamedTypeNode(
+                name: NameNode(value: 'NewEventInput'), isNonNull: true),
+            defaultValue: DefaultValueNode(value: null),
+            directives: [])
+      ],
+      directives: [],
+      selectionSet: SelectionSetNode(selections: [
+        FieldNode(
+            name: NameNode(value: 'newEvent'),
+            alias: null,
+            arguments: [
+              ArgumentNode(
+                  name: NameNode(value: 'input'),
+                  value: VariableNode(name: NameNode(value: 'input')))
+            ],
+            directives: [],
+            selectionSet: SelectionSetNode(selections: [
+              FieldNode(
+                  name: NameNode(value: 'event'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: SelectionSetNode(selections: [
+                    FieldNode(
+                        name: NameNode(value: 'id'),
+                        alias: null,
+                        arguments: [],
+                        directives: [],
+                        selectionSet: null),
+                    FieldNode(
+                        name: NameNode(value: 'name'),
+                        alias: null,
+                        arguments: [],
+                        directives: [],
+                        selectionSet: null),
+                    FieldNode(
+                        name: NameNode(value: 'description'),
+                        alias: null,
+                        arguments: [],
+                        directives: [],
+                        selectionSet: null),
+                    FieldNode(
+                        name: NameNode(value: 'confirmedCount'),
+                        alias: null,
+                        arguments: [],
+                        directives: [],
+                        selectionSet: null),
+                    FieldNode(
+                        name: NameNode(value: 'eventPics'),
+                        alias: null,
+                        arguments: [],
+                        directives: [],
+                        selectionSet: null),
+                    FieldNode(
+                        name: NameNode(value: 'createdAt'),
+                        alias: null,
+                        arguments: [],
+                        directives: [],
+                        selectionSet: null),
+                    FieldNode(
+                        name: NameNode(value: 'updatedAt'),
+                        alias: null,
+                        arguments: [],
+                        directives: [],
+                        selectionSet: null)
+                  ])),
+              FieldNode(
+                  name: NameNode(value: 'errors'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
+                  selectionSet: SelectionSetNode(selections: [
+                    FieldNode(
+                        name: NameNode(value: 'field'),
+                        alias: null,
+                        arguments: [],
+                        directives: [],
+                        selectionSet: null),
+                    FieldNode(
+                        name: NameNode(value: 'message'),
+                        alias: null,
+                        arguments: [],
+                        directives: [],
+                        selectionSet: null)
+                  ]))
+            ]))
+      ]))
+]);
+
+class NewEventMutation
+    extends GraphQLQuery<NewEvent$Mutation, NewEventArguments> {
+  NewEventMutation({required this.variables});
+
+  @override
+  final DocumentNode document = NEW_EVENT_MUTATION_DOCUMENT;
+
+  @override
+  final String operationName = NEW_EVENT_MUTATION_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final NewEventArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  NewEvent$Mutation parse(Map<String, dynamic> json) =>
+      NewEvent$Mutation.fromJson(json);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -820,6 +1166,12 @@ final USER_FROM_ID_QUERY_DOCUMENT = DocumentNode(definitions: [
                   alias: null,
                   arguments: [],
                   directives: [],
+                  selectionSet: null),
+              FieldNode(
+                  name: NameNode(value: 'profilePic'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
                   selectionSet: null)
             ]))
       ]))
@@ -961,6 +1313,12 @@ final SEARCH_USERS_QUERY_DOCUMENT = DocumentNode(definitions: [
                   alias: null,
                   arguments: [],
                   directives: [],
+                  selectionSet: null),
+              FieldNode(
+                  name: NameNode(value: 'profilePic'),
+                  alias: null,
+                  arguments: [],
+                  directives: [],
                   selectionSet: null)
             ]))
       ]))
@@ -984,93 +1342,4 @@ class SearchUsersQuery
   @override
   SearchUsers$Query parse(Map<String, dynamic> json) =>
       SearchUsers$Query.fromJson(json);
-}
-
-@JsonSerializable(explicitToJson: true)
-class AddOrRemoveUserArguments extends JsonSerializable with EquatableMixin {
-  AddOrRemoveUserArguments(
-      {required this.followUserId, required this.isFollow});
-
-  @override
-  factory AddOrRemoveUserArguments.fromJson(Map<String, dynamic> json) =>
-      _$AddOrRemoveUserArgumentsFromJson(json);
-
-  late int followUserId;
-
-  late bool isFollow;
-
-  @override
-  List<Object?> get props => [followUserId, isFollow];
-  @override
-  Map<String, dynamic> toJson() => _$AddOrRemoveUserArgumentsToJson(this);
-}
-
-final ADD_OR_REMOVE_USER_MUTATION_DOCUMENT_OPERATION_NAME = 'AddOrRemoveUser';
-final ADD_OR_REMOVE_USER_MUTATION_DOCUMENT = DocumentNode(definitions: [
-  OperationDefinitionNode(
-      type: OperationType.mutation,
-      name: NameNode(value: 'AddOrRemoveUser'),
-      variableDefinitions: [
-        VariableDefinitionNode(
-            variable: VariableNode(name: NameNode(value: 'followUserId')),
-            type: NamedTypeNode(name: NameNode(value: 'Int'), isNonNull: true),
-            defaultValue: DefaultValueNode(value: null),
-            directives: []),
-        VariableDefinitionNode(
-            variable: VariableNode(name: NameNode(value: 'isFollow')),
-            type: NamedTypeNode(
-                name: NameNode(value: 'Boolean'), isNonNull: true),
-            defaultValue: DefaultValueNode(value: null),
-            directives: [])
-      ],
-      directives: [],
-      selectionSet: SelectionSetNode(selections: [
-        FieldNode(
-            name: NameNode(value: 'addOrRemoveUser'),
-            alias: null,
-            arguments: [
-              ArgumentNode(
-                  name: NameNode(value: 'followUserId'),
-                  value: VariableNode(name: NameNode(value: 'followUserId'))),
-              ArgumentNode(
-                  name: NameNode(value: 'isFollow'),
-                  value: VariableNode(name: NameNode(value: 'isFollow')))
-            ],
-            directives: [],
-            selectionSet: SelectionSetNode(selections: [
-              FieldNode(
-                  name: NameNode(value: 'value'),
-                  alias: null,
-                  arguments: [],
-                  directives: [],
-                  selectionSet: null),
-              FieldNode(
-                  name: NameNode(value: 'unchanged'),
-                  alias: null,
-                  arguments: [],
-                  directives: [],
-                  selectionSet: null)
-            ]))
-      ]))
-]);
-
-class AddOrRemoveUserMutation
-    extends GraphQLQuery<AddOrRemoveUser$Mutation, AddOrRemoveUserArguments> {
-  AddOrRemoveUserMutation({required this.variables});
-
-  @override
-  final DocumentNode document = ADD_OR_REMOVE_USER_MUTATION_DOCUMENT;
-
-  @override
-  final String operationName =
-      ADD_OR_REMOVE_USER_MUTATION_DOCUMENT_OPERATION_NAME;
-
-  @override
-  final AddOrRemoveUserArguments variables;
-
-  @override
-  List<Object?> get props => [document, operationName, variables];
-  @override
-  AddOrRemoveUser$Mutation parse(Map<String, dynamic> json) =>
-      AddOrRemoveUser$Mutation.fromJson(json);
 }

@@ -6,6 +6,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"happ/ent/event"
+	"happ/ent/eventuser"
 	"happ/ent/follow"
 	"happ/ent/friendship"
 	"happ/ent/user"
@@ -33,6 +35,8 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
+		event.Table:      event.ValidColumn,
+		eventuser.Table:  eventuser.ValidColumn,
 		follow.Table:     follow.ValidColumn,
 		friendship.Table: friendship.ValidColumn,
 		user.Table:       user.ValidColumn,

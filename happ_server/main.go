@@ -29,6 +29,18 @@ func main() {
 
 	config.ReadConfig(config.ReadConfigOption{})
 
+	// clientm := meilisearchUtils.GetMeiliClient()
+
+	// clientm.Index("users").DeleteAllDocuments()
+	// clientm.Index("follows").DeleteAllDocuments()
+
+	// client.DeleteIndex("movies")
+	// clientm.Index("follows").DeleteDocuments([]string{
+	// 	"6_5",
+	// 	"4_0",
+	// })
+	// meilisearchUtils.UpdateUserFromMeili()
+
 	e := echo.New()
 
 	e.Use(customMiddleware.EchoContextMiddleware)
@@ -46,6 +58,7 @@ func main() {
 		// migrate.WithDropIndex(true),
 		// migrate.WithDropColumn(true),
 		migrate.WithForeignKeys(false),
+		// migrate.WithGlobalUniqueID(true),
 	); err != nil {
 		log.Fatal("opening ent client", err)
 	}

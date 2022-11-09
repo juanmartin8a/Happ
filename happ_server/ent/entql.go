@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"happ/ent/event"
+	"happ/ent/eventuser"
 	"happ/ent/follow"
 	"happ/ent/friendship"
 	"happ/ent/predicate"
@@ -16,8 +18,51 @@ import (
 
 // schemaGraph holds a representation of ent/schema at runtime.
 var schemaGraph = func() *sqlgraph.Schema {
-	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 3)}
+	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 5)}
 	graph.Nodes[0] = &sqlgraph.Node{
+		NodeSpec: sqlgraph.NodeSpec{
+			Table:   event.Table,
+			Columns: event.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: event.FieldID,
+			},
+		},
+		Type: "Event",
+		Fields: map[string]*sqlgraph.FieldSpec{
+			event.FieldName:           {Type: field.TypeString, Column: event.FieldName},
+			event.FieldDescription:    {Type: field.TypeString, Column: event.FieldDescription},
+			event.FieldConfirmedCount: {Type: field.TypeInt, Column: event.FieldConfirmedCount},
+			event.FieldEventPics:      {Type: field.TypeJSON, Column: event.FieldEventPics},
+			event.FieldEventDate:      {Type: field.TypeTime, Column: event.FieldEventDate},
+			event.FieldCreatedAt:      {Type: field.TypeTime, Column: event.FieldCreatedAt},
+			event.FieldUpdatedAt:      {Type: field.TypeTime, Column: event.FieldUpdatedAt},
+		},
+	}
+	graph.Nodes[1] = &sqlgraph.Node{
+		NodeSpec: sqlgraph.NodeSpec{
+			Table:   eventuser.Table,
+			Columns: eventuser.Columns,
+			CompositeID: []*sqlgraph.FieldSpec{
+				{
+					Type:   field.TypeInt,
+					Column: eventuser.FieldEventID,
+				},
+				{
+					Type:   field.TypeInt,
+					Column: eventuser.FieldUserID,
+				},
+			},
+		},
+		Type: "EventUser",
+		Fields: map[string]*sqlgraph.FieldSpec{
+			eventuser.FieldEventID:   {Type: field.TypeInt, Column: eventuser.FieldEventID},
+			eventuser.FieldUserID:    {Type: field.TypeInt, Column: eventuser.FieldUserID},
+			eventuser.FieldAdmin:     {Type: field.TypeBool, Column: eventuser.FieldAdmin},
+			eventuser.FieldCreatedAt: {Type: field.TypeTime, Column: eventuser.FieldCreatedAt},
+		},
+	}
+	graph.Nodes[2] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   follow.Table,
 			Columns: follow.Columns,
@@ -40,7 +85,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			follow.FieldCreatedAt:  {Type: field.TypeTime, Column: follow.FieldCreatedAt},
 		},
 	}
-	graph.Nodes[1] = &sqlgraph.Node{
+	graph.Nodes[3] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   friendship.Table,
 			Columns: friendship.Columns,
@@ -64,7 +109,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			friendship.FieldCreatedAt:      {Type: field.TypeTime, Column: friendship.FieldCreatedAt},
 		},
 	}
-	graph.Nodes[2] = &sqlgraph.Node{
+	graph.Nodes[4] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   user.Table,
 			Columns: user.Columns,
@@ -75,15 +120,64 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		Type: "User",
 		Fields: map[string]*sqlgraph.FieldSpec{
-			user.FieldName:      {Type: field.TypeString, Column: user.FieldName},
-			user.FieldUsername:  {Type: field.TypeString, Column: user.FieldUsername},
-			user.FieldEmail:     {Type: field.TypeString, Column: user.FieldEmail},
-			user.FieldBirthday:  {Type: field.TypeTime, Column: user.FieldBirthday},
-			user.FieldPassword:  {Type: field.TypeString, Column: user.FieldPassword},
-			user.FieldCreatedAt: {Type: field.TypeTime, Column: user.FieldCreatedAt},
-			user.FieldUpdatedAt: {Type: field.TypeTime, Column: user.FieldUpdatedAt},
+			user.FieldName:       {Type: field.TypeString, Column: user.FieldName},
+			user.FieldUsername:   {Type: field.TypeString, Column: user.FieldUsername},
+			user.FieldEmail:      {Type: field.TypeString, Column: user.FieldEmail},
+			user.FieldProfilePic: {Type: field.TypeString, Column: user.FieldProfilePic},
+			user.FieldBirthday:   {Type: field.TypeTime, Column: user.FieldBirthday},
+			user.FieldPassword:   {Type: field.TypeString, Column: user.FieldPassword},
+			user.FieldCreatedAt:  {Type: field.TypeTime, Column: user.FieldCreatedAt},
+			user.FieldUpdatedAt:  {Type: field.TypeTime, Column: user.FieldUpdatedAt},
 		},
 	}
+	graph.MustAddE(
+		"users",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   event.UsersTable,
+			Columns: event.UsersPrimaryKey,
+			Bidi:    false,
+		},
+		"Event",
+		"User",
+	)
+	graph.MustAddE(
+		"event_users",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   event.EventUsersTable,
+			Columns: []string{event.EventUsersColumn},
+			Bidi:    false,
+		},
+		"Event",
+		"EventUser",
+	)
+	graph.MustAddE(
+		"event",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   eventuser.EventTable,
+			Columns: []string{eventuser.EventColumn},
+			Bidi:    false,
+		},
+		"EventUser",
+		"Event",
+	)
+	graph.MustAddE(
+		"user",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   eventuser.UserTable,
+			Columns: []string{eventuser.UserColumn},
+			Bidi:    false,
+		},
+		"EventUser",
+		"User",
+	)
 	graph.MustAddE(
 		"user",
 		&sqlgraph.EdgeSpec{
@@ -133,6 +227,18 @@ var schemaGraph = func() *sqlgraph.Schema {
 		"User",
 	)
 	graph.MustAddE(
+		"events",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.EventsTable,
+			Columns: user.EventsPrimaryKey,
+			Bidi:    false,
+		},
+		"User",
+		"Event",
+	)
+	graph.MustAddE(
 		"friends",
 		&sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -169,6 +275,18 @@ var schemaGraph = func() *sqlgraph.Schema {
 		"User",
 	)
 	graph.MustAddE(
+		"event_user",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.EventUserTable,
+			Columns: []string{user.EventUserColumn},
+			Bidi:    false,
+		},
+		"User",
+		"EventUser",
+	)
+	graph.MustAddE(
 		"friendships",
 		&sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -202,6 +320,192 @@ type predicateAdder interface {
 }
 
 // addPredicate implements the predicateAdder interface.
+func (eq *EventQuery) addPredicate(pred func(s *sql.Selector)) {
+	eq.predicates = append(eq.predicates, pred)
+}
+
+// Filter returns a Filter implementation to apply filters on the EventQuery builder.
+func (eq *EventQuery) Filter() *EventFilter {
+	return &EventFilter{config: eq.config, predicateAdder: eq}
+}
+
+// addPredicate implements the predicateAdder interface.
+func (m *EventMutation) addPredicate(pred func(s *sql.Selector)) {
+	m.predicates = append(m.predicates, pred)
+}
+
+// Filter returns an entql.Where implementation to apply filters on the EventMutation builder.
+func (m *EventMutation) Filter() *EventFilter {
+	return &EventFilter{config: m.config, predicateAdder: m}
+}
+
+// EventFilter provides a generic filtering capability at runtime for EventQuery.
+type EventFilter struct {
+	predicateAdder
+	config
+}
+
+// Where applies the entql predicate on the query filter.
+func (f *EventFilter) Where(p entql.P) {
+	f.addPredicate(func(s *sql.Selector) {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[0].Type, p, s); err != nil {
+			s.AddError(err)
+		}
+	})
+}
+
+// WhereID applies the entql int predicate on the id field.
+func (f *EventFilter) WhereID(p entql.IntP) {
+	f.Where(p.Field(event.FieldID))
+}
+
+// WhereName applies the entql string predicate on the name field.
+func (f *EventFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(event.FieldName))
+}
+
+// WhereDescription applies the entql string predicate on the description field.
+func (f *EventFilter) WhereDescription(p entql.StringP) {
+	f.Where(p.Field(event.FieldDescription))
+}
+
+// WhereConfirmedCount applies the entql int predicate on the confirmedCount field.
+func (f *EventFilter) WhereConfirmedCount(p entql.IntP) {
+	f.Where(p.Field(event.FieldConfirmedCount))
+}
+
+// WhereEventPics applies the entql json.RawMessage predicate on the event_pics field.
+func (f *EventFilter) WhereEventPics(p entql.BytesP) {
+	f.Where(p.Field(event.FieldEventPics))
+}
+
+// WhereEventDate applies the entql time.Time predicate on the event_date field.
+func (f *EventFilter) WhereEventDate(p entql.TimeP) {
+	f.Where(p.Field(event.FieldEventDate))
+}
+
+// WhereCreatedAt applies the entql time.Time predicate on the created_at field.
+func (f *EventFilter) WhereCreatedAt(p entql.TimeP) {
+	f.Where(p.Field(event.FieldCreatedAt))
+}
+
+// WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
+func (f *EventFilter) WhereUpdatedAt(p entql.TimeP) {
+	f.Where(p.Field(event.FieldUpdatedAt))
+}
+
+// WhereHasUsers applies a predicate to check if query has an edge users.
+func (f *EventFilter) WhereHasUsers() {
+	f.Where(entql.HasEdge("users"))
+}
+
+// WhereHasUsersWith applies a predicate to check if query has an edge users with a given conditions (other predicates).
+func (f *EventFilter) WhereHasUsersWith(preds ...predicate.User) {
+	f.Where(entql.HasEdgeWith("users", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasEventUsers applies a predicate to check if query has an edge event_users.
+func (f *EventFilter) WhereHasEventUsers() {
+	f.Where(entql.HasEdge("event_users"))
+}
+
+// WhereHasEventUsersWith applies a predicate to check if query has an edge event_users with a given conditions (other predicates).
+func (f *EventFilter) WhereHasEventUsersWith(preds ...predicate.EventUser) {
+	f.Where(entql.HasEdgeWith("event_users", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// addPredicate implements the predicateAdder interface.
+func (euq *EventUserQuery) addPredicate(pred func(s *sql.Selector)) {
+	euq.predicates = append(euq.predicates, pred)
+}
+
+// Filter returns a Filter implementation to apply filters on the EventUserQuery builder.
+func (euq *EventUserQuery) Filter() *EventUserFilter {
+	return &EventUserFilter{config: euq.config, predicateAdder: euq}
+}
+
+// addPredicate implements the predicateAdder interface.
+func (m *EventUserMutation) addPredicate(pred func(s *sql.Selector)) {
+	m.predicates = append(m.predicates, pred)
+}
+
+// Filter returns an entql.Where implementation to apply filters on the EventUserMutation builder.
+func (m *EventUserMutation) Filter() *EventUserFilter {
+	return &EventUserFilter{config: m.config, predicateAdder: m}
+}
+
+// EventUserFilter provides a generic filtering capability at runtime for EventUserQuery.
+type EventUserFilter struct {
+	predicateAdder
+	config
+}
+
+// Where applies the entql predicate on the query filter.
+func (f *EventUserFilter) Where(p entql.P) {
+	f.addPredicate(func(s *sql.Selector) {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[1].Type, p, s); err != nil {
+			s.AddError(err)
+		}
+	})
+}
+
+// WhereEventID applies the entql int predicate on the event_id field.
+func (f *EventUserFilter) WhereEventID(p entql.IntP) {
+	f.Where(p.Field(eventuser.FieldEventID))
+}
+
+// WhereUserID applies the entql int predicate on the user_id field.
+func (f *EventUserFilter) WhereUserID(p entql.IntP) {
+	f.Where(p.Field(eventuser.FieldUserID))
+}
+
+// WhereAdmin applies the entql bool predicate on the admin field.
+func (f *EventUserFilter) WhereAdmin(p entql.BoolP) {
+	f.Where(p.Field(eventuser.FieldAdmin))
+}
+
+// WhereCreatedAt applies the entql time.Time predicate on the created_at field.
+func (f *EventUserFilter) WhereCreatedAt(p entql.TimeP) {
+	f.Where(p.Field(eventuser.FieldCreatedAt))
+}
+
+// WhereHasEvent applies a predicate to check if query has an edge event.
+func (f *EventUserFilter) WhereHasEvent() {
+	f.Where(entql.HasEdge("event"))
+}
+
+// WhereHasEventWith applies a predicate to check if query has an edge event with a given conditions (other predicates).
+func (f *EventUserFilter) WhereHasEventWith(preds ...predicate.Event) {
+	f.Where(entql.HasEdgeWith("event", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasUser applies a predicate to check if query has an edge user.
+func (f *EventUserFilter) WhereHasUser() {
+	f.Where(entql.HasEdge("user"))
+}
+
+// WhereHasUserWith applies a predicate to check if query has an edge user with a given conditions (other predicates).
+func (f *EventUserFilter) WhereHasUserWith(preds ...predicate.User) {
+	f.Where(entql.HasEdgeWith("user", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// addPredicate implements the predicateAdder interface.
 func (fq *FollowQuery) addPredicate(pred func(s *sql.Selector)) {
 	fq.predicates = append(fq.predicates, pred)
 }
@@ -230,7 +534,7 @@ type FollowFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *FollowFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[0].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[2].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -313,7 +617,7 @@ type FriendshipFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *FriendshipFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[1].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[3].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -401,7 +705,7 @@ type UserFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *UserFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[2].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[4].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -427,6 +731,11 @@ func (f *UserFilter) WhereEmail(p entql.StringP) {
 	f.Where(p.Field(user.FieldEmail))
 }
 
+// WhereProfilePic applies the entql string predicate on the profile_pic field.
+func (f *UserFilter) WhereProfilePic(p entql.StringP) {
+	f.Where(p.Field(user.FieldProfilePic))
+}
+
 // WhereBirthday applies the entql time.Time predicate on the birthday field.
 func (f *UserFilter) WhereBirthday(p entql.TimeP) {
 	f.Where(p.Field(user.FieldBirthday))
@@ -445,6 +754,20 @@ func (f *UserFilter) WhereCreatedAt(p entql.TimeP) {
 // WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
 func (f *UserFilter) WhereUpdatedAt(p entql.TimeP) {
 	f.Where(p.Field(user.FieldUpdatedAt))
+}
+
+// WhereHasEvents applies a predicate to check if query has an edge events.
+func (f *UserFilter) WhereHasEvents() {
+	f.Where(entql.HasEdge("events"))
+}
+
+// WhereHasEventsWith applies a predicate to check if query has an edge events with a given conditions (other predicates).
+func (f *UserFilter) WhereHasEventsWith(preds ...predicate.Event) {
+	f.Where(entql.HasEdgeWith("events", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
 }
 
 // WhereHasFriends applies a predicate to check if query has an edge friends.
@@ -483,6 +806,20 @@ func (f *UserFilter) WhereHasFollowing() {
 // WhereHasFollowingWith applies a predicate to check if query has an edge following with a given conditions (other predicates).
 func (f *UserFilter) WhereHasFollowingWith(preds ...predicate.User) {
 	f.Where(entql.HasEdgeWith("following", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasEventUser applies a predicate to check if query has an edge event_user.
+func (f *UserFilter) WhereHasEventUser() {
+	f.Where(entql.HasEdge("event_user"))
+}
+
+// WhereHasEventUserWith applies a predicate to check if query has an edge event_user with a given conditions (other predicates).
+func (f *UserFilter) WhereHasEventUserWith(preds ...predicate.EventUser) {
+	f.Where(entql.HasEdgeWith("event_user", sqlgraph.WrapFunc(func(s *sql.Selector) {
 		for _, p := range preds {
 			p(s)
 		}
