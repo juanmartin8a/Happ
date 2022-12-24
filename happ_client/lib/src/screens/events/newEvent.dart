@@ -1,4 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:happ_client/src/riverpod/newEventComplete/newEventComplete.dart';
+import 'package:happ_client/src/riverpod/newEventComplete/newEventCompleteState.dart';
+import 'package:happ_client/src/screens/events/newEventScreens/DLScreen.dart';
+import 'package:happ_client/src/screens/events/newEventScreens/NPDScreen.dart';
+import 'package:happ_client/src/screens/events/newEventScreens/widgets/NextButton.dart';
+import 'package:happ_client/src/utils/userLocation/UserLocation.dart';
 
 class NewEvent extends StatefulWidget {
   const NewEvent({Key? key}) : super(key: key);
@@ -8,435 +18,102 @@ class NewEvent extends StatefulWidget {
 }
 
 class _NewEventState extends State<NewEvent> {
+  PageController pageController = PageController();
+
+  late bool userLocationAccess;
+
+  double? latitude;
+  double? longitude;
+
+  int currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    userLocationPermission();
+  }
+
   @override
   Widget build(BuildContext context) {
+    
     return Material(
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      // color: Colors.red,
+      // resizeToAvoidBottomInset: true,
+      child: //NPDScreen()
+      Stack(
         children: [
-          SizedBox(
-            height: MediaQuery.of(context).padding.top
+          PageView(
+
+            controller: pageController,
+            scrollDirection: Axis.vertical,
+            // new event form will be divided into 3 screens:
+            // 1.- for choosing a name, pictures and a description
+            // 2.- for picking a place and location
+            // 3.- for inviting people and adding organizers (admins)
+            children: [
+              const NPDScreen(),
+              DLScreen(latitude: latitude, longitude: longitude,)
+            ],
+            onPageChanged: (page) {
+              setState(() {
+                currentPage = page;
+              });
+            },
           ),
-          Container(
-            height: 45,
-            // color: Colors.red,
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Juan's Birthday",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.grey[800],
-                        height: 1
-                      )
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      "thursday 28 of october, 2022",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[700],
-                        height: 1
-                      )
-                    ),
-                  ],
-                )
-              ],
-            )
-          ),
-          Expanded(
-            // padding: EdgeInsets.symmetric(horizontal:8),
-            child: SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  // Container(
-                  //   padding: const EdgeInsets.only(left:8, right: 8),
-                  //   child: Text(
-                  //     "birthdat party for Juan :0!! bring snacks and beberages",
-                  //     style: TextStyle(
-                  //       fontSize: 15,
-                  //       fontWeight: FontWeight.w500,
-                  //       color: Colors.grey[800],
-                  //       // height: 1
-                  //     )
-                  //   ),
-                  // ),
-                  // const SizedBox(height: 8),
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    padding: const EdgeInsets.symmetric(horizontal:8),
-                    // height: MediaQuery.of(context).size.width,
-                    child: AspectRatio(
-                      aspectRatio: 4/3,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(20)
-                          ),
-                          child: Image.asset('assets/images/image2.jpeg', fit: BoxFit.cover)
-                        ),
-                      )
-                    )
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        height: 7,
-                        width: 7,
-                        decoration: const BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle
-                        )
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        height: 7,
-                        width: 7,
-                        decoration: const BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle
-                        )
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        height: 7,
-                        width: 7,
-                        decoration: const BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle
-                        )
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.only(left: 8, right: 8),
-                    child: Text(
-                      "Birthday party at My place all of my friends and family are invited, it will be really cool",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[800],
-                        // height: 1.1
-                      )
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.only(left: 8, right: 8),
-                    child: Text(
-                      "Location",
-                      style: TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.grey[800],
-                        height: 1
-                      )
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    padding: const EdgeInsets.symmetric(horizontal:8),
-                    // height: MediaQuery.of(context).size.width,
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey,
-                            borderRadius: BorderRadius.circular(20)
-                          ),
-                          child: Image.asset('assets/images/image1.png', fit: BoxFit.cover)
-                        ),
-                      )
-                    )
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.only(left: 8, right: 8),
-                    child: Text(
-                      "Organizers",
-                      style: TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.grey[800],
-                        height: 1
-                      )
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: EdgeInsets.only(left: 8),
-                    width: MediaQuery.of(context).size.width,
-                    child: Row(
-                      // mainAxisSize: MainAxisSize.max,
-                      children: [
-                        SizedBox(
-                          width: 90,
-                          // color: Colors.red,
-                          child: Stack(
-                            children: [
-                              Container(
-                                height: 40,
-                                width: 40,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 4),
-                                  color: Colors.grey
-                                ),
-                              ),
-                              Positioned(
-                                left: 25,
-                                child: Container(
-                                  height: 40,
-                                  width: 40,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 4),
-                                    color: Colors.grey
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                left: 50,
-                                child: Container(
-                                  height: 40,
-                                  width: 40,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 4),
-                                    color: Colors.grey
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          "+ 5 More",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[800],
-                            height: 1
-                          )
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.only(left: 8, right: 8),
-                    child: Text(
-                      "Friends Coming",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.grey[800],
-                        height: 1
-                      )
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ListView(
-                    shrinkWrap: true,
-                    padding: EdgeInsets.zero,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        child: Row(
-                          children: [
-                            Container(
-                              height: 40,
-                              width: 40,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              child: Text(
-                                "Juan Martin",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[800],
-                                  height: 1
-                                )
-                              )
-                            )
-                          ],
-                        )
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        child: Row(
-                          children: [
-                            Container(
-                              height: 40,
-                              width: 40,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              child: Text(
-                                "Juan Martin",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[800],
-                                  height: 1
-                                )
-                              )
-                            )
-                          ],
-                        )
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        child: Row(
-                          children: [
-                            Container(
-                              height: 40,
-                              width: 40,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              child: Text(
-                                "Juan Martin",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[800],
-                                  height: 1
-                                )
-                              )
-                            )
-                          ],
-                        )
-                      )
-                    ],
-                  ),
-                  SizedBox(height: 100)
-                ],
+          Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              height: 45,
+              width: MediaQuery.of(context).size.width,
+              // width: Medua,
+              // color: Color(0xff00ff03),
+              padding: const EdgeInsets.only(
+                right: 8,
+                left: 8,
+                // bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
+              margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+              child: Center(
+                child: Text(
+                  "New Event",
+                  style: TextStyle(
+                    color: Colors.grey[800],
+                    fontSize: 20,
+                    // letterSpacing: 0.5,
+                    // fontStyle: FontStyle.normal,
+                    fontWeight: FontWeight.w700,
+                    // height: 1
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: NextButton(
+              animateToPage: animateToPage, 
+              page: currentPage
             )
           )
-          // Container(
-          //   height: MediaQuery.of(context).size.height * 0.3,
-          //   width: MediaQuery.of(context).size.width,
-          //   // padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-          //   decoration: BoxDecoration(
-          //     color: Colors.blue,
-          //     borderRadius: BorderRadius.circular(8),
-          //   ),
-          //   child: Stack(
-          //     children:  [
-          //       // Container(
-          //       //   height: MediaQuery.of(context).size.height * 0.12,
-          //       //   decoration: BoxDecoration(
-          //       //     gradient: LinearGradient(
-          //       //       colors: [Colors.black.withOpacity(0.4), Colors.transparent],
-          //       //       begin: Alignment.topCenter,
-          //       //       end: Alignment.bottomCenter
-          //       //     )
-          //       //   ),
-          //       // ),
-          //       Container(
-                  
-          //       ),
-          //       Padding(
-          //         padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-          //         child: Padding(
-          //           padding: const EdgeInsets.only(
-          //             left: 12, 
-          //             right: 12,
-          //             // top: MediaQuery.of(context).padding.top,
-          //           ),
-          //           child: Container(
-          //             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          //             decoration: BoxDecoration(
-          //               color: Colors.black.withOpacity(0.3),
-          //               // shape: BoxShape.circle,
-          //               borderRadius: BorderRadius.circular(30)
-          //             ),
-          //             child: const Text(
-          //               "Event Name",
-          //               style: TextStyle(
-          //                 fontSize: 18,
-          //                 fontWeight: FontWeight.w700,
-          //                 color: Colors.white,
-          //                 // height: 1
-          //               )
-          //             ),
-          //           ),
-          //         ),
-          //       ),
-          //     ],
-          //   ) 
-          // ),
-          // Expanded(
-          //   child: Container(
-          //     width: MediaQuery.of(context).size.width,
-          //     // height: double.infinity,
-          //     // color: Colors.grey,
-          //     padding: EdgeInsets.symmetric(horizontal: 8),
-          //     child: Column(
-          //       crossAxisAlignment: CrossAxisAlignment.start,
-          //       children: [
-          //         const SizedBox(height: 4),
-          //         Text(
-          //           "October 28, 2022",
-          //           style: TextStyle(
-          //             color: Colors.grey[800],
-          //             fontSize: 14,
-          //             fontWeight: FontWeight.w600,
-          //             height: 1,
-          //           )
-          //         ),
-          //         const SizedBox(height: 8),
-          //         Text(
-          //           "Description...",
-          //           style: TextStyle(
-          //             color: Colors.grey[800],
-          //             fontSize: 15,
-          //             fontWeight: FontWeight.w600,
-          //             height: 1,
-          //           )
-          //         ),
-          //       ],
-          //     ),
-          //   )
-          // )
         ],
-      )
+      ),
     );
+  }
+
+  void userLocationPermission() async {
+    userLocationAccess = await UserLocation().handleLocationPermission();
+    if (!userLocationAccess) return;
+    late Position currentPosition;
+    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).then((Position position) {
+      currentPosition = position;
+    });
+    setState(() {
+      latitude = currentPosition.latitude;
+      longitude = currentPosition.longitude;
+    });
+  }
+
+  void animateToPage(int page) {
+    pageController.animateToPage(page, duration: const Duration(milliseconds: 500), curve: Curves.ease);
   }
 }

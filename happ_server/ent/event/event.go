@@ -21,6 +21,8 @@ const (
 	FieldEventPics = "event_pics"
 	// FieldEventDate holds the string denoting the event_date field in the database.
 	FieldEventDate = "event_date"
+	// FieldCoords holds the string denoting the coords field in the database.
+	FieldCoords = "coords"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -53,6 +55,7 @@ var Columns = []string{
 	FieldConfirmedCount,
 	FieldEventPics,
 	FieldEventDate,
+	FieldCoords,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }

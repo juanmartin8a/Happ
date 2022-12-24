@@ -52,6 +52,11 @@ func (r *eventResolver) UpdatedAt(ctx context.Context, obj *ent.Event) (string, 
 	panic(fmt.Errorf("not implemented"))
 }
 
+// Coords is the resolver for the coords field.
+func (r *eventResolver) Coords(ctx context.Context, obj *ent.Event) (*model.Coordinates, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 // SignUp is the resolver for the signUp field.
 func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) (*model.UserAuthResponse, error) {
 	errors, _ := userValidation.SignUpInputValidator(input, r.client, ctx)
@@ -359,18 +364,18 @@ func (r *mutationResolver) NewEvent(ctx context.Context, input model.NewEventInp
 		return nil, fmt.Errorf("could not create event, try again later")
 	}
 
-	bulk := make([]*ent.EventUserCreate, len(input.EventUsers))
+	// bulk := make([]*ent.EventUserCreate, len(input.EventUsers))
 
-	for i, id := range input.EventUsers {
-		bulk[i] = r.client.EventUser.Create().SetEventID(event.ID).SetUserID(id)
-	}
+	// for i, id := range input.EventUsers {
+	// 	bulk[i] = r.client.EventUser.Create().SetEventID(event.ID).SetUserID(id)
+	// }
 
-	_, err = r.client.EventUser.CreateBulk(bulk...).Save(ctx)
-	if err != nil {
-		// return event and say that users could not be invited an error occured and
-		// try inviting them from the created event
-		return nil, fmt.Errorf("an error ocurred users could not be invited, you can try inviting them from the created event")
-	}
+	// _, err = r.client.EventUser.CreateBulk(bulk...).Save(ctx)
+	// if err != nil {
+	// 	// return event and say that users could not be invited an error occured and
+	// 	// try inviting them from the created event
+	// 	return nil, fmt.Errorf("an error ocurred users could not be invited, you can try inviting them from the created event")
+	// }
 
 	return &model.CreateEventResponse{
 		Event: event,

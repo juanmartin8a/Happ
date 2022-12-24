@@ -11,6 +11,7 @@ import (
 	"happ/ent/follow"
 	"happ/ent/friendship"
 	"happ/ent/predicate"
+	"happ/ent/schema"
 	"happ/ent/user"
 	"sync"
 	"time"
@@ -46,6 +47,7 @@ type EventMutation struct {
 	addconfirmedCount *int
 	event_pics        *[]string
 	event_date        *time.Time
+	coords            **schema.Point
 	created_at        *time.Time
 	updated_at        *time.Time
 	clearedFields     map[string]struct{}
@@ -355,6 +357,42 @@ func (m *EventMutation) ResetEventDate() {
 	m.event_date = nil
 }
 
+// SetCoords sets the "coords" field.
+func (m *EventMutation) SetCoords(s *schema.Point) {
+	m.coords = &s
+}
+
+// Coords returns the value of the "coords" field in the mutation.
+func (m *EventMutation) Coords() (r *schema.Point, exists bool) {
+	v := m.coords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCoords returns the old "coords" field's value of the Event entity.
+// If the Event object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EventMutation) OldCoords(ctx context.Context) (v *schema.Point, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCoords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCoords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCoords: %w", err)
+	}
+	return oldValue.Coords, nil
+}
+
+// ResetCoords resets all changes to the "coords" field.
+func (m *EventMutation) ResetCoords() {
+	m.coords = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *EventMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -500,7 +538,7 @@ func (m *EventMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EventMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, event.FieldName)
 	}
@@ -515,6 +553,9 @@ func (m *EventMutation) Fields() []string {
 	}
 	if m.event_date != nil {
 		fields = append(fields, event.FieldEventDate)
+	}
+	if m.coords != nil {
+		fields = append(fields, event.FieldCoords)
 	}
 	if m.created_at != nil {
 		fields = append(fields, event.FieldCreatedAt)
@@ -540,6 +581,8 @@ func (m *EventMutation) Field(name string) (ent.Value, bool) {
 		return m.EventPics()
 	case event.FieldEventDate:
 		return m.EventDate()
+	case event.FieldCoords:
+		return m.Coords()
 	case event.FieldCreatedAt:
 		return m.CreatedAt()
 	case event.FieldUpdatedAt:
@@ -563,6 +606,8 @@ func (m *EventMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldEventPics(ctx)
 	case event.FieldEventDate:
 		return m.OldEventDate(ctx)
+	case event.FieldCoords:
+		return m.OldCoords(ctx)
 	case event.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case event.FieldUpdatedAt:
@@ -610,6 +655,13 @@ func (m *EventMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEventDate(v)
+		return nil
+	case event.FieldCoords:
+		v, ok := value.(*schema.Point)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCoords(v)
 		return nil
 	case event.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -703,6 +755,9 @@ func (m *EventMutation) ResetField(name string) error {
 		return nil
 	case event.FieldEventDate:
 		m.ResetEventDate()
+		return nil
+	case event.FieldCoords:
+		m.ResetCoords()
 		return nil
 	case event.FieldCreatedAt:
 		m.ResetCreatedAt()

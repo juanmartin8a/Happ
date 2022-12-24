@@ -39,6 +39,8 @@ func (Event) Fields() []ent.Field {
 			SchemaType(map[string]string{
 				dialect.MySQL: "datetime",
 			}),
+		field.Other("coords", &Point{}).
+			SchemaType(Point{}.SchemaType()),
 		field.Time("created_at").
 			Default(time.Now).
 			SchemaType(map[string]string{

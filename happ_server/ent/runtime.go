@@ -41,11 +41,11 @@ func init() {
 	// event.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	event.DescriptionValidator = eventDescDescription.Validators[0].(func(string) error)
 	// eventDescCreatedAt is the schema descriptor for created_at field.
-	eventDescCreatedAt := eventFields[5].Descriptor()
+	eventDescCreatedAt := eventFields[6].Descriptor()
 	// event.DefaultCreatedAt holds the default value on creation for the created_at field.
 	event.DefaultCreatedAt = eventDescCreatedAt.Default.(func() time.Time)
 	// eventDescUpdatedAt is the schema descriptor for updated_at field.
-	eventDescUpdatedAt := eventFields[6].Descriptor()
+	eventDescUpdatedAt := eventFields[7].Descriptor()
 	// event.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	event.DefaultUpdatedAt = eventDescUpdatedAt.Default.(func() time.Time)
 	eventuserFields := schema.EventUser{}.Fields()

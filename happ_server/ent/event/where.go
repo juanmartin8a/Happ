@@ -4,6 +4,7 @@ package event
 
 import (
 	"happ/ent/predicate"
+	"happ/ent/schema"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -106,6 +107,13 @@ func ConfirmedCount(v int) predicate.Event {
 func EventDate(v time.Time) predicate.Event {
 	return predicate.Event(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldEventDate), v))
+	})
+}
+
+// Coords applies equality check predicate on the "coords" field. It's identical to CoordsEQ.
+func Coords(v *schema.Point) predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCoords), v))
 	})
 }
 
@@ -446,6 +454,70 @@ func EventDateLT(v time.Time) predicate.Event {
 func EventDateLTE(v time.Time) predicate.Event {
 	return predicate.Event(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldEventDate), v))
+	})
+}
+
+// CoordsEQ applies the EQ predicate on the "coords" field.
+func CoordsEQ(v *schema.Point) predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCoords), v))
+	})
+}
+
+// CoordsNEQ applies the NEQ predicate on the "coords" field.
+func CoordsNEQ(v *schema.Point) predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCoords), v))
+	})
+}
+
+// CoordsIn applies the In predicate on the "coords" field.
+func CoordsIn(vs ...*schema.Point) predicate.Event {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Event(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCoords), v...))
+	})
+}
+
+// CoordsNotIn applies the NotIn predicate on the "coords" field.
+func CoordsNotIn(vs ...*schema.Point) predicate.Event {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Event(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCoords), v...))
+	})
+}
+
+// CoordsGT applies the GT predicate on the "coords" field.
+func CoordsGT(v *schema.Point) predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCoords), v))
+	})
+}
+
+// CoordsGTE applies the GTE predicate on the "coords" field.
+func CoordsGTE(v *schema.Point) predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCoords), v))
+	})
+}
+
+// CoordsLT applies the LT predicate on the "coords" field.
+func CoordsLT(v *schema.Point) predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCoords), v))
+	})
+}
+
+// CoordsLTE applies the LTE predicate on the "coords" field.
+func CoordsLTE(v *schema.Point) predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCoords), v))
 	})
 }
 

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"happ/ent/event"
 	"happ/ent/predicate"
+	"happ/ent/schema"
 	"happ/ent/user"
 	"time"
 
@@ -63,6 +64,12 @@ func (eu *EventUpdate) SetEventPics(s []string) *EventUpdate {
 // SetEventDate sets the "event_date" field.
 func (eu *EventUpdate) SetEventDate(t time.Time) *EventUpdate {
 	eu.mutation.SetEventDate(t)
+	return eu
+}
+
+// SetCoords sets the "coords" field.
+func (eu *EventUpdate) SetCoords(s *schema.Point) *EventUpdate {
+	eu.mutation.SetCoords(s)
 	return eu
 }
 
@@ -242,6 +249,13 @@ func (eu *EventUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: event.FieldEventDate,
 		})
 	}
+	if value, ok := eu.mutation.Coords(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeOther,
+			Value:  value,
+			Column: event.FieldCoords,
+		})
+	}
 	if eu.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -361,6 +375,12 @@ func (euo *EventUpdateOne) SetEventPics(s []string) *EventUpdateOne {
 // SetEventDate sets the "event_date" field.
 func (euo *EventUpdateOne) SetEventDate(t time.Time) *EventUpdateOne {
 	euo.mutation.SetEventDate(t)
+	return euo
+}
+
+// SetCoords sets the "coords" field.
+func (euo *EventUpdateOne) SetCoords(s *schema.Point) *EventUpdateOne {
+	euo.mutation.SetCoords(s)
 	return euo
 }
 
@@ -568,6 +588,13 @@ func (euo *EventUpdateOne) sqlSave(ctx context.Context) (_node *Event, err error
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: event.FieldEventDate,
+		})
+	}
+	if value, ok := euo.mutation.Coords(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeOther,
+			Value:  value,
+			Column: event.FieldCoords,
 		})
 	}
 	if euo.mutation.UsersCleared() {

@@ -8,6 +8,11 @@ mutation NewEvent($input: NewEventInput!) {
       description
       confirmedCount
       eventPics
+      eventDate
+      coords {
+        latitude
+        longitude
+      }
       createdAt
       updatedAt
     }

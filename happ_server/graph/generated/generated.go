@@ -52,6 +52,11 @@ type ComplexityRoot struct {
 		Value     func(childComplexity int) int
 	}
 
+	Coordinates struct {
+		Latitude  func(childComplexity int) int
+		Longitude func(childComplexity int) int
+	}
+
 	CreateEventResponse struct {
 		Errors func(childComplexity int) int
 		Event  func(childComplexity int) int
@@ -64,6 +69,7 @@ type ComplexityRoot struct {
 
 	Event struct {
 		ConfirmedCount func(childComplexity int) int
+		Coords         func(childComplexity int) int
 		CreatedAt      func(childComplexity int) int
 		Description    func(childComplexity int) int
 		EventDate      func(childComplexity int) int
@@ -119,6 +125,7 @@ type EventResolver interface {
 	EventDate(ctx context.Context, obj *ent.Event) (string, error)
 	CreatedAt(ctx context.Context, obj *ent.Event) (string, error)
 	UpdatedAt(ctx context.Context, obj *ent.Event) (string, error)
+	Coords(ctx context.Context, obj *ent.Event) (*model.Coordinates, error)
 }
 type MutationResolver interface {
 	SignUp(ctx context.Context, input model.SignUpInput) (*model.UserAuthResponse, error)
@@ -171,6 +178,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AddResponse.Value(childComplexity), true
 
+	case "Coordinates.latitude":
+		if e.complexity.Coordinates.Latitude == nil {
+			break
+		}
+
+		return e.complexity.Coordinates.Latitude(childComplexity), true
+
+	case "Coordinates.longitude":
+		if e.complexity.Coordinates.Longitude == nil {
+			break
+		}
+
+		return e.complexity.Coordinates.Longitude(childComplexity), true
+
 	case "CreateEventResponse.errors":
 		if e.complexity.CreateEventResponse.Errors == nil {
 			break
@@ -205,6 +226,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.ConfirmedCount(childComplexity), true
+
+	case "Event.coords":
+		if e.complexity.Event.Coords == nil {
+			break
+		}
+
+		return e.complexity.Event.Coords(childComplexity), true
 
 	case "Event.createdAt":
 		if e.complexity.Event.CreatedAt == nil {
@@ -574,6 +602,7 @@ type Event {
   eventDate: String!
   createdAt: String!
   updatedAt: String!
+  coords: Coordinates!
 }
 
 input SignUpInput {
@@ -589,12 +618,18 @@ input SignInInput {
   password: String!
 }
 
+type Coordinates {
+  latitude: Float!
+  longitude: Float!
+}
+
 input NewEventInput {
   name: String!
   description: String!
   eventDate: String!
-  eventUsers: [Int!]!
-  eventPics: [Upload!]!
+  eventPics: [Upload!]!,
+  latitude: Float!,
+  longitude: Float!,
 }
 
 type TokenResponse {
@@ -945,6 +980,94 @@ func (ec *executionContext) fieldContext_AddResponse_unchanged(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Coordinates_latitude(ctx context.Context, field graphql.CollectedField, obj *model.Coordinates) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Coordinates_latitude(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Latitude, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Coordinates_latitude(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Coordinates",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Coordinates_longitude(ctx context.Context, field graphql.CollectedField, obj *model.Coordinates) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Coordinates_longitude(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Longitude, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Coordinates_longitude(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Coordinates",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CreateEventResponse_event(ctx context.Context, field graphql.CollectedField, obj *model.CreateEventResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CreateEventResponse_event(ctx, field)
 	if err != nil {
@@ -997,6 +1120,8 @@ func (ec *executionContext) fieldContext_CreateEventResponse_event(ctx context.C
 				return ec.fieldContext_Event_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Event_updatedAt(ctx, field)
+			case "coords":
+				return ec.fieldContext_Event_coords(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -1486,6 +1611,56 @@ func (ec *executionContext) fieldContext_Event_updatedAt(ctx context.Context, fi
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Event_coords(ctx context.Context, field graphql.CollectedField, obj *ent.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_coords(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Event().Coords(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Coordinates)
+	fc.Result = res
+	return ec.marshalNCoordinates2ᚖhappᚋgraphᚋmodelᚐCoordinates(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Event_coords(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Event",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "latitude":
+				return ec.fieldContext_Coordinates_latitude(ctx, field)
+			case "longitude":
+				return ec.fieldContext_Coordinates_longitude(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Coordinates", field.Name)
 		},
 	}
 	return fc, nil
@@ -4728,7 +4903,7 @@ func (ec *executionContext) unmarshalInputNewEventInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "eventDate", "eventUsers", "eventPics"}
+	fieldsInOrder := [...]string{"name", "description", "eventDate", "eventPics", "latitude", "longitude"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -4759,19 +4934,27 @@ func (ec *executionContext) unmarshalInputNewEventInput(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
-		case "eventUsers":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventUsers"))
-			it.EventUsers, err = ec.unmarshalNInt2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "eventPics":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventPics"))
 			it.EventPics, err = ec.unmarshalNUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "latitude":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("latitude"))
+			it.Latitude, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "longitude":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("longitude"))
+			it.Longitude, err = ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4905,6 +5088,41 @@ func (ec *executionContext) _AddResponse(ctx context.Context, sel ast.SelectionS
 		case "unchanged":
 
 			out.Values[i] = ec._AddResponse_unchanged(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var coordinatesImplementors = []string{"Coordinates"}
+
+func (ec *executionContext) _Coordinates(ctx context.Context, sel ast.SelectionSet, obj *model.Coordinates) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, coordinatesImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Coordinates")
+		case "latitude":
+
+			out.Values[i] = ec._Coordinates_latitude(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "longitude":
+
+			out.Values[i] = ec._Coordinates_longitude(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -5092,6 +5310,26 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 					}
 				}()
 				res = ec._Event_updatedAt(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "coords":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Event_coords(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -5871,6 +6109,20 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNCoordinates2happᚋgraphᚋmodelᚐCoordinates(ctx context.Context, sel ast.SelectionSet, v model.Coordinates) graphql.Marshaler {
+	return ec._Coordinates(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCoordinates2ᚖhappᚋgraphᚋmodelᚐCoordinates(ctx context.Context, sel ast.SelectionSet, v *model.Coordinates) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Coordinates(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNCreateEventResponse2happᚋgraphᚋmodelᚐCreateEventResponse(ctx context.Context, sel ast.SelectionSet, v model.CreateEventResponse) graphql.Marshaler {
 	return ec._CreateEventResponse(ctx, sel, &v)
 }
@@ -5895,6 +6147,21 @@ func (ec *executionContext) marshalNErrorResponse2ᚖhappᚋgraphᚋmodelᚐErro
 	return ec._ErrorResponse(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloat(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloat(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5908,38 +6175,6 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNInt2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]int, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNInt2int(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNInt2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNInt2int(ctx, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) unmarshalNNewEventInput2happᚋgraphᚋmodelᚐNewEventInput(ctx context.Context, v interface{}) (model.NewEventInput, error) {

@@ -80,6 +80,28 @@ class AddOrRemoveUser$Mutation extends JsonSerializable with EquatableMixin {
 }
 
 @JsonSerializable(explicitToJson: true)
+class NewEvent$Mutation$CreateEventResponse$Event$EventCoordinates
+    extends JsonSerializable with EquatableMixin {
+  NewEvent$Mutation$CreateEventResponse$Event$EventCoordinates();
+
+  factory NewEvent$Mutation$CreateEventResponse$Event$EventCoordinates.fromJson(
+          Map<String, dynamic> json) =>
+      _$NewEvent$Mutation$CreateEventResponse$Event$EventCoordinatesFromJson(
+          json);
+
+  late double latitude;
+
+  late double longitude;
+
+  @override
+  List<Object?> get props => [latitude, longitude];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$NewEvent$Mutation$CreateEventResponse$Event$EventCoordinatesToJson(
+          this);
+}
+
+@JsonSerializable(explicitToJson: true)
 class NewEvent$Mutation$CreateEventResponse$Event extends JsonSerializable
     with EquatableMixin {
   NewEvent$Mutation$CreateEventResponse$Event();
@@ -98,13 +120,26 @@ class NewEvent$Mutation$CreateEventResponse$Event extends JsonSerializable
 
   late String eventPics;
 
+  late String eventDate;
+
+  late NewEvent$Mutation$CreateEventResponse$Event$EventCoordinates coords;
+
   late String createdAt;
 
   late String updatedAt;
 
   @override
-  List<Object?> get props =>
-      [id, name, description, confirmedCount, eventPics, createdAt, updatedAt];
+  List<Object?> get props => [
+        id,
+        name,
+        description,
+        confirmedCount,
+        eventPics,
+        eventDate,
+        coords,
+        createdAt,
+        updatedAt
+      ];
   @override
   Map<String, dynamic> toJson() =>
       _$NewEvent$Mutation$CreateEventResponse$EventToJson(this);
@@ -171,8 +206,9 @@ class NewEventInput extends JsonSerializable with EquatableMixin {
       {required this.name,
       required this.description,
       required this.eventDate,
-      required this.eventUsers,
-      required this.eventPics});
+      required this.eventPics,
+      required this.latitude,
+      required this.longitude});
 
   factory NewEventInput.fromJson(Map<String, dynamic> json) =>
       _$NewEventInputFromJson(json);
@@ -183,16 +219,18 @@ class NewEventInput extends JsonSerializable with EquatableMixin {
 
   late String eventDate;
 
-  late List<int> eventUsers;
-
   @JsonKey(
       fromJson: fromGraphQLListUploadToDartListMultipartFile,
       toJson: fromDartListMultipartFileToGraphQLListUpload)
   late List<MultipartFile> eventPics;
 
+  late double latitude;
+
+  late double longitude;
+
   @override
   List<Object?> get props =>
-      [name, description, eventDate, eventUsers, eventPics];
+      [name, description, eventDate, eventPics, latitude, longitude];
   @override
   Map<String, dynamic> toJson() => _$NewEventInputToJson(this);
 }
@@ -206,7 +244,7 @@ class SignIn$Mutation$UserAuthResponse$User extends JsonSerializable
           Map<String, dynamic> json) =>
       _$SignIn$Mutation$UserAuthResponse$UserFromJson(json);
 
-  late double id;
+  late int id;
 
   late String name;
 
@@ -322,7 +360,7 @@ class SignUp$Mutation$UserAuthResponse$User extends JsonSerializable
           Map<String, dynamic> json) =>
       _$SignUp$Mutation$UserAuthResponse$UserFromJson(json);
 
-  late double id;
+  late int id;
 
   late String name;
 
@@ -447,7 +485,7 @@ class UserFromId$Query$User extends JsonSerializable with EquatableMixin {
   factory UserFromId$Query$User.fromJson(Map<String, dynamic> json) =>
       _$UserFromId$Query$UserFromJson(json);
 
-  late double id;
+  late int id;
 
   late String name;
 
@@ -485,7 +523,7 @@ class UserAccess$Query$User extends JsonSerializable with EquatableMixin {
   factory UserAccess$Query$User.fromJson(Map<String, dynamic> json) =>
       _$UserAccess$Query$UserFromJson(json);
 
-  late double id;
+  late int id;
 
   late String name;
 
@@ -519,7 +557,7 @@ class SearchUsers$Query$User extends JsonSerializable with EquatableMixin {
   factory SearchUsers$Query$User.fromJson(Map<String, dynamic> json) =>
       _$SearchUsers$Query$UserFromJson(json);
 
-  late double id;
+  late int id;
 
   late String username;
 
@@ -793,6 +831,31 @@ final NEW_EVENT_MUTATION_DOCUMENT = DocumentNode(definitions: [
                         arguments: [],
                         directives: [],
                         selectionSet: null),
+                    FieldNode(
+                        name: NameNode(value: 'eventDate'),
+                        alias: null,
+                        arguments: [],
+                        directives: [],
+                        selectionSet: null),
+                    FieldNode(
+                        name: NameNode(value: 'coords'),
+                        alias: null,
+                        arguments: [],
+                        directives: [],
+                        selectionSet: SelectionSetNode(selections: [
+                          FieldNode(
+                              name: NameNode(value: 'latitude'),
+                              alias: null,
+                              arguments: [],
+                              directives: [],
+                              selectionSet: null),
+                          FieldNode(
+                              name: NameNode(value: 'longitude'),
+                              alias: null,
+                              arguments: [],
+                              directives: [],
+                              selectionSet: null)
+                        ])),
                     FieldNode(
                         name: NameNode(value: 'createdAt'),
                         alias: null,

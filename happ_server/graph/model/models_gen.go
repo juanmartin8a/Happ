@@ -13,6 +13,11 @@ type AddResponse struct {
 	Unchanged bool `json:"unchanged"`
 }
 
+type Coordinates struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
 type CreateEventResponse struct {
 	Event  *ent.Event       `json:"event"`
 	Errors []*ErrorResponse `json:"errors"`
@@ -27,8 +32,9 @@ type NewEventInput struct {
 	Name        string            `json:"name"`
 	Description string            `json:"description"`
 	EventDate   string            `json:"eventDate"`
-	EventUsers  []int             `json:"eventUsers"`
 	EventPics   []*graphql.Upload `json:"eventPics"`
+	Latitude    float64           `json:"latitude"`
+	Longitude   float64           `json:"longitude"`
 }
 
 type SignInInput struct {

@@ -51,7 +51,7 @@ func (e *Event) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     e.ID,
 		Type:   "Event",
-		Fields: make([]*Field, 7),
+		Fields: make([]*Field, 8),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -95,10 +95,18 @@ func (e *Event) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "event_date",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(e.CreatedAt); err != nil {
+	if buf, err = json.Marshal(e.Coords); err != nil {
 		return nil, err
 	}
 	node.Fields[5] = &Field{
+		Type:  "*schema.Point",
+		Name:  "coords",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(e.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
 		Type:  "time.Time",
 		Name:  "created_at",
 		Value: string(buf),
@@ -106,7 +114,7 @@ func (e *Event) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(e.UpdatedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[6] = &Field{
+	node.Fields[7] = &Field{
 		Type:  "time.Time",
 		Name:  "updated_at",
 		Value: string(buf),

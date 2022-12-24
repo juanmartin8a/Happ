@@ -16,6 +16,7 @@ var (
 		{Name: "confirmed_count", Type: field.TypeInt},
 		{Name: "event_pics", Type: field.TypeJSON},
 		{Name: "event_date", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime"}},
+		{Name: "coords", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "POINT"}},
 		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP", SchemaType: map[string]string{"mysql": "datetime"}},
 		{Name: "updated_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP", SchemaType: map[string]string{"mysql": "datetime"}},
 	}

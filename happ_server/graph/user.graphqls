@@ -22,6 +22,7 @@ type Event {
   eventDate: String!
   createdAt: String!
   updatedAt: String!
+  coords: Coordinates!
 }
 
 input SignUpInput {
@@ -37,12 +38,18 @@ input SignInInput {
   password: String!
 }
 
+type Coordinates {
+  latitude: Float!
+  longitude: Float!
+}
+
 input NewEventInput {
   name: String!
   description: String!
   eventDate: String!
-  eventUsers: [Int!]!
-  eventPics: [Upload!]!
+  eventPics: [Upload!]!,
+  latitude: Float!,
+  longitude: Float!,
 }
 
 type TokenResponse {

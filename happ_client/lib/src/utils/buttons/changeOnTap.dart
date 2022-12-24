@@ -31,13 +31,19 @@ class _CustomGestureDetectorState extends State<CustomGestureDetector> {
         }
       },
       onTapUp: (_) {
-        Future.delayed(const Duration(milliseconds: 250), () {
+        Future.delayed(const Duration(milliseconds: 100), () {
           isLoading = false;
           setOnTapVar(false);
         });
       },
       onTap: () {
         widget.onTap();
+      },
+      onTapCancel: () {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          isLoading = false;
+          setOnTapVar(false);
+        });
       },
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 50),

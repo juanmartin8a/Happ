@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"happ/ent/event"
+	"happ/ent/schema"
 	"happ/ent/user"
 	"time"
 
@@ -50,6 +51,12 @@ func (ec *EventCreate) SetEventPics(s []string) *EventCreate {
 // SetEventDate sets the "event_date" field.
 func (ec *EventCreate) SetEventDate(t time.Time) *EventCreate {
 	ec.mutation.SetEventDate(t)
+	return ec
+}
+
+// SetCoords sets the "coords" field.
+func (ec *EventCreate) SetCoords(s *schema.Point) *EventCreate {
+	ec.mutation.SetCoords(s)
 	return ec
 }
 
@@ -210,6 +217,9 @@ func (ec *EventCreate) check() error {
 	if _, ok := ec.mutation.EventDate(); !ok {
 		return &ValidationError{Name: "event_date", err: errors.New(`ent: missing required field "Event.event_date"`)}
 	}
+	if _, ok := ec.mutation.Coords(); !ok {
+		return &ValidationError{Name: "coords", err: errors.New(`ent: missing required field "Event.coords"`)}
+	}
 	if _, ok := ec.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Event.created_at"`)}
 	}
@@ -283,6 +293,14 @@ func (ec *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 			Column: event.FieldEventDate,
 		})
 		_node.EventDate = value
+	}
+	if value, ok := ec.mutation.Coords(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeOther,
+			Value:  value,
+			Column: event.FieldCoords,
+		})
+		_node.Coords = value
 	}
 	if value, ok := ec.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -443,6 +461,18 @@ func (u *EventUpsert) UpdateEventDate() *EventUpsert {
 	return u
 }
 
+// SetCoords sets the "coords" field.
+func (u *EventUpsert) SetCoords(v *schema.Point) *EventUpsert {
+	u.Set(event.FieldCoords, v)
+	return u
+}
+
+// UpdateCoords sets the "coords" field to the value that was provided on create.
+func (u *EventUpsert) UpdateCoords() *EventUpsert {
+	u.SetExcluded(event.FieldCoords)
+	return u
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (u *EventUpsert) SetCreatedAt(v time.Time) *EventUpsert {
 	u.Set(event.FieldCreatedAt, v)
@@ -591,6 +621,20 @@ func (u *EventUpsertOne) SetEventDate(v time.Time) *EventUpsertOne {
 func (u *EventUpsertOne) UpdateEventDate() *EventUpsertOne {
 	return u.Update(func(s *EventUpsert) {
 		s.UpdateEventDate()
+	})
+}
+
+// SetCoords sets the "coords" field.
+func (u *EventUpsertOne) SetCoords(v *schema.Point) *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.SetCoords(v)
+	})
+}
+
+// UpdateCoords sets the "coords" field to the value that was provided on create.
+func (u *EventUpsertOne) UpdateCoords() *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.UpdateCoords()
 	})
 }
 
@@ -910,6 +954,20 @@ func (u *EventUpsertBulk) SetEventDate(v time.Time) *EventUpsertBulk {
 func (u *EventUpsertBulk) UpdateEventDate() *EventUpsertBulk {
 	return u.Update(func(s *EventUpsert) {
 		s.UpdateEventDate()
+	})
+}
+
+// SetCoords sets the "coords" field.
+func (u *EventUpsertBulk) SetCoords(v *schema.Point) *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.SetCoords(v)
+	})
+}
+
+// UpdateCoords sets the "coords" field to the value that was provided on create.
+func (u *EventUpsertBulk) UpdateCoords() *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.UpdateCoords()
 	})
 }
 

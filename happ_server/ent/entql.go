@@ -35,6 +35,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			event.FieldConfirmedCount: {Type: field.TypeInt, Column: event.FieldConfirmedCount},
 			event.FieldEventPics:      {Type: field.TypeJSON, Column: event.FieldEventPics},
 			event.FieldEventDate:      {Type: field.TypeTime, Column: event.FieldEventDate},
+			event.FieldCoords:         {Type: field.TypeOther, Column: event.FieldCoords},
 			event.FieldCreatedAt:      {Type: field.TypeTime, Column: event.FieldCreatedAt},
 			event.FieldUpdatedAt:      {Type: field.TypeTime, Column: event.FieldUpdatedAt},
 		},
@@ -382,6 +383,11 @@ func (f *EventFilter) WhereEventPics(p entql.BytesP) {
 // WhereEventDate applies the entql time.Time predicate on the event_date field.
 func (f *EventFilter) WhereEventDate(p entql.TimeP) {
 	f.Where(p.Field(event.FieldEventDate))
+}
+
+// WhereCoords applies the entql other predicate on the coords field.
+func (f *EventFilter) WhereCoords(p entql.OtherP) {
+	f.Where(p.Field(event.FieldCoords))
 }
 
 // WhereCreatedAt applies the entql time.Time predicate on the created_at field.

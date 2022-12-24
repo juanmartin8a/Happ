@@ -12,6 +12,7 @@ type Event implements Node {
   confirmedcount: Int!
   eventPics: [String!]!
   eventDate: Time!
+  coords: Point!
   createdAt: Time!
   updatedAt: Time!
   users: [User!]

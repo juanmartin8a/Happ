@@ -59,6 +59,22 @@ Map<String, dynamic> _$AddOrRemoveUser$MutationToJson(
       'addOrRemoveUser': instance.addOrRemoveUser.toJson(),
     };
 
+NewEvent$Mutation$CreateEventResponse$Event$EventCoordinates
+    _$NewEvent$Mutation$CreateEventResponse$Event$EventCoordinatesFromJson(
+            Map<String, dynamic> json) =>
+        NewEvent$Mutation$CreateEventResponse$Event$EventCoordinates()
+          ..latitude = (json['latitude'] as num).toDouble()
+          ..longitude = (json['longitude'] as num).toDouble();
+
+Map<String, dynamic>
+    _$NewEvent$Mutation$CreateEventResponse$Event$EventCoordinatesToJson(
+            NewEvent$Mutation$CreateEventResponse$Event$EventCoordinates
+                instance) =>
+        <String, dynamic>{
+          'latitude': instance.latitude,
+          'longitude': instance.longitude,
+        };
+
 NewEvent$Mutation$CreateEventResponse$Event
     _$NewEvent$Mutation$CreateEventResponse$EventFromJson(
             Map<String, dynamic> json) =>
@@ -68,6 +84,10 @@ NewEvent$Mutation$CreateEventResponse$Event
           ..description = json['description'] as String
           ..confirmedCount = json['confirmedCount'] as int
           ..eventPics = json['eventPics'] as String
+          ..eventDate = json['eventDate'] as String
+          ..coords =
+              NewEvent$Mutation$CreateEventResponse$Event$EventCoordinates
+                  .fromJson(json['coords'] as Map<String, dynamic>)
           ..createdAt = json['createdAt'] as String
           ..updatedAt = json['updatedAt'] as String;
 
@@ -79,6 +99,8 @@ Map<String, dynamic> _$NewEvent$Mutation$CreateEventResponse$EventToJson(
       'description': instance.description,
       'confirmedCount': instance.confirmedCount,
       'eventPics': instance.eventPics,
+      'eventDate': instance.eventDate,
+      'coords': instance.coords.toJson(),
       'createdAt': instance.createdAt,
       'updatedAt': instance.updatedAt,
     };
@@ -134,10 +156,10 @@ NewEventInput _$NewEventInputFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       description: json['description'] as String,
       eventDate: json['eventDate'] as String,
-      eventUsers:
-          (json['eventUsers'] as List<dynamic>).map((e) => e as int).toList(),
       eventPics: fromGraphQLListUploadToDartListMultipartFile(
           json['eventPics'] as List<MultipartFile>),
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
     );
 
 Map<String, dynamic> _$NewEventInputToJson(NewEventInput instance) =>
@@ -145,16 +167,17 @@ Map<String, dynamic> _$NewEventInputToJson(NewEventInput instance) =>
       'name': instance.name,
       'description': instance.description,
       'eventDate': instance.eventDate,
-      'eventUsers': instance.eventUsers,
       'eventPics':
           fromDartListMultipartFileToGraphQLListUpload(instance.eventPics),
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
     };
 
 SignIn$Mutation$UserAuthResponse$User
     _$SignIn$Mutation$UserAuthResponse$UserFromJson(
             Map<String, dynamic> json) =>
         SignIn$Mutation$UserAuthResponse$User()
-          ..id = (json['id'] as num).toDouble()
+          ..id = json['id'] as int
           ..name = json['name'] as String
           ..username = json['username'] as String;
 
@@ -245,7 +268,7 @@ SignUp$Mutation$UserAuthResponse$User
     _$SignUp$Mutation$UserAuthResponse$UserFromJson(
             Map<String, dynamic> json) =>
         SignUp$Mutation$UserAuthResponse$User()
-          ..id = (json['id'] as num).toDouble()
+          ..id = json['id'] as int
           ..name = json['name'] as String
           ..username = json['username'] as String;
 
@@ -341,7 +364,7 @@ Map<String, dynamic> _$SignUpInputToJson(SignUpInput instance) =>
 UserFromId$Query$User _$UserFromId$Query$UserFromJson(
         Map<String, dynamic> json) =>
     UserFromId$Query$User()
-      ..id = (json['id'] as num).toDouble()
+      ..id = json['id'] as int
       ..name = json['name'] as String
       ..username = json['username'] as String
       ..followState = json['followState'] as bool
@@ -372,7 +395,7 @@ Map<String, dynamic> _$UserFromId$QueryToJson(UserFromId$Query instance) =>
 UserAccess$Query$User _$UserAccess$Query$UserFromJson(
         Map<String, dynamic> json) =>
     UserAccess$Query$User()
-      ..id = (json['id'] as num).toDouble()
+      ..id = json['id'] as int
       ..name = json['name'] as String
       ..username = json['username'] as String;
 
@@ -399,7 +422,7 @@ Map<String, dynamic> _$UserAccess$QueryToJson(UserAccess$Query instance) =>
 SearchUsers$Query$User _$SearchUsers$Query$UserFromJson(
         Map<String, dynamic> json) =>
     SearchUsers$Query$User()
-      ..id = (json['id'] as num).toDouble()
+      ..id = json['id'] as int
       ..username = json['username'] as String
       ..name = json['name'] as String
       ..followState = json['followState'] as bool

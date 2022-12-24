@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"happ/ent/event"
+	"happ/ent/schema"
 	"strings"
 	"time"
 
@@ -27,6 +28,8 @@ type Event struct {
 	EventPics []string `json:"event_pics,omitempty"`
 	// EventDate holds the value of the "event_date" field.
 	EventDate time.Time `json:"event_date,omitempty"`
+	// Coords holds the value of the "coords" field.
+	Coords *schema.Point `json:"coords,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -74,6 +77,8 @@ func (*Event) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case event.FieldEventPics:
 			values[i] = new([]byte)
+		case event.FieldCoords:
+			values[i] = new(schema.Point)
 		case event.FieldID, event.FieldConfirmedCount:
 			values[i] = new(sql.NullInt64)
 		case event.FieldName, event.FieldDescription:
@@ -132,6 +137,12 @@ func (e *Event) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field event_date", values[i])
 			} else if value.Valid {
 				e.EventDate = value.Time
+			}
+		case event.FieldCoords:
+			if value, ok := values[i].(*schema.Point); !ok {
+				return fmt.Errorf("unexpected type %T for field coords", values[i])
+			} else if value != nil {
+				e.Coords = value
 			}
 		case event.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -197,6 +208,9 @@ func (e *Event) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("event_date=")
 	builder.WriteString(e.EventDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("coords=")
+	builder.WriteString(fmt.Sprintf("%v", e.Coords))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(e.CreatedAt.Format(time.ANSIC))

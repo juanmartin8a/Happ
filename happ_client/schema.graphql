@@ -1,7 +1,12 @@
 scalar Upload
 
+type EventCoordinates {
+  latitude: Float!
+  longitude: Float!
+}
+
 type User {
-  id: Float!
+  id: Int!
   name: String!
   username: String!
   email: String!
@@ -22,6 +27,7 @@ type Event {
   eventDate: String!
   createdAt: String!
   updatedAt: String!
+  coords: EventCoordinates!
 }
 
 type ErrorResponse {
@@ -46,10 +52,10 @@ input NewEventInput {
   name: String!
   description: String!
   eventDate: String!
-  eventUsers: [Int!]!
   eventPics: [Upload!]!
+  latitude: Float!,
+  longitude: Float!,
 }
-
 
 type TokenResponse {
   refreshToken: String!
