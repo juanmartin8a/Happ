@@ -4,9 +4,10 @@ package ent
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"happ/ent/device"
 	"happ/ent/event"
+	"happ/ent/eventremindernotification"
 	"happ/ent/user"
 	"sync"
 	"sync/atomic"
@@ -22,238 +23,20 @@ import (
 
 // Noder wraps the basic Node method.
 type Noder interface {
-	Node(context.Context) (*Node, error)
+	IsNode()
 }
 
-// Node in the graph.
-type Node struct {
-	ID     int      `json:"id,omitempty"`     // node id.
-	Type   string   `json:"type,omitempty"`   // node type.
-	Fields []*Field `json:"fields,omitempty"` // node fields.
-	Edges  []*Edge  `json:"edges,omitempty"`  // node edges.
-}
+// IsNode implements the Node interface check for GQLGen.
+func (n *Device) IsNode() {}
 
-// Field of a node.
-type Field struct {
-	Type  string `json:"type,omitempty"`  // field type.
-	Name  string `json:"name,omitempty"`  // field name (as in struct).
-	Value string `json:"value,omitempty"` // stringified value.
-}
+// IsNode implements the Node interface check for GQLGen.
+func (n *Event) IsNode() {}
 
-// Edges between two nodes.
-type Edge struct {
-	Type string `json:"type,omitempty"` // edge type.
-	Name string `json:"name,omitempty"` // edge name.
-	IDs  []int  `json:"ids,omitempty"`  // node ids (where this edge point to).
-}
+// IsNode implements the Node interface check for GQLGen.
+func (n *EventReminderNotification) IsNode() {}
 
-func (e *Event) Node(ctx context.Context) (node *Node, err error) {
-	node = &Node{
-		ID:     e.ID,
-		Type:   "Event",
-		Fields: make([]*Field, 8),
-		Edges:  make([]*Edge, 1),
-	}
-	var buf []byte
-	if buf, err = json.Marshal(e.Name); err != nil {
-		return nil, err
-	}
-	node.Fields[0] = &Field{
-		Type:  "string",
-		Name:  "name",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(e.Description); err != nil {
-		return nil, err
-	}
-	node.Fields[1] = &Field{
-		Type:  "string",
-		Name:  "description",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(e.ConfirmedCount); err != nil {
-		return nil, err
-	}
-	node.Fields[2] = &Field{
-		Type:  "int",
-		Name:  "confirmedCount",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(e.EventPics); err != nil {
-		return nil, err
-	}
-	node.Fields[3] = &Field{
-		Type:  "[]string",
-		Name:  "event_pics",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(e.EventDate); err != nil {
-		return nil, err
-	}
-	node.Fields[4] = &Field{
-		Type:  "time.Time",
-		Name:  "event_date",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(e.Coords); err != nil {
-		return nil, err
-	}
-	node.Fields[5] = &Field{
-		Type:  "*schema.Point",
-		Name:  "coords",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(e.CreatedAt); err != nil {
-		return nil, err
-	}
-	node.Fields[6] = &Field{
-		Type:  "time.Time",
-		Name:  "created_at",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(e.UpdatedAt); err != nil {
-		return nil, err
-	}
-	node.Fields[7] = &Field{
-		Type:  "time.Time",
-		Name:  "updated_at",
-		Value: string(buf),
-	}
-	node.Edges[0] = &Edge{
-		Type: "User",
-		Name: "users",
-	}
-	err = e.QueryUsers().
-		Select(user.FieldID).
-		Scan(ctx, &node.Edges[0].IDs)
-	if err != nil {
-		return nil, err
-	}
-	return node, nil
-}
-
-func (u *User) Node(ctx context.Context) (node *Node, err error) {
-	node = &Node{
-		ID:     u.ID,
-		Type:   "User",
-		Fields: make([]*Field, 8),
-		Edges:  make([]*Edge, 4),
-	}
-	var buf []byte
-	if buf, err = json.Marshal(u.Name); err != nil {
-		return nil, err
-	}
-	node.Fields[0] = &Field{
-		Type:  "string",
-		Name:  "name",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(u.Username); err != nil {
-		return nil, err
-	}
-	node.Fields[1] = &Field{
-		Type:  "string",
-		Name:  "username",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(u.Email); err != nil {
-		return nil, err
-	}
-	node.Fields[2] = &Field{
-		Type:  "string",
-		Name:  "email",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(u.ProfilePic); err != nil {
-		return nil, err
-	}
-	node.Fields[3] = &Field{
-		Type:  "string",
-		Name:  "profile_pic",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(u.Birthday); err != nil {
-		return nil, err
-	}
-	node.Fields[4] = &Field{
-		Type:  "time.Time",
-		Name:  "birthday",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(u.Password); err != nil {
-		return nil, err
-	}
-	node.Fields[5] = &Field{
-		Type:  "string",
-		Name:  "password",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(u.CreatedAt); err != nil {
-		return nil, err
-	}
-	node.Fields[6] = &Field{
-		Type:  "time.Time",
-		Name:  "created_at",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(u.UpdatedAt); err != nil {
-		return nil, err
-	}
-	node.Fields[7] = &Field{
-		Type:  "time.Time",
-		Name:  "updated_at",
-		Value: string(buf),
-	}
-	node.Edges[0] = &Edge{
-		Type: "Event",
-		Name: "events",
-	}
-	err = u.QueryEvents().
-		Select(event.FieldID).
-		Scan(ctx, &node.Edges[0].IDs)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[1] = &Edge{
-		Type: "User",
-		Name: "friends",
-	}
-	err = u.QueryFriends().
-		Select(user.FieldID).
-		Scan(ctx, &node.Edges[1].IDs)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[2] = &Edge{
-		Type: "User",
-		Name: "followers",
-	}
-	err = u.QueryFollowers().
-		Select(user.FieldID).
-		Scan(ctx, &node.Edges[2].IDs)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[3] = &Edge{
-		Type: "User",
-		Name: "following",
-	}
-	err = u.QueryFollowing().
-		Select(user.FieldID).
-		Scan(ctx, &node.Edges[3].IDs)
-	if err != nil {
-		return nil, err
-	}
-	return node, nil
-}
-
-func (c *Client) Node(ctx context.Context, id int) (*Node, error) {
-	n, err := c.Noder(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return n.Node(ctx)
-}
+// IsNode implements the Node interface check for GQLGen.
+func (n *User) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -314,10 +97,34 @@ func (c *Client) Noder(ctx context.Context, id int, opts ...NodeOption) (_ Noder
 
 func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error) {
 	switch table {
+	case device.Table:
+		query := c.Device.Query().
+			Where(device.ID(id))
+		query, err := query.CollectFields(ctx, "Device")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case event.Table:
 		query := c.Event.Query().
 			Where(event.ID(id))
 		query, err := query.CollectFields(ctx, "Event")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case eventremindernotification.Table:
+		query := c.EventReminderNotification.Query().
+			Where(eventremindernotification.ID(id))
+		query, err := query.CollectFields(ctx, "EventReminderNotification")
 		if err != nil {
 			return nil, err
 		}
@@ -411,10 +218,42 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
+	case device.Table:
+		query := c.Device.Query().
+			Where(device.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Device")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case event.Table:
 		query := c.Event.Query().
 			Where(event.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Event")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case eventremindernotification.Table:
+		query := c.EventReminderNotification.Query().
+			Where(eventremindernotification.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "EventReminderNotification")
 		if err != nil {
 			return nil, err
 		}

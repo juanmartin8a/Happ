@@ -1,0 +1,11 @@
+query GetEventGuests($eventId: Int! $limit: Int!, $idsList: [Int!]!) {
+  getEventGuests(eventId: $eventId, limit: $limit, idsList: $idsList) {
+    users {
+      id
+      username
+      name
+      profilePic
+    }
+    hasMore
+	}
+}

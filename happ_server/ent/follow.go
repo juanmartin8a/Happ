@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -25,7 +26,8 @@ type Follow struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FollowQuery when eager-loading is set.
-	Edges FollowEdges `json:"edges"`
+	Edges        FollowEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // FollowEdges holds the relations/edges for other nodes in the graph.
@@ -38,7 +40,7 @@ type FollowEdges struct {
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]*int
+	totalCount [2]map[string]int
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -68,8 +70,8 @@ func (e FollowEdges) FollowerOrErr() (*User, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Follow) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*Follow) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case follow.FieldValid:
@@ -79,7 +81,7 @@ func (*Follow) scanValues(columns []string) ([]interface{}, error) {
 		case follow.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Follow", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -87,7 +89,7 @@ func (*Follow) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Follow fields.
-func (f *Follow) assignValues(columns []string, values []interface{}) error {
+func (f *Follow) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -117,26 +119,34 @@ func (f *Follow) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				f.CreatedAt = value.Time
 			}
+		default:
+			f.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the Follow.
+// This includes values selected through modifiers, order, etc.
+func (f *Follow) Value(name string) (ent.Value, error) {
+	return f.selectValues.Get(name)
+}
+
 // QueryUser queries the "user" edge of the Follow entity.
 func (f *Follow) QueryUser() *UserQuery {
-	return (&FollowClient{config: f.config}).QueryUser(f)
+	return NewFollowClient(f.config).QueryUser(f)
 }
 
 // QueryFollower queries the "follower" edge of the Follow entity.
 func (f *Follow) QueryFollower() *UserQuery {
-	return (&FollowClient{config: f.config}).QueryFollower(f)
+	return NewFollowClient(f.config).QueryFollower(f)
 }
 
 // Update returns a builder for updating this Follow.
 // Note that you need to call Follow.Unwrap() before calling this method if this Follow
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (f *Follow) Update() *FollowUpdateOne {
-	return (&FollowClient{config: f.config}).UpdateOne(f)
+	return NewFollowClient(f.config).UpdateOne(f)
 }
 
 // Unwrap unwraps the Follow entity that was returned from a transaction after it was closed,
@@ -171,9 +181,3 @@ func (f *Follow) String() string {
 
 // Follows is a parsable slice of Follow.
 type Follows []*Follow
-
-func (f Follows) config(cfg config) {
-	for _i := range f {
-		f[_i].config = cfg
-	}
-}

@@ -1,6 +1,6 @@
-mutation RefreshTokens($token: String!) {
-  refreshTokens(token: $token) {
-    refreshToken
-    accessToken
-  }
-}
+# mutation RefreshTokens($token: String!) {
+#   refreshTokens(token: $token) {
+#     refreshToken
+#     accessToken
+#   }
+# }

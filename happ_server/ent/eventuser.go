@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -20,13 +21,20 @@ type EventUser struct {
 	EventID int `json:"event_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID int `json:"user_id,omitempty"`
+	// InvitedBy holds the value of the "invited_by" field.
+	InvitedBy int `json:"invited_by,omitempty"`
 	// Admin holds the value of the "admin" field.
 	Admin bool `json:"admin,omitempty"`
+	// Creator holds the value of the "creator" field.
+	Creator bool `json:"creator,omitempty"`
+	// Confirmed holds the value of the "confirmed" field.
+	Confirmed bool `json:"confirmed,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EventUserQuery when eager-loading is set.
-	Edges EventUserEdges `json:"edges"`
+	Edges        EventUserEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // EventUserEdges holds the relations/edges for other nodes in the graph.
@@ -39,7 +47,7 @@ type EventUserEdges struct {
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]*int
+	totalCount [2]map[string]int
 }
 
 // EventOrErr returns the Event value or an error if the edge
@@ -69,18 +77,18 @@ func (e EventUserEdges) UserOrErr() (*User, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*EventUser) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*EventUser) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case eventuser.FieldAdmin:
+		case eventuser.FieldAdmin, eventuser.FieldCreator, eventuser.FieldConfirmed:
 			values[i] = new(sql.NullBool)
-		case eventuser.FieldEventID, eventuser.FieldUserID:
+		case eventuser.FieldEventID, eventuser.FieldUserID, eventuser.FieldInvitedBy:
 			values[i] = new(sql.NullInt64)
 		case eventuser.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type EventUser", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -88,7 +96,7 @@ func (*EventUser) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the EventUser fields.
-func (eu *EventUser) assignValues(columns []string, values []interface{}) error {
+func (eu *EventUser) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -106,11 +114,29 @@ func (eu *EventUser) assignValues(columns []string, values []interface{}) error 
 			} else if value.Valid {
 				eu.UserID = int(value.Int64)
 			}
+		case eventuser.FieldInvitedBy:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field invited_by", values[i])
+			} else if value.Valid {
+				eu.InvitedBy = int(value.Int64)
+			}
 		case eventuser.FieldAdmin:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field admin", values[i])
 			} else if value.Valid {
 				eu.Admin = value.Bool
+			}
+		case eventuser.FieldCreator:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field creator", values[i])
+			} else if value.Valid {
+				eu.Creator = value.Bool
+			}
+		case eventuser.FieldConfirmed:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmed", values[i])
+			} else if value.Valid {
+				eu.Confirmed = value.Bool
 			}
 		case eventuser.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -118,26 +144,34 @@ func (eu *EventUser) assignValues(columns []string, values []interface{}) error 
 			} else if value.Valid {
 				eu.CreatedAt = value.Time
 			}
+		default:
+			eu.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the EventUser.
+// This includes values selected through modifiers, order, etc.
+func (eu *EventUser) Value(name string) (ent.Value, error) {
+	return eu.selectValues.Get(name)
+}
+
 // QueryEvent queries the "event" edge of the EventUser entity.
 func (eu *EventUser) QueryEvent() *EventQuery {
-	return (&EventUserClient{config: eu.config}).QueryEvent(eu)
+	return NewEventUserClient(eu.config).QueryEvent(eu)
 }
 
 // QueryUser queries the "user" edge of the EventUser entity.
 func (eu *EventUser) QueryUser() *UserQuery {
-	return (&EventUserClient{config: eu.config}).QueryUser(eu)
+	return NewEventUserClient(eu.config).QueryUser(eu)
 }
 
 // Update returns a builder for updating this EventUser.
 // Note that you need to call EventUser.Unwrap() before calling this method if this EventUser
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (eu *EventUser) Update() *EventUserUpdateOne {
-	return (&EventUserClient{config: eu.config}).UpdateOne(eu)
+	return NewEventUserClient(eu.config).UpdateOne(eu)
 }
 
 // Unwrap unwraps the EventUser entity that was returned from a transaction after it was closed,
@@ -161,8 +195,17 @@ func (eu *EventUser) String() string {
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", eu.UserID))
 	builder.WriteString(", ")
+	builder.WriteString("invited_by=")
+	builder.WriteString(fmt.Sprintf("%v", eu.InvitedBy))
+	builder.WriteString(", ")
 	builder.WriteString("admin=")
 	builder.WriteString(fmt.Sprintf("%v", eu.Admin))
+	builder.WriteString(", ")
+	builder.WriteString("creator=")
+	builder.WriteString(fmt.Sprintf("%v", eu.Creator))
+	builder.WriteString(", ")
+	builder.WriteString("confirmed=")
+	builder.WriteString(fmt.Sprintf("%v", eu.Confirmed))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(eu.CreatedAt.Format(time.ANSIC))
@@ -172,9 +215,3 @@ func (eu *EventUser) String() string {
 
 // EventUsers is a parsable slice of EventUser.
 type EventUsers []*EventUser
-
-func (eu EventUsers) config(cfg config) {
-	for _i := range eu {
-		eu[_i].config = cfg
-	}
-}

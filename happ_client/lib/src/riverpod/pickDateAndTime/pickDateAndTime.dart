@@ -30,3 +30,9 @@ final pickDateControllerProvider =
 
 final pickTimeControllerProvider =
   StateNotifierProvider<PickTimeController, PickTimeState>((ref) => PickTimeController());
+
+final updatePickDateControllerProvider =
+  StateNotifierProvider<PickDateController, PickDateState>((ref) => PickDateController());
+
+final updatePickTimeControllerProvider =
+  StateNotifierProvider<PickTimeController, PickTimeState>((ref) => PickTimeController());

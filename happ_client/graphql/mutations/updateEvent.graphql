@@ -1,0 +1,28 @@
+mutation UpdateEvent($input: UpdateEventInput!, $eventId: Int!) {
+  updateEvent(
+    input: $input
+    eventId: $eventId
+  ) {
+    event {
+      id
+      name
+      description
+      eventPics
+      lightEventPics
+      confirmedCount
+      confirmedHosts
+      eventPlace
+      coords {
+        latitude
+        longitude
+      }
+      createdAt
+      updatedAt
+      eventDate
+    }
+    errors {
+      field
+      message
+    }
+  }
+}

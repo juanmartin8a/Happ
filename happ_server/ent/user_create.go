@@ -6,7 +6,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"happ/ent/device"
 	"happ/ent/event"
+	"happ/ent/eventremindernotification"
 	"happ/ent/user"
 	"time"
 
@@ -21,6 +23,12 @@ type UserCreate struct {
 	mutation *UserMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
+}
+
+// SetFUID sets the "FUID" field.
+func (uc *UserCreate) SetFUID(s string) *UserCreate {
+	uc.mutation.SetFUID(s)
+	return uc
 }
 
 // SetName sets the "name" field.
@@ -44,18 +52,6 @@ func (uc *UserCreate) SetEmail(s string) *UserCreate {
 // SetProfilePic sets the "profile_pic" field.
 func (uc *UserCreate) SetProfilePic(s string) *UserCreate {
 	uc.mutation.SetProfilePic(s)
-	return uc
-}
-
-// SetBirthday sets the "birthday" field.
-func (uc *UserCreate) SetBirthday(t time.Time) *UserCreate {
-	uc.mutation.SetBirthday(t)
-	return uc
-}
-
-// SetPassword sets the "password" field.
-func (uc *UserCreate) SetPassword(s string) *UserCreate {
-	uc.mutation.SetPassword(s)
 	return uc
 }
 
@@ -102,21 +98,6 @@ func (uc *UserCreate) AddEvents(e ...*Event) *UserCreate {
 	return uc.AddEventIDs(ids...)
 }
 
-// AddFriendIDs adds the "friends" edge to the User entity by IDs.
-func (uc *UserCreate) AddFriendIDs(ids ...int) *UserCreate {
-	uc.mutation.AddFriendIDs(ids...)
-	return uc
-}
-
-// AddFriends adds the "friends" edges to the User entity.
-func (uc *UserCreate) AddFriends(u ...*User) *UserCreate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
-	}
-	return uc.AddFriendIDs(ids...)
-}
-
 // AddFollowerIDs adds the "followers" edge to the User entity by IDs.
 func (uc *UserCreate) AddFollowerIDs(ids ...int) *UserCreate {
 	uc.mutation.AddFollowerIDs(ids...)
@@ -147,6 +128,36 @@ func (uc *UserCreate) AddFollowing(u ...*User) *UserCreate {
 	return uc.AddFollowingIDs(ids...)
 }
 
+// AddDeviceIDs adds the "devices" edge to the Device entity by IDs.
+func (uc *UserCreate) AddDeviceIDs(ids ...int) *UserCreate {
+	uc.mutation.AddDeviceIDs(ids...)
+	return uc
+}
+
+// AddDevices adds the "devices" edges to the Device entity.
+func (uc *UserCreate) AddDevices(d ...*Device) *UserCreate {
+	ids := make([]int, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uc.AddDeviceIDs(ids...)
+}
+
+// AddEventReminderNotificationIDs adds the "event_reminder_notifications" edge to the EventReminderNotification entity by IDs.
+func (uc *UserCreate) AddEventReminderNotificationIDs(ids ...int) *UserCreate {
+	uc.mutation.AddEventReminderNotificationIDs(ids...)
+	return uc
+}
+
+// AddEventReminderNotifications adds the "event_reminder_notifications" edges to the EventReminderNotification entity.
+func (uc *UserCreate) AddEventReminderNotifications(e ...*EventReminderNotification) *UserCreate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uc.AddEventReminderNotificationIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
@@ -154,50 +165,8 @@ func (uc *UserCreate) Mutation() *UserMutation {
 
 // Save creates the User in the database.
 func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
-	var (
-		err  error
-		node *User
-	)
 	uc.defaults()
-	if len(uc.hooks) == 0 {
-		if err = uc.check(); err != nil {
-			return nil, err
-		}
-		node, err = uc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*UserMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = uc.check(); err != nil {
-				return nil, err
-			}
-			uc.mutation = mutation
-			if node, err = uc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(uc.hooks) - 1; i >= 0; i-- {
-			if uc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = uc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, uc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*User)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from UserMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*User, UserMutation](ctx, uc.sqlSave, uc.mutation, uc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -236,6 +205,14 @@ func (uc *UserCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
+	if _, ok := uc.mutation.FUID(); !ok {
+		return &ValidationError{Name: "FUID", err: errors.New(`ent: missing required field "User.FUID"`)}
+	}
+	if v, ok := uc.mutation.FUID(); ok {
+		if err := user.FUIDValidator(v); err != nil {
+			return &ValidationError{Name: "FUID", err: fmt.Errorf(`ent: validator failed for field "User.FUID": %w`, err)}
+		}
+	}
 	if _, ok := uc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "User.name"`)}
 	}
@@ -268,17 +245,6 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "profile_pic", err: fmt.Errorf(`ent: validator failed for field "User.profile_pic": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.Birthday(); !ok {
-		return &ValidationError{Name: "birthday", err: errors.New(`ent: missing required field "User.birthday"`)}
-	}
-	if _, ok := uc.mutation.Password(); !ok {
-		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "User.password"`)}
-	}
-	if v, ok := uc.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
-		}
-	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
 	}
@@ -289,6 +255,9 @@ func (uc *UserCreate) check() error {
 }
 
 func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
+	if err := uc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := uc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, uc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -298,83 +267,43 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	uc.mutation.id = &_node.ID
+	uc.mutation.done = true
 	return _node, nil
 }
 
 func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	var (
 		_node = &User{config: uc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: user.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: user.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = uc.conflict
+	if value, ok := uc.mutation.FUID(); ok {
+		_spec.SetField(user.FieldFUID, field.TypeString, value)
+		_node.FUID = value
+	}
 	if value, ok := uc.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldName,
-		})
+		_spec.SetField(user.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := uc.mutation.Username(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUsername,
-		})
+		_spec.SetField(user.FieldUsername, field.TypeString, value)
 		_node.Username = value
 	}
 	if value, ok := uc.mutation.Email(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldEmail,
-		})
+		_spec.SetField(user.FieldEmail, field.TypeString, value)
 		_node.Email = value
 	}
 	if value, ok := uc.mutation.ProfilePic(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldProfilePic,
-		})
+		_spec.SetField(user.FieldProfilePic, field.TypeString, value)
 		_node.ProfilePic = value
 	}
-	if value, ok := uc.mutation.Birthday(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: user.FieldBirthday,
-		})
-		_node.Birthday = value
-	}
-	if value, ok := uc.mutation.Password(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldPassword,
-		})
-		_node.Password = value
-	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: user.FieldCreatedAt,
-		})
+		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if value, ok := uc.mutation.UpdatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: user.FieldUpdatedAt,
-		})
+		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
 	if nodes := uc.mutation.EventsIDs(); len(nodes) > 0 {
@@ -385,39 +314,13 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: user.EventsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		createE := &EventUserCreate{config: uc.config, mutation: newEventUserMutation(uc.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := uc.mutation.FriendsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.FriendsTable,
-			Columns: user.FriendsPrimaryKey,
-			Bidi:    true,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &FriendshipCreate{config: uc.config, mutation: newFriendshipMutation(uc.config, OpCreate)}
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
@@ -431,10 +334,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: user.FollowersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -454,10 +354,39 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: user.FollowingPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.DevicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DevicesTable,
+			Columns: []string{user.DevicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.EventReminderNotificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EventReminderNotificationsTable,
+			Columns: []string{user.EventReminderNotificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventremindernotification.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -472,7 +401,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.User.Create().
-//		SetName(v).
+//		SetFUID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -481,7 +410,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.UserUpsert) {
-//			SetName(v+v).
+//			SetFUID(v+v).
 //		}).
 //		Exec(ctx)
 //
@@ -518,6 +447,18 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetFUID sets the "FUID" field.
+func (u *UserUpsert) SetFUID(v string) *UserUpsert {
+	u.Set(user.FieldFUID, v)
+	return u
+}
+
+// UpdateFUID sets the "FUID" field to the value that was provided on create.
+func (u *UserUpsert) UpdateFUID() *UserUpsert {
+	u.SetExcluded(user.FieldFUID)
+	return u
+}
 
 // SetName sets the "name" field.
 func (u *UserUpsert) SetName(v string) *UserUpsert {
@@ -564,54 +505,6 @@ func (u *UserUpsert) SetProfilePic(v string) *UserUpsert {
 // UpdateProfilePic sets the "profile_pic" field to the value that was provided on create.
 func (u *UserUpsert) UpdateProfilePic() *UserUpsert {
 	u.SetExcluded(user.FieldProfilePic)
-	return u
-}
-
-// SetBirthday sets the "birthday" field.
-func (u *UserUpsert) SetBirthday(v time.Time) *UserUpsert {
-	u.Set(user.FieldBirthday, v)
-	return u
-}
-
-// UpdateBirthday sets the "birthday" field to the value that was provided on create.
-func (u *UserUpsert) UpdateBirthday() *UserUpsert {
-	u.SetExcluded(user.FieldBirthday)
-	return u
-}
-
-// SetPassword sets the "password" field.
-func (u *UserUpsert) SetPassword(v string) *UserUpsert {
-	u.Set(user.FieldPassword, v)
-	return u
-}
-
-// UpdatePassword sets the "password" field to the value that was provided on create.
-func (u *UserUpsert) UpdatePassword() *UserUpsert {
-	u.SetExcluded(user.FieldPassword)
-	return u
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *UserUpsert) SetCreatedAt(v time.Time) *UserUpsert {
-	u.Set(user.FieldCreatedAt, v)
-	return u
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *UserUpsert) UpdateCreatedAt() *UserUpsert {
-	u.SetExcluded(user.FieldCreatedAt)
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *UserUpsert) SetUpdatedAt(v time.Time) *UserUpsert {
-	u.Set(user.FieldUpdatedAt, v)
-	return u
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *UserUpsert) UpdateUpdatedAt() *UserUpsert {
-	u.SetExcluded(user.FieldUpdatedAt)
 	return u
 }
 
@@ -663,6 +556,20 @@ func (u *UserUpsertOne) Update(set func(*UserUpsert)) *UserUpsertOne {
 		set(&UserUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetFUID sets the "FUID" field.
+func (u *UserUpsertOne) SetFUID(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetFUID(v)
+	})
+}
+
+// UpdateFUID sets the "FUID" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateFUID() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateFUID()
+	})
 }
 
 // SetName sets the "name" field.
@@ -718,62 +625,6 @@ func (u *UserUpsertOne) SetProfilePic(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateProfilePic() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateProfilePic()
-	})
-}
-
-// SetBirthday sets the "birthday" field.
-func (u *UserUpsertOne) SetBirthday(v time.Time) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetBirthday(v)
-	})
-}
-
-// UpdateBirthday sets the "birthday" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateBirthday() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateBirthday()
-	})
-}
-
-// SetPassword sets the "password" field.
-func (u *UserUpsertOne) SetPassword(v string) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetPassword(v)
-	})
-}
-
-// UpdatePassword sets the "password" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdatePassword() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdatePassword()
-	})
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *UserUpsertOne) SetCreatedAt(v time.Time) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateCreatedAt() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *UserUpsertOne) SetUpdatedAt(v time.Time) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateUpdatedAt() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateUpdatedAt()
 	})
 }
 
@@ -835,8 +686,8 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ucb.builders[i+1].mutation)
 				} else {
@@ -908,7 +759,7 @@ func (ucb *UserCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.UserUpsert) {
-//			SetName(v+v).
+//			SetFUID(v+v).
 //		}).
 //		Exec(ctx)
 //
@@ -991,6 +842,20 @@ func (u *UserUpsertBulk) Update(set func(*UserUpsert)) *UserUpsertBulk {
 	return u
 }
 
+// SetFUID sets the "FUID" field.
+func (u *UserUpsertBulk) SetFUID(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetFUID(v)
+	})
+}
+
+// UpdateFUID sets the "FUID" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateFUID() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateFUID()
+	})
+}
+
 // SetName sets the "name" field.
 func (u *UserUpsertBulk) SetName(v string) *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
@@ -1044,62 +909,6 @@ func (u *UserUpsertBulk) SetProfilePic(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateProfilePic() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateProfilePic()
-	})
-}
-
-// SetBirthday sets the "birthday" field.
-func (u *UserUpsertBulk) SetBirthday(v time.Time) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetBirthday(v)
-	})
-}
-
-// UpdateBirthday sets the "birthday" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateBirthday() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateBirthday()
-	})
-}
-
-// SetPassword sets the "password" field.
-func (u *UserUpsertBulk) SetPassword(v string) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetPassword(v)
-	})
-}
-
-// UpdatePassword sets the "password" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdatePassword() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdatePassword()
-	})
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *UserUpsertBulk) SetCreatedAt(v time.Time) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateCreatedAt() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *UserUpsertBulk) SetUpdatedAt(v time.Time) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateUpdatedAt() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateUpdatedAt()
 	})
 }
 

@@ -6,17 +6,20 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Device is the predicate function for device builders.
+type Device func(*sql.Selector)
+
 // Event is the predicate function for event builders.
 type Event func(*sql.Selector)
+
+// EventReminderNotification is the predicate function for eventremindernotification builders.
+type EventReminderNotification func(*sql.Selector)
 
 // EventUser is the predicate function for eventuser builders.
 type EventUser func(*sql.Selector)
 
 // Follow is the predicate function for follow builders.
 type Follow func(*sql.Selector)
-
-// Friendship is the predicate function for friendship builders.
-type Friendship func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

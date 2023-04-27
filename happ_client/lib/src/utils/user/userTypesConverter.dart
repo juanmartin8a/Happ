@@ -21,4 +21,11 @@ class UserTypesConverter {
 
     return newUser;
   }
+
+  SearchUsers$Query$User convertToSearchUser(user) {
+    var userToJson = user.toJson();
+    var newUser = SearchUsers$Query$User.fromJson(userToJson);
+
+    return newUser;
+  }
 }

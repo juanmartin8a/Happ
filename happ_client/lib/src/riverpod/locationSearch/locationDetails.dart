@@ -14,13 +14,22 @@ class LocationDetailsController extends StateNotifier<LocationDetailsState> {
     String name
   ) async {
 
+    // Uri uri = Uri.https(
+    //   "maps.googleapis.com",
+    //   "maps/api/place/details/json",
+    //   {
+    //     "place_id": id,
+    //     "key": placesAPIKey,
+    //     "fields": ["geometry"]
+    //   }
+    // );
+
     Uri uri = Uri.https(
       "maps.googleapis.com",
-      "maps/api/place/details/json",
+      "maps/api/geocode/json",
       {
         "place_id": id,
         "key": placesAPIKey,
-        "fields": ["geometry"]
       }
     );
 
@@ -66,4 +75,7 @@ class LocationDetailsController extends StateNotifier<LocationDetailsState> {
 }
 
 final locationDetailsProvider =
+  StateNotifierProvider<LocationDetailsController, LocationDetailsState>((ref) => LocationDetailsController());
+
+final updateLocationDetailsProvider =
   StateNotifierProvider<LocationDetailsController, LocationDetailsState>((ref) => LocationDetailsController());

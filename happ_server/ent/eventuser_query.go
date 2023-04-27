@@ -18,11 +18,9 @@ import (
 // EventUserQuery is the builder for querying EventUser entities.
 type EventUserQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []eventuser.OrderOption
+	inters     []Interceptor
 	predicates []predicate.EventUser
 	withEvent  *EventQuery
 	withUser   *UserQuery
@@ -39,34 +37,34 @@ func (euq *EventUserQuery) Where(ps ...predicate.EventUser) *EventUserQuery {
 	return euq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (euq *EventUserQuery) Limit(limit int) *EventUserQuery {
-	euq.limit = &limit
+	euq.ctx.Limit = &limit
 	return euq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (euq *EventUserQuery) Offset(offset int) *EventUserQuery {
-	euq.offset = &offset
+	euq.ctx.Offset = &offset
 	return euq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (euq *EventUserQuery) Unique(unique bool) *EventUserQuery {
-	euq.unique = &unique
+	euq.ctx.Unique = &unique
 	return euq
 }
 
-// Order adds an order step to the query.
-func (euq *EventUserQuery) Order(o ...OrderFunc) *EventUserQuery {
+// Order specifies how the records should be ordered.
+func (euq *EventUserQuery) Order(o ...eventuser.OrderOption) *EventUserQuery {
 	euq.order = append(euq.order, o...)
 	return euq
 }
 
 // QueryEvent chains the current query on the "event" edge.
 func (euq *EventUserQuery) QueryEvent() *EventQuery {
-	query := &EventQuery{config: euq.config}
+	query := (&EventClient{config: euq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := euq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -88,7 +86,7 @@ func (euq *EventUserQuery) QueryEvent() *EventQuery {
 
 // QueryUser chains the current query on the "user" edge.
 func (euq *EventUserQuery) QueryUser() *UserQuery {
-	query := &UserQuery{config: euq.config}
+	query := (&UserClient{config: euq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := euq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -111,7 +109,7 @@ func (euq *EventUserQuery) QueryUser() *UserQuery {
 // First returns the first EventUser entity from the query.
 // Returns a *NotFoundError when no EventUser was found.
 func (euq *EventUserQuery) First(ctx context.Context) (*EventUser, error) {
-	nodes, err := euq.Limit(1).All(ctx)
+	nodes, err := euq.Limit(1).All(setContextOp(ctx, euq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +132,7 @@ func (euq *EventUserQuery) FirstX(ctx context.Context) *EventUser {
 // Returns a *NotSingularError when more than one EventUser entity is found.
 // Returns a *NotFoundError when no EventUser entities are found.
 func (euq *EventUserQuery) Only(ctx context.Context) (*EventUser, error) {
-	nodes, err := euq.Limit(2).All(ctx)
+	nodes, err := euq.Limit(2).All(setContextOp(ctx, euq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -159,10 +157,12 @@ func (euq *EventUserQuery) OnlyX(ctx context.Context) *EventUser {
 
 // All executes the query and returns a list of EventUsers.
 func (euq *EventUserQuery) All(ctx context.Context) ([]*EventUser, error) {
+	ctx = setContextOp(ctx, euq.ctx, "All")
 	if err := euq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return euq.sqlAll(ctx)
+	qr := querierAll[[]*EventUser, *EventUserQuery]()
+	return withInterceptors[[]*EventUser](ctx, euq, qr, euq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -176,10 +176,11 @@ func (euq *EventUserQuery) AllX(ctx context.Context) []*EventUser {
 
 // Count returns the count of the given query.
 func (euq *EventUserQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, euq.ctx, "Count")
 	if err := euq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return euq.sqlCount(ctx)
+	return withInterceptors[int](ctx, euq, querierCount[*EventUserQuery](), euq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -193,10 +194,15 @@ func (euq *EventUserQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (euq *EventUserQuery) Exist(ctx context.Context) (bool, error) {
-	if err := euq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, euq.ctx, "Exist")
+	switch _, err := euq.First(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return euq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -216,23 +222,22 @@ func (euq *EventUserQuery) Clone() *EventUserQuery {
 	}
 	return &EventUserQuery{
 		config:     euq.config,
-		limit:      euq.limit,
-		offset:     euq.offset,
-		order:      append([]OrderFunc{}, euq.order...),
+		ctx:        euq.ctx.Clone(),
+		order:      append([]eventuser.OrderOption{}, euq.order...),
+		inters:     append([]Interceptor{}, euq.inters...),
 		predicates: append([]predicate.EventUser{}, euq.predicates...),
 		withEvent:  euq.withEvent.Clone(),
 		withUser:   euq.withUser.Clone(),
 		// clone intermediate query.
-		sql:    euq.sql.Clone(),
-		path:   euq.path,
-		unique: euq.unique,
+		sql:  euq.sql.Clone(),
+		path: euq.path,
 	}
 }
 
 // WithEvent tells the query-builder to eager-load the nodes that are connected to
 // the "event" edge. The optional arguments are used to configure the query builder of the edge.
 func (euq *EventUserQuery) WithEvent(opts ...func(*EventQuery)) *EventUserQuery {
-	query := &EventQuery{config: euq.config}
+	query := (&EventClient{config: euq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -243,7 +248,7 @@ func (euq *EventUserQuery) WithEvent(opts ...func(*EventQuery)) *EventUserQuery 
 // WithUser tells the query-builder to eager-load the nodes that are connected to
 // the "user" edge. The optional arguments are used to configure the query builder of the edge.
 func (euq *EventUserQuery) WithUser(opts ...func(*UserQuery)) *EventUserQuery {
-	query := &UserQuery{config: euq.config}
+	query := (&UserClient{config: euq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -267,16 +272,11 @@ func (euq *EventUserQuery) WithUser(opts ...func(*UserQuery)) *EventUserQuery {
 //		Scan(ctx, &v)
 //
 func (euq *EventUserQuery) GroupBy(field string, fields ...string) *EventUserGroupBy {
-	grbuild := &EventUserGroupBy{config: euq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := euq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return euq.sqlQuery(ctx), nil
-	}
+	euq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &EventUserGroupBy{build: euq}
+	grbuild.flds = &euq.ctx.Fields
 	grbuild.label = eventuser.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -294,15 +294,30 @@ func (euq *EventUserQuery) GroupBy(field string, fields ...string) *EventUserGro
 //		Scan(ctx, &v)
 //
 func (euq *EventUserQuery) Select(fields ...string) *EventUserSelect {
-	euq.fields = append(euq.fields, fields...)
-	selbuild := &EventUserSelect{EventUserQuery: euq}
-	selbuild.label = eventuser.Label
-	selbuild.flds, selbuild.scan = &euq.fields, selbuild.Scan
-	return selbuild
+	euq.ctx.Fields = append(euq.ctx.Fields, fields...)
+	sbuild := &EventUserSelect{EventUserQuery: euq}
+	sbuild.label = eventuser.Label
+	sbuild.flds, sbuild.scan = &euq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a EventUserSelect configured with the given aggregations.
+func (euq *EventUserQuery) Aggregate(fns ...AggregateFunc) *EventUserSelect {
+	return euq.Select().Aggregate(fns...)
 }
 
 func (euq *EventUserQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range euq.fields {
+	for _, inter := range euq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, euq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range euq.ctx.Fields {
 		if !eventuser.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -326,10 +341,10 @@ func (euq *EventUserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*E
 			euq.withUser != nil,
 		}
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*EventUser).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &EventUser{config: euq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -377,6 +392,9 @@ func (euq *EventUserQuery) loadEvent(ctx context.Context, query *EventQuery, nod
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
+	if len(ids) == 0 {
+		return nil
+	}
 	query.Where(event.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -402,6 +420,9 @@ func (euq *EventUserQuery) loadUser(ctx context.Context, query *UserQuery, nodes
 			ids = append(ids, fk)
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
 	}
 	query.Where(user.IDIn(ids...))
 	neighbors, err := query.All(ctx)
@@ -430,30 +451,24 @@ func (euq *EventUserQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, euq.driver, _spec)
 }
 
-func (euq *EventUserQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := euq.sqlCount(ctx)
-	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	}
-	return n > 0, nil
-}
-
 func (euq *EventUserQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   eventuser.Table,
-			Columns: eventuser.Columns,
-		},
-		From:   euq.sql,
-		Unique: true,
-	}
-	if unique := euq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(eventuser.Table, eventuser.Columns, nil)
+	_spec.From = euq.sql
+	if unique := euq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if euq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := euq.fields; len(fields) > 0 {
+	if fields := euq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		for i := range fields {
 			_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
+		}
+		if euq.withEvent != nil {
+			_spec.Node.AddColumnOnce(eventuser.FieldEventID)
+		}
+		if euq.withUser != nil {
+			_spec.Node.AddColumnOnce(eventuser.FieldUserID)
 		}
 	}
 	if ps := euq.predicates; len(ps) > 0 {
@@ -463,10 +478,10 @@ func (euq *EventUserQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := euq.limit; limit != nil {
+	if limit := euq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := euq.offset; offset != nil {
+	if offset := euq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := euq.order; len(ps) > 0 {
@@ -482,7 +497,7 @@ func (euq *EventUserQuery) querySpec() *sqlgraph.QuerySpec {
 func (euq *EventUserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(euq.driver.Dialect())
 	t1 := builder.Table(eventuser.Table)
-	columns := euq.fields
+	columns := euq.ctx.Fields
 	if len(columns) == 0 {
 		columns = eventuser.Columns
 	}
@@ -491,7 +506,7 @@ func (euq *EventUserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = euq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if euq.unique != nil && *euq.unique {
+	if euq.ctx.Unique != nil && *euq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range euq.predicates {
@@ -500,12 +515,12 @@ func (euq *EventUserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range euq.order {
 		p(selector)
 	}
-	if offset := euq.offset; offset != nil {
+	if offset := euq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := euq.limit; limit != nil {
+	if limit := euq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -513,13 +528,8 @@ func (euq *EventUserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // EventUserGroupBy is the group-by builder for EventUser entities.
 type EventUserGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *EventUserQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -528,74 +538,77 @@ func (eugb *EventUserGroupBy) Aggregate(fns ...AggregateFunc) *EventUserGroupBy 
 	return eugb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
-func (eugb *EventUserGroupBy) Scan(ctx context.Context, v interface{}) error {
-	query, err := eugb.path(ctx)
-	if err != nil {
+// Scan applies the selector query and scans the result into the given value.
+func (eugb *EventUserGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, eugb.build.ctx, "GroupBy")
+	if err := eugb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	eugb.sql = query
-	return eugb.sqlScan(ctx, v)
+	return scanWithInterceptors[*EventUserQuery, *EventUserGroupBy](ctx, eugb.build, eugb, eugb.build.inters, v)
 }
 
-func (eugb *EventUserGroupBy) sqlScan(ctx context.Context, v interface{}) error {
-	for _, f := range eugb.fields {
-		if !eventuser.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (eugb *EventUserGroupBy) sqlScan(ctx context.Context, root *EventUserQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(eugb.fns))
+	for _, fn := range eugb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := eugb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*eugb.flds)+len(eugb.fns))
+		for _, f := range *eugb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*eugb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := eugb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := eugb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (eugb *EventUserGroupBy) sqlQuery() *sql.Selector {
-	selector := eugb.sql.Select()
-	aggregation := make([]string, 0, len(eugb.fns))
-	for _, fn := range eugb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(eugb.fields)+len(eugb.fns))
-		for _, f := range eugb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(eugb.fields...)...)
-}
-
 // EventUserSelect is the builder for selecting fields of EventUser entities.
 type EventUserSelect struct {
 	*EventUserQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (eus *EventUserSelect) Aggregate(fns ...AggregateFunc) *EventUserSelect {
+	eus.fns = append(eus.fns, fns...)
+	return eus
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (eus *EventUserSelect) Scan(ctx context.Context, v interface{}) error {
+func (eus *EventUserSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, eus.ctx, "Select")
 	if err := eus.prepareQuery(ctx); err != nil {
 		return err
 	}
-	eus.sql = eus.EventUserQuery.sqlQuery(ctx)
-	return eus.sqlScan(ctx, v)
+	return scanWithInterceptors[*EventUserQuery, *EventUserSelect](ctx, eus.EventUserQuery, eus, eus.inters, v)
 }
 
-func (eus *EventUserSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (eus *EventUserSelect) sqlScan(ctx context.Context, root *EventUserQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(eus.fns))
+	for _, fn := range eus.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*eus.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := eus.sql.Query()
+	query, args := selector.Query()
 	if err := eus.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

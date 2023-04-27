@@ -17,11 +17,9 @@ import (
 // FollowQuery is the builder for querying Follow entities.
 type FollowQuery struct {
 	config
-	limit        *int
-	offset       *int
-	unique       *bool
-	order        []OrderFunc
-	fields       []string
+	ctx          *QueryContext
+	order        []follow.OrderOption
+	inters       []Interceptor
 	predicates   []predicate.Follow
 	withUser     *UserQuery
 	withFollower *UserQuery
@@ -38,34 +36,34 @@ func (fq *FollowQuery) Where(ps ...predicate.Follow) *FollowQuery {
 	return fq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (fq *FollowQuery) Limit(limit int) *FollowQuery {
-	fq.limit = &limit
+	fq.ctx.Limit = &limit
 	return fq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (fq *FollowQuery) Offset(offset int) *FollowQuery {
-	fq.offset = &offset
+	fq.ctx.Offset = &offset
 	return fq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (fq *FollowQuery) Unique(unique bool) *FollowQuery {
-	fq.unique = &unique
+	fq.ctx.Unique = &unique
 	return fq
 }
 
-// Order adds an order step to the query.
-func (fq *FollowQuery) Order(o ...OrderFunc) *FollowQuery {
+// Order specifies how the records should be ordered.
+func (fq *FollowQuery) Order(o ...follow.OrderOption) *FollowQuery {
 	fq.order = append(fq.order, o...)
 	return fq
 }
 
 // QueryUser chains the current query on the "user" edge.
 func (fq *FollowQuery) QueryUser() *UserQuery {
-	query := &UserQuery{config: fq.config}
+	query := (&UserClient{config: fq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := fq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -87,7 +85,7 @@ func (fq *FollowQuery) QueryUser() *UserQuery {
 
 // QueryFollower chains the current query on the "follower" edge.
 func (fq *FollowQuery) QueryFollower() *UserQuery {
-	query := &UserQuery{config: fq.config}
+	query := (&UserClient{config: fq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := fq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -110,7 +108,7 @@ func (fq *FollowQuery) QueryFollower() *UserQuery {
 // First returns the first Follow entity from the query.
 // Returns a *NotFoundError when no Follow was found.
 func (fq *FollowQuery) First(ctx context.Context) (*Follow, error) {
-	nodes, err := fq.Limit(1).All(ctx)
+	nodes, err := fq.Limit(1).All(setContextOp(ctx, fq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +131,7 @@ func (fq *FollowQuery) FirstX(ctx context.Context) *Follow {
 // Returns a *NotSingularError when more than one Follow entity is found.
 // Returns a *NotFoundError when no Follow entities are found.
 func (fq *FollowQuery) Only(ctx context.Context) (*Follow, error) {
-	nodes, err := fq.Limit(2).All(ctx)
+	nodes, err := fq.Limit(2).All(setContextOp(ctx, fq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -158,10 +156,12 @@ func (fq *FollowQuery) OnlyX(ctx context.Context) *Follow {
 
 // All executes the query and returns a list of Follows.
 func (fq *FollowQuery) All(ctx context.Context) ([]*Follow, error) {
+	ctx = setContextOp(ctx, fq.ctx, "All")
 	if err := fq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return fq.sqlAll(ctx)
+	qr := querierAll[[]*Follow, *FollowQuery]()
+	return withInterceptors[[]*Follow](ctx, fq, qr, fq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -175,10 +175,11 @@ func (fq *FollowQuery) AllX(ctx context.Context) []*Follow {
 
 // Count returns the count of the given query.
 func (fq *FollowQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, fq.ctx, "Count")
 	if err := fq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return fq.sqlCount(ctx)
+	return withInterceptors[int](ctx, fq, querierCount[*FollowQuery](), fq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -192,10 +193,15 @@ func (fq *FollowQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (fq *FollowQuery) Exist(ctx context.Context) (bool, error) {
-	if err := fq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, fq.ctx, "Exist")
+	switch _, err := fq.First(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return fq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -215,23 +221,22 @@ func (fq *FollowQuery) Clone() *FollowQuery {
 	}
 	return &FollowQuery{
 		config:       fq.config,
-		limit:        fq.limit,
-		offset:       fq.offset,
-		order:        append([]OrderFunc{}, fq.order...),
+		ctx:          fq.ctx.Clone(),
+		order:        append([]follow.OrderOption{}, fq.order...),
+		inters:       append([]Interceptor{}, fq.inters...),
 		predicates:   append([]predicate.Follow{}, fq.predicates...),
 		withUser:     fq.withUser.Clone(),
 		withFollower: fq.withFollower.Clone(),
 		// clone intermediate query.
-		sql:    fq.sql.Clone(),
-		path:   fq.path,
-		unique: fq.unique,
+		sql:  fq.sql.Clone(),
+		path: fq.path,
 	}
 }
 
 // WithUser tells the query-builder to eager-load the nodes that are connected to
 // the "user" edge. The optional arguments are used to configure the query builder of the edge.
 func (fq *FollowQuery) WithUser(opts ...func(*UserQuery)) *FollowQuery {
-	query := &UserQuery{config: fq.config}
+	query := (&UserClient{config: fq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -242,7 +247,7 @@ func (fq *FollowQuery) WithUser(opts ...func(*UserQuery)) *FollowQuery {
 // WithFollower tells the query-builder to eager-load the nodes that are connected to
 // the "follower" edge. The optional arguments are used to configure the query builder of the edge.
 func (fq *FollowQuery) WithFollower(opts ...func(*UserQuery)) *FollowQuery {
-	query := &UserQuery{config: fq.config}
+	query := (&UserClient{config: fq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -266,16 +271,11 @@ func (fq *FollowQuery) WithFollower(opts ...func(*UserQuery)) *FollowQuery {
 //		Scan(ctx, &v)
 //
 func (fq *FollowQuery) GroupBy(field string, fields ...string) *FollowGroupBy {
-	grbuild := &FollowGroupBy{config: fq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := fq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return fq.sqlQuery(ctx), nil
-	}
+	fq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &FollowGroupBy{build: fq}
+	grbuild.flds = &fq.ctx.Fields
 	grbuild.label = follow.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -293,15 +293,30 @@ func (fq *FollowQuery) GroupBy(field string, fields ...string) *FollowGroupBy {
 //		Scan(ctx, &v)
 //
 func (fq *FollowQuery) Select(fields ...string) *FollowSelect {
-	fq.fields = append(fq.fields, fields...)
-	selbuild := &FollowSelect{FollowQuery: fq}
-	selbuild.label = follow.Label
-	selbuild.flds, selbuild.scan = &fq.fields, selbuild.Scan
-	return selbuild
+	fq.ctx.Fields = append(fq.ctx.Fields, fields...)
+	sbuild := &FollowSelect{FollowQuery: fq}
+	sbuild.label = follow.Label
+	sbuild.flds, sbuild.scan = &fq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a FollowSelect configured with the given aggregations.
+func (fq *FollowQuery) Aggregate(fns ...AggregateFunc) *FollowSelect {
+	return fq.Select().Aggregate(fns...)
 }
 
 func (fq *FollowQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range fq.fields {
+	for _, inter := range fq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, fq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range fq.ctx.Fields {
 		if !follow.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -325,10 +340,10 @@ func (fq *FollowQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Follo
 			fq.withFollower != nil,
 		}
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Follow).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &Follow{config: fq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -376,6 +391,9 @@ func (fq *FollowQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
+	if len(ids) == 0 {
+		return nil
+	}
 	query.Where(user.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -401,6 +419,9 @@ func (fq *FollowQuery) loadFollower(ctx context.Context, query *UserQuery, nodes
 			ids = append(ids, fk)
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
 	}
 	query.Where(user.IDIn(ids...))
 	neighbors, err := query.All(ctx)
@@ -429,30 +450,24 @@ func (fq *FollowQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, fq.driver, _spec)
 }
 
-func (fq *FollowQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := fq.sqlCount(ctx)
-	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	}
-	return n > 0, nil
-}
-
 func (fq *FollowQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   follow.Table,
-			Columns: follow.Columns,
-		},
-		From:   fq.sql,
-		Unique: true,
-	}
-	if unique := fq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(follow.Table, follow.Columns, nil)
+	_spec.From = fq.sql
+	if unique := fq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if fq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := fq.fields; len(fields) > 0 {
+	if fields := fq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		for i := range fields {
 			_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
+		}
+		if fq.withUser != nil {
+			_spec.Node.AddColumnOnce(follow.FieldUserID)
+		}
+		if fq.withFollower != nil {
+			_spec.Node.AddColumnOnce(follow.FieldFollowerID)
 		}
 	}
 	if ps := fq.predicates; len(ps) > 0 {
@@ -462,10 +477,10 @@ func (fq *FollowQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := fq.limit; limit != nil {
+	if limit := fq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := fq.offset; offset != nil {
+	if offset := fq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := fq.order; len(ps) > 0 {
@@ -481,7 +496,7 @@ func (fq *FollowQuery) querySpec() *sqlgraph.QuerySpec {
 func (fq *FollowQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(fq.driver.Dialect())
 	t1 := builder.Table(follow.Table)
-	columns := fq.fields
+	columns := fq.ctx.Fields
 	if len(columns) == 0 {
 		columns = follow.Columns
 	}
@@ -490,7 +505,7 @@ func (fq *FollowQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = fq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if fq.unique != nil && *fq.unique {
+	if fq.ctx.Unique != nil && *fq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range fq.predicates {
@@ -499,12 +514,12 @@ func (fq *FollowQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range fq.order {
 		p(selector)
 	}
-	if offset := fq.offset; offset != nil {
+	if offset := fq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := fq.limit; limit != nil {
+	if limit := fq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -512,13 +527,8 @@ func (fq *FollowQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // FollowGroupBy is the group-by builder for Follow entities.
 type FollowGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *FollowQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -527,74 +537,77 @@ func (fgb *FollowGroupBy) Aggregate(fns ...AggregateFunc) *FollowGroupBy {
 	return fgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
-func (fgb *FollowGroupBy) Scan(ctx context.Context, v interface{}) error {
-	query, err := fgb.path(ctx)
-	if err != nil {
+// Scan applies the selector query and scans the result into the given value.
+func (fgb *FollowGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, fgb.build.ctx, "GroupBy")
+	if err := fgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	fgb.sql = query
-	return fgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*FollowQuery, *FollowGroupBy](ctx, fgb.build, fgb, fgb.build.inters, v)
 }
 
-func (fgb *FollowGroupBy) sqlScan(ctx context.Context, v interface{}) error {
-	for _, f := range fgb.fields {
-		if !follow.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (fgb *FollowGroupBy) sqlScan(ctx context.Context, root *FollowQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(fgb.fns))
+	for _, fn := range fgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := fgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*fgb.flds)+len(fgb.fns))
+		for _, f := range *fgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*fgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := fgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := fgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (fgb *FollowGroupBy) sqlQuery() *sql.Selector {
-	selector := fgb.sql.Select()
-	aggregation := make([]string, 0, len(fgb.fns))
-	for _, fn := range fgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(fgb.fields)+len(fgb.fns))
-		for _, f := range fgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(fgb.fields...)...)
-}
-
 // FollowSelect is the builder for selecting fields of Follow entities.
 type FollowSelect struct {
 	*FollowQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (fs *FollowSelect) Aggregate(fns ...AggregateFunc) *FollowSelect {
+	fs.fns = append(fs.fns, fns...)
+	return fs
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (fs *FollowSelect) Scan(ctx context.Context, v interface{}) error {
+func (fs *FollowSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, fs.ctx, "Select")
 	if err := fs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	fs.sql = fs.FollowQuery.sqlQuery(ctx)
-	return fs.sqlScan(ctx, v)
+	return scanWithInterceptors[*FollowQuery, *FollowSelect](ctx, fs.FollowQuery, fs, fs.inters, v)
 }
 
-func (fs *FollowSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (fs *FollowSelect) sqlScan(ctx context.Context, root *FollowQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(fs.fns))
+	for _, fn := range fs.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*fs.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := fs.sql.Query()
+	query, args := selector.Query()
 	if err := fs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

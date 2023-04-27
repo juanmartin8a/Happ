@@ -22,3 +22,5 @@ class NewEventDoneState extends NewEventState {
   @override
   List<Object?> get props => [newEventRes];
 }
+
+class NewEventErrorState extends NewEventState {}

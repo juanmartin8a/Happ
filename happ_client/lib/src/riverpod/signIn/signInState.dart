@@ -13,7 +13,7 @@ class SignInInitState extends SignInState {}
 class SignInLoadingState extends SignInState {}
 
 class SignInDoneState extends SignInState {
-  final SignIn$Mutation$UserAuthResponse signInRes;
+  final SignIn$Mutation$SignInResponse signInRes;
 
   const SignInDoneState({
     required this.signInRes,

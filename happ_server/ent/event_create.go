@@ -7,7 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"happ/ent/event"
-	"happ/ent/schema"
+	"happ/ent/eventremindernotification"
+	"happ/ent/schema/schematype"
 	"happ/ent/user"
 	"time"
 
@@ -36,15 +37,61 @@ func (ec *EventCreate) SetDescription(s string) *EventCreate {
 	return ec
 }
 
-// SetConfirmedCount sets the "confirmedCount" field.
+// SetEventPlace sets the "event_place" field.
+func (ec *EventCreate) SetEventPlace(s string) *EventCreate {
+	ec.mutation.SetEventPlace(s)
+	return ec
+}
+
+// SetConfirmedCount sets the "confirmed_count" field.
 func (ec *EventCreate) SetConfirmedCount(i int) *EventCreate {
 	ec.mutation.SetConfirmedCount(i)
+	return ec
+}
+
+// SetNillableConfirmedCount sets the "confirmed_count" field if the given value is not nil.
+func (ec *EventCreate) SetNillableConfirmedCount(i *int) *EventCreate {
+	if i != nil {
+		ec.SetConfirmedCount(*i)
+	}
+	return ec
+}
+
+// SetConfirmedHosts sets the "confirmed_hosts" field.
+func (ec *EventCreate) SetConfirmedHosts(i int) *EventCreate {
+	ec.mutation.SetConfirmedHosts(i)
+	return ec
+}
+
+// SetNillableConfirmedHosts sets the "confirmed_hosts" field if the given value is not nil.
+func (ec *EventCreate) SetNillableConfirmedHosts(i *int) *EventCreate {
+	if i != nil {
+		ec.SetConfirmedHosts(*i)
+	}
 	return ec
 }
 
 // SetEventPics sets the "event_pics" field.
 func (ec *EventCreate) SetEventPics(s []string) *EventCreate {
 	ec.mutation.SetEventPics(s)
+	return ec
+}
+
+// SetLightEventPics sets the "light_event_pics" field.
+func (ec *EventCreate) SetLightEventPics(s []string) *EventCreate {
+	ec.mutation.SetLightEventPics(s)
+	return ec
+}
+
+// SetEventKey sets the "event_key" field.
+func (ec *EventCreate) SetEventKey(s string) *EventCreate {
+	ec.mutation.SetEventKey(s)
+	return ec
+}
+
+// SetEventNonce sets the "event_nonce" field.
+func (ec *EventCreate) SetEventNonce(s string) *EventCreate {
+	ec.mutation.SetEventNonce(s)
 	return ec
 }
 
@@ -55,7 +102,7 @@ func (ec *EventCreate) SetEventDate(t time.Time) *EventCreate {
 }
 
 // SetCoords sets the "coords" field.
-func (ec *EventCreate) SetCoords(s *schema.Point) *EventCreate {
+func (ec *EventCreate) SetCoords(s *schematype.Point) *EventCreate {
 	ec.mutation.SetCoords(s)
 	return ec
 }
@@ -103,6 +150,21 @@ func (ec *EventCreate) AddUsers(u ...*User) *EventCreate {
 	return ec.AddUserIDs(ids...)
 }
 
+// AddEventReminderNotificationIDs adds the "event_reminder_notifications" edge to the EventReminderNotification entity by IDs.
+func (ec *EventCreate) AddEventReminderNotificationIDs(ids ...int) *EventCreate {
+	ec.mutation.AddEventReminderNotificationIDs(ids...)
+	return ec
+}
+
+// AddEventReminderNotifications adds the "event_reminder_notifications" edges to the EventReminderNotification entity.
+func (ec *EventCreate) AddEventReminderNotifications(e ...*EventReminderNotification) *EventCreate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return ec.AddEventReminderNotificationIDs(ids...)
+}
+
 // Mutation returns the EventMutation object of the builder.
 func (ec *EventCreate) Mutation() *EventMutation {
 	return ec.mutation
@@ -110,50 +172,8 @@ func (ec *EventCreate) Mutation() *EventMutation {
 
 // Save creates the Event in the database.
 func (ec *EventCreate) Save(ctx context.Context) (*Event, error) {
-	var (
-		err  error
-		node *Event
-	)
 	ec.defaults()
-	if len(ec.hooks) == 0 {
-		if err = ec.check(); err != nil {
-			return nil, err
-		}
-		node, err = ec.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EventMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ec.check(); err != nil {
-				return nil, err
-			}
-			ec.mutation = mutation
-			if node, err = ec.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ec.hooks) - 1; i >= 0; i-- {
-			if ec.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ec.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ec.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Event)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from EventMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Event, EventMutation](ctx, ec.sqlSave, ec.mutation, ec.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -180,6 +200,14 @@ func (ec *EventCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ec *EventCreate) defaults() {
+	if _, ok := ec.mutation.ConfirmedCount(); !ok {
+		v := event.DefaultConfirmedCount
+		ec.mutation.SetConfirmedCount(v)
+	}
+	if _, ok := ec.mutation.ConfirmedHosts(); !ok {
+		v := event.DefaultConfirmedHosts
+		ec.mutation.SetConfirmedHosts(v)
+	}
 	if _, ok := ec.mutation.CreatedAt(); !ok {
 		v := event.DefaultCreatedAt()
 		ec.mutation.SetCreatedAt(v)
@@ -208,11 +236,41 @@ func (ec *EventCreate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Event.description": %w`, err)}
 		}
 	}
+	if _, ok := ec.mutation.EventPlace(); !ok {
+		return &ValidationError{Name: "event_place", err: errors.New(`ent: missing required field "Event.event_place"`)}
+	}
+	if v, ok := ec.mutation.EventPlace(); ok {
+		if err := event.EventPlaceValidator(v); err != nil {
+			return &ValidationError{Name: "event_place", err: fmt.Errorf(`ent: validator failed for field "Event.event_place": %w`, err)}
+		}
+	}
 	if _, ok := ec.mutation.ConfirmedCount(); !ok {
-		return &ValidationError{Name: "confirmedCount", err: errors.New(`ent: missing required field "Event.confirmedCount"`)}
+		return &ValidationError{Name: "confirmed_count", err: errors.New(`ent: missing required field "Event.confirmed_count"`)}
+	}
+	if _, ok := ec.mutation.ConfirmedHosts(); !ok {
+		return &ValidationError{Name: "confirmed_hosts", err: errors.New(`ent: missing required field "Event.confirmed_hosts"`)}
 	}
 	if _, ok := ec.mutation.EventPics(); !ok {
 		return &ValidationError{Name: "event_pics", err: errors.New(`ent: missing required field "Event.event_pics"`)}
+	}
+	if _, ok := ec.mutation.LightEventPics(); !ok {
+		return &ValidationError{Name: "light_event_pics", err: errors.New(`ent: missing required field "Event.light_event_pics"`)}
+	}
+	if _, ok := ec.mutation.EventKey(); !ok {
+		return &ValidationError{Name: "event_key", err: errors.New(`ent: missing required field "Event.event_key"`)}
+	}
+	if v, ok := ec.mutation.EventKey(); ok {
+		if err := event.EventKeyValidator(v); err != nil {
+			return &ValidationError{Name: "event_key", err: fmt.Errorf(`ent: validator failed for field "Event.event_key": %w`, err)}
+		}
+	}
+	if _, ok := ec.mutation.EventNonce(); !ok {
+		return &ValidationError{Name: "event_nonce", err: errors.New(`ent: missing required field "Event.event_nonce"`)}
+	}
+	if v, ok := ec.mutation.EventNonce(); ok {
+		if err := event.EventNonceValidator(v); err != nil {
+			return &ValidationError{Name: "event_nonce", err: fmt.Errorf(`ent: validator failed for field "Event.event_nonce": %w`, err)}
+		}
 	}
 	if _, ok := ec.mutation.EventDate(); !ok {
 		return &ValidationError{Name: "event_date", err: errors.New(`ent: missing required field "Event.event_date"`)}
@@ -230,6 +288,9 @@ func (ec *EventCreate) check() error {
 }
 
 func (ec *EventCreate) sqlSave(ctx context.Context) (*Event, error) {
+	if err := ec.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ec.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ec.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -239,83 +300,67 @@ func (ec *EventCreate) sqlSave(ctx context.Context) (*Event, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	ec.mutation.id = &_node.ID
+	ec.mutation.done = true
 	return _node, nil
 }
 
 func (ec *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Event{config: ec.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: event.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: event.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(event.Table, sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = ec.conflict
 	if value, ok := ec.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: event.FieldName,
-		})
+		_spec.SetField(event.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := ec.mutation.Description(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: event.FieldDescription,
-		})
+		_spec.SetField(event.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
+	if value, ok := ec.mutation.EventPlace(); ok {
+		_spec.SetField(event.FieldEventPlace, field.TypeString, value)
+		_node.EventPlace = value
+	}
 	if value, ok := ec.mutation.ConfirmedCount(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: event.FieldConfirmedCount,
-		})
+		_spec.SetField(event.FieldConfirmedCount, field.TypeInt, value)
 		_node.ConfirmedCount = value
 	}
+	if value, ok := ec.mutation.ConfirmedHosts(); ok {
+		_spec.SetField(event.FieldConfirmedHosts, field.TypeInt, value)
+		_node.ConfirmedHosts = value
+	}
 	if value, ok := ec.mutation.EventPics(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: event.FieldEventPics,
-		})
+		_spec.SetField(event.FieldEventPics, field.TypeJSON, value)
 		_node.EventPics = value
 	}
+	if value, ok := ec.mutation.LightEventPics(); ok {
+		_spec.SetField(event.FieldLightEventPics, field.TypeJSON, value)
+		_node.LightEventPics = value
+	}
+	if value, ok := ec.mutation.EventKey(); ok {
+		_spec.SetField(event.FieldEventKey, field.TypeString, value)
+		_node.EventKey = value
+	}
+	if value, ok := ec.mutation.EventNonce(); ok {
+		_spec.SetField(event.FieldEventNonce, field.TypeString, value)
+		_node.EventNonce = value
+	}
 	if value, ok := ec.mutation.EventDate(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: event.FieldEventDate,
-		})
+		_spec.SetField(event.FieldEventDate, field.TypeTime, value)
 		_node.EventDate = value
 	}
 	if value, ok := ec.mutation.Coords(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeOther,
-			Value:  value,
-			Column: event.FieldCoords,
-		})
+		_spec.SetField(event.FieldCoords, field.TypeOther, value)
 		_node.Coords = value
 	}
 	if value, ok := ec.mutation.CreatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: event.FieldCreatedAt,
-		})
+		_spec.SetField(event.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if value, ok := ec.mutation.UpdatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: event.FieldUpdatedAt,
-		})
+		_spec.SetField(event.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
 	if nodes := ec.mutation.UsersIDs(); len(nodes) > 0 {
@@ -326,10 +371,7 @@ func (ec *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 			Columns: event.UsersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -339,6 +381,22 @@ func (ec *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ec.mutation.EventReminderNotificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.EventReminderNotificationsTable,
+			Columns: []string{event.EventReminderNotificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventremindernotification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -419,21 +477,51 @@ func (u *EventUpsert) UpdateDescription() *EventUpsert {
 	return u
 }
 
-// SetConfirmedCount sets the "confirmedCount" field.
+// SetEventPlace sets the "event_place" field.
+func (u *EventUpsert) SetEventPlace(v string) *EventUpsert {
+	u.Set(event.FieldEventPlace, v)
+	return u
+}
+
+// UpdateEventPlace sets the "event_place" field to the value that was provided on create.
+func (u *EventUpsert) UpdateEventPlace() *EventUpsert {
+	u.SetExcluded(event.FieldEventPlace)
+	return u
+}
+
+// SetConfirmedCount sets the "confirmed_count" field.
 func (u *EventUpsert) SetConfirmedCount(v int) *EventUpsert {
 	u.Set(event.FieldConfirmedCount, v)
 	return u
 }
 
-// UpdateConfirmedCount sets the "confirmedCount" field to the value that was provided on create.
+// UpdateConfirmedCount sets the "confirmed_count" field to the value that was provided on create.
 func (u *EventUpsert) UpdateConfirmedCount() *EventUpsert {
 	u.SetExcluded(event.FieldConfirmedCount)
 	return u
 }
 
-// AddConfirmedCount adds v to the "confirmedCount" field.
+// AddConfirmedCount adds v to the "confirmed_count" field.
 func (u *EventUpsert) AddConfirmedCount(v int) *EventUpsert {
 	u.Add(event.FieldConfirmedCount, v)
+	return u
+}
+
+// SetConfirmedHosts sets the "confirmed_hosts" field.
+func (u *EventUpsert) SetConfirmedHosts(v int) *EventUpsert {
+	u.Set(event.FieldConfirmedHosts, v)
+	return u
+}
+
+// UpdateConfirmedHosts sets the "confirmed_hosts" field to the value that was provided on create.
+func (u *EventUpsert) UpdateConfirmedHosts() *EventUpsert {
+	u.SetExcluded(event.FieldConfirmedHosts)
+	return u
+}
+
+// AddConfirmedHosts adds v to the "confirmed_hosts" field.
+func (u *EventUpsert) AddConfirmedHosts(v int) *EventUpsert {
+	u.Add(event.FieldConfirmedHosts, v)
 	return u
 }
 
@@ -446,6 +534,42 @@ func (u *EventUpsert) SetEventPics(v []string) *EventUpsert {
 // UpdateEventPics sets the "event_pics" field to the value that was provided on create.
 func (u *EventUpsert) UpdateEventPics() *EventUpsert {
 	u.SetExcluded(event.FieldEventPics)
+	return u
+}
+
+// SetLightEventPics sets the "light_event_pics" field.
+func (u *EventUpsert) SetLightEventPics(v []string) *EventUpsert {
+	u.Set(event.FieldLightEventPics, v)
+	return u
+}
+
+// UpdateLightEventPics sets the "light_event_pics" field to the value that was provided on create.
+func (u *EventUpsert) UpdateLightEventPics() *EventUpsert {
+	u.SetExcluded(event.FieldLightEventPics)
+	return u
+}
+
+// SetEventKey sets the "event_key" field.
+func (u *EventUpsert) SetEventKey(v string) *EventUpsert {
+	u.Set(event.FieldEventKey, v)
+	return u
+}
+
+// UpdateEventKey sets the "event_key" field to the value that was provided on create.
+func (u *EventUpsert) UpdateEventKey() *EventUpsert {
+	u.SetExcluded(event.FieldEventKey)
+	return u
+}
+
+// SetEventNonce sets the "event_nonce" field.
+func (u *EventUpsert) SetEventNonce(v string) *EventUpsert {
+	u.Set(event.FieldEventNonce, v)
+	return u
+}
+
+// UpdateEventNonce sets the "event_nonce" field to the value that was provided on create.
+func (u *EventUpsert) UpdateEventNonce() *EventUpsert {
+	u.SetExcluded(event.FieldEventNonce)
 	return u
 }
 
@@ -462,7 +586,7 @@ func (u *EventUpsert) UpdateEventDate() *EventUpsert {
 }
 
 // SetCoords sets the "coords" field.
-func (u *EventUpsert) SetCoords(v *schema.Point) *EventUpsert {
+func (u *EventUpsert) SetCoords(v *schematype.Point) *EventUpsert {
 	u.Set(event.FieldCoords, v)
 	return u
 }
@@ -470,30 +594,6 @@ func (u *EventUpsert) SetCoords(v *schema.Point) *EventUpsert {
 // UpdateCoords sets the "coords" field to the value that was provided on create.
 func (u *EventUpsert) UpdateCoords() *EventUpsert {
 	u.SetExcluded(event.FieldCoords)
-	return u
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *EventUpsert) SetCreatedAt(v time.Time) *EventUpsert {
-	u.Set(event.FieldCreatedAt, v)
-	return u
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *EventUpsert) UpdateCreatedAt() *EventUpsert {
-	u.SetExcluded(event.FieldCreatedAt)
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *EventUpsert) SetUpdatedAt(v time.Time) *EventUpsert {
-	u.Set(event.FieldUpdatedAt, v)
-	return u
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *EventUpsert) UpdateUpdatedAt() *EventUpsert {
-	u.SetExcluded(event.FieldUpdatedAt)
 	return u
 }
 
@@ -575,24 +675,59 @@ func (u *EventUpsertOne) UpdateDescription() *EventUpsertOne {
 	})
 }
 
-// SetConfirmedCount sets the "confirmedCount" field.
+// SetEventPlace sets the "event_place" field.
+func (u *EventUpsertOne) SetEventPlace(v string) *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.SetEventPlace(v)
+	})
+}
+
+// UpdateEventPlace sets the "event_place" field to the value that was provided on create.
+func (u *EventUpsertOne) UpdateEventPlace() *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.UpdateEventPlace()
+	})
+}
+
+// SetConfirmedCount sets the "confirmed_count" field.
 func (u *EventUpsertOne) SetConfirmedCount(v int) *EventUpsertOne {
 	return u.Update(func(s *EventUpsert) {
 		s.SetConfirmedCount(v)
 	})
 }
 
-// AddConfirmedCount adds v to the "confirmedCount" field.
+// AddConfirmedCount adds v to the "confirmed_count" field.
 func (u *EventUpsertOne) AddConfirmedCount(v int) *EventUpsertOne {
 	return u.Update(func(s *EventUpsert) {
 		s.AddConfirmedCount(v)
 	})
 }
 
-// UpdateConfirmedCount sets the "confirmedCount" field to the value that was provided on create.
+// UpdateConfirmedCount sets the "confirmed_count" field to the value that was provided on create.
 func (u *EventUpsertOne) UpdateConfirmedCount() *EventUpsertOne {
 	return u.Update(func(s *EventUpsert) {
 		s.UpdateConfirmedCount()
+	})
+}
+
+// SetConfirmedHosts sets the "confirmed_hosts" field.
+func (u *EventUpsertOne) SetConfirmedHosts(v int) *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.SetConfirmedHosts(v)
+	})
+}
+
+// AddConfirmedHosts adds v to the "confirmed_hosts" field.
+func (u *EventUpsertOne) AddConfirmedHosts(v int) *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.AddConfirmedHosts(v)
+	})
+}
+
+// UpdateConfirmedHosts sets the "confirmed_hosts" field to the value that was provided on create.
+func (u *EventUpsertOne) UpdateConfirmedHosts() *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.UpdateConfirmedHosts()
 	})
 }
 
@@ -607,6 +742,48 @@ func (u *EventUpsertOne) SetEventPics(v []string) *EventUpsertOne {
 func (u *EventUpsertOne) UpdateEventPics() *EventUpsertOne {
 	return u.Update(func(s *EventUpsert) {
 		s.UpdateEventPics()
+	})
+}
+
+// SetLightEventPics sets the "light_event_pics" field.
+func (u *EventUpsertOne) SetLightEventPics(v []string) *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.SetLightEventPics(v)
+	})
+}
+
+// UpdateLightEventPics sets the "light_event_pics" field to the value that was provided on create.
+func (u *EventUpsertOne) UpdateLightEventPics() *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.UpdateLightEventPics()
+	})
+}
+
+// SetEventKey sets the "event_key" field.
+func (u *EventUpsertOne) SetEventKey(v string) *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.SetEventKey(v)
+	})
+}
+
+// UpdateEventKey sets the "event_key" field to the value that was provided on create.
+func (u *EventUpsertOne) UpdateEventKey() *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.UpdateEventKey()
+	})
+}
+
+// SetEventNonce sets the "event_nonce" field.
+func (u *EventUpsertOne) SetEventNonce(v string) *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.SetEventNonce(v)
+	})
+}
+
+// UpdateEventNonce sets the "event_nonce" field to the value that was provided on create.
+func (u *EventUpsertOne) UpdateEventNonce() *EventUpsertOne {
+	return u.Update(func(s *EventUpsert) {
+		s.UpdateEventNonce()
 	})
 }
 
@@ -625,7 +802,7 @@ func (u *EventUpsertOne) UpdateEventDate() *EventUpsertOne {
 }
 
 // SetCoords sets the "coords" field.
-func (u *EventUpsertOne) SetCoords(v *schema.Point) *EventUpsertOne {
+func (u *EventUpsertOne) SetCoords(v *schematype.Point) *EventUpsertOne {
 	return u.Update(func(s *EventUpsert) {
 		s.SetCoords(v)
 	})
@@ -635,34 +812,6 @@ func (u *EventUpsertOne) SetCoords(v *schema.Point) *EventUpsertOne {
 func (u *EventUpsertOne) UpdateCoords() *EventUpsertOne {
 	return u.Update(func(s *EventUpsert) {
 		s.UpdateCoords()
-	})
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *EventUpsertOne) SetCreatedAt(v time.Time) *EventUpsertOne {
-	return u.Update(func(s *EventUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *EventUpsertOne) UpdateCreatedAt() *EventUpsertOne {
-	return u.Update(func(s *EventUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *EventUpsertOne) SetUpdatedAt(v time.Time) *EventUpsertOne {
-	return u.Update(func(s *EventUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *EventUpsertOne) UpdateUpdatedAt() *EventUpsertOne {
-	return u.Update(func(s *EventUpsert) {
-		s.UpdateUpdatedAt()
 	})
 }
 
@@ -724,8 +873,8 @@ func (ecb *EventCreateBulk) Save(ctx context.Context) ([]*Event, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ecb.builders[i+1].mutation)
 				} else {
@@ -908,24 +1057,59 @@ func (u *EventUpsertBulk) UpdateDescription() *EventUpsertBulk {
 	})
 }
 
-// SetConfirmedCount sets the "confirmedCount" field.
+// SetEventPlace sets the "event_place" field.
+func (u *EventUpsertBulk) SetEventPlace(v string) *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.SetEventPlace(v)
+	})
+}
+
+// UpdateEventPlace sets the "event_place" field to the value that was provided on create.
+func (u *EventUpsertBulk) UpdateEventPlace() *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.UpdateEventPlace()
+	})
+}
+
+// SetConfirmedCount sets the "confirmed_count" field.
 func (u *EventUpsertBulk) SetConfirmedCount(v int) *EventUpsertBulk {
 	return u.Update(func(s *EventUpsert) {
 		s.SetConfirmedCount(v)
 	})
 }
 
-// AddConfirmedCount adds v to the "confirmedCount" field.
+// AddConfirmedCount adds v to the "confirmed_count" field.
 func (u *EventUpsertBulk) AddConfirmedCount(v int) *EventUpsertBulk {
 	return u.Update(func(s *EventUpsert) {
 		s.AddConfirmedCount(v)
 	})
 }
 
-// UpdateConfirmedCount sets the "confirmedCount" field to the value that was provided on create.
+// UpdateConfirmedCount sets the "confirmed_count" field to the value that was provided on create.
 func (u *EventUpsertBulk) UpdateConfirmedCount() *EventUpsertBulk {
 	return u.Update(func(s *EventUpsert) {
 		s.UpdateConfirmedCount()
+	})
+}
+
+// SetConfirmedHosts sets the "confirmed_hosts" field.
+func (u *EventUpsertBulk) SetConfirmedHosts(v int) *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.SetConfirmedHosts(v)
+	})
+}
+
+// AddConfirmedHosts adds v to the "confirmed_hosts" field.
+func (u *EventUpsertBulk) AddConfirmedHosts(v int) *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.AddConfirmedHosts(v)
+	})
+}
+
+// UpdateConfirmedHosts sets the "confirmed_hosts" field to the value that was provided on create.
+func (u *EventUpsertBulk) UpdateConfirmedHosts() *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.UpdateConfirmedHosts()
 	})
 }
 
@@ -940,6 +1124,48 @@ func (u *EventUpsertBulk) SetEventPics(v []string) *EventUpsertBulk {
 func (u *EventUpsertBulk) UpdateEventPics() *EventUpsertBulk {
 	return u.Update(func(s *EventUpsert) {
 		s.UpdateEventPics()
+	})
+}
+
+// SetLightEventPics sets the "light_event_pics" field.
+func (u *EventUpsertBulk) SetLightEventPics(v []string) *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.SetLightEventPics(v)
+	})
+}
+
+// UpdateLightEventPics sets the "light_event_pics" field to the value that was provided on create.
+func (u *EventUpsertBulk) UpdateLightEventPics() *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.UpdateLightEventPics()
+	})
+}
+
+// SetEventKey sets the "event_key" field.
+func (u *EventUpsertBulk) SetEventKey(v string) *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.SetEventKey(v)
+	})
+}
+
+// UpdateEventKey sets the "event_key" field to the value that was provided on create.
+func (u *EventUpsertBulk) UpdateEventKey() *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.UpdateEventKey()
+	})
+}
+
+// SetEventNonce sets the "event_nonce" field.
+func (u *EventUpsertBulk) SetEventNonce(v string) *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.SetEventNonce(v)
+	})
+}
+
+// UpdateEventNonce sets the "event_nonce" field to the value that was provided on create.
+func (u *EventUpsertBulk) UpdateEventNonce() *EventUpsertBulk {
+	return u.Update(func(s *EventUpsert) {
+		s.UpdateEventNonce()
 	})
 }
 
@@ -958,7 +1184,7 @@ func (u *EventUpsertBulk) UpdateEventDate() *EventUpsertBulk {
 }
 
 // SetCoords sets the "coords" field.
-func (u *EventUpsertBulk) SetCoords(v *schema.Point) *EventUpsertBulk {
+func (u *EventUpsertBulk) SetCoords(v *schematype.Point) *EventUpsertBulk {
 	return u.Update(func(s *EventUpsert) {
 		s.SetCoords(v)
 	})
@@ -968,34 +1194,6 @@ func (u *EventUpsertBulk) SetCoords(v *schema.Point) *EventUpsertBulk {
 func (u *EventUpsertBulk) UpdateCoords() *EventUpsertBulk {
 	return u.Update(func(s *EventUpsert) {
 		s.UpdateCoords()
-	})
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *EventUpsertBulk) SetCreatedAt(v time.Time) *EventUpsertBulk {
-	return u.Update(func(s *EventUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *EventUpsertBulk) UpdateCreatedAt() *EventUpsertBulk {
-	return u.Update(func(s *EventUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *EventUpsertBulk) SetUpdatedAt(v time.Time) *EventUpsertBulk {
-	return u.Update(func(s *EventUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *EventUpsertBulk) UpdateUpdatedAt() *EventUpsertBulk {
-	return u.Update(func(s *EventUpsert) {
-		s.UpdateUpdatedAt()
 	})
 }
 

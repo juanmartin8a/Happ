@@ -10,15 +10,19 @@ import (
 
 	"happ/ent/migrate"
 
+	"happ/ent/device"
 	"happ/ent/event"
+	"happ/ent/eventremindernotification"
 	"happ/ent/eventuser"
 	"happ/ent/follow"
-	"happ/ent/friendship"
 	"happ/ent/user"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+
+	stdsql "database/sql"
 )
 
 // Client is the client that holds all ent builders.
@@ -26,14 +30,16 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Device is the client for interacting with the Device builders.
+	Device *DeviceClient
 	// Event is the client for interacting with the Event builders.
 	Event *EventClient
+	// EventReminderNotification is the client for interacting with the EventReminderNotification builders.
+	EventReminderNotification *EventReminderNotificationClient
 	// EventUser is the client for interacting with the EventUser builders.
 	EventUser *EventUserClient
 	// Follow is the client for interacting with the Follow builders.
 	Follow *FollowClient
-	// Friendship is the client for interacting with the Friendship builders.
-	Friendship *FriendshipClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// additional fields for node api
@@ -42,7 +48,7 @@ type Client struct {
 
 // NewClient creates a new client configured with the given options.
 func NewClient(opts ...Option) *Client {
-	cfg := config{log: log.Println, hooks: &hooks{}}
+	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
 	cfg.options(opts...)
 	client := &Client{config: cfg}
 	client.init()
@@ -51,11 +57,61 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Device = NewDeviceClient(c.config)
 	c.Event = NewEventClient(c.config)
+	c.EventReminderNotification = NewEventReminderNotificationClient(c.config)
 	c.EventUser = NewEventUserClient(c.config)
 	c.Follow = NewFollowClient(c.config)
-	c.Friendship = NewFriendshipClient(c.config)
 	c.User = NewUserClient(c.config)
+}
+
+type (
+	// config is the configuration for the client and its builder.
+	config struct {
+		// driver used for executing database requests.
+		driver dialect.Driver
+		// debug enable a debug logging.
+		debug bool
+		// log used for logging on debug mode.
+		log func(...any)
+		// hooks to execute on mutations.
+		hooks *hooks
+		// interceptors to execute on queries.
+		inters *inters
+	}
+	// Option function to configure the client.
+	Option func(*config)
+)
+
+// options applies the options on the config object.
+func (c *config) options(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.debug {
+		c.driver = dialect.Debug(c.driver, c.log)
+	}
+}
+
+// Debug enables debug logging on the ent.Driver.
+func Debug() Option {
+	return func(c *config) {
+		c.debug = true
+	}
+}
+
+// Log sets the logging function for debug mode.
+func Log(fn func(...any)) Option {
+	return func(c *config) {
+		c.log = fn
+	}
+}
+
+// Driver configures the client driver.
+func Driver(driver dialect.Driver) Option {
+	return func(c *config) {
+		c.driver = driver
+	}
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -87,13 +143,14 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Event:      NewEventClient(cfg),
-		EventUser:  NewEventUserClient(cfg),
-		Follow:     NewFollowClient(cfg),
-		Friendship: NewFriendshipClient(cfg),
-		User:       NewUserClient(cfg),
+		ctx:                       ctx,
+		config:                    cfg,
+		Device:                    NewDeviceClient(cfg),
+		Event:                     NewEventClient(cfg),
+		EventReminderNotification: NewEventReminderNotificationClient(cfg),
+		EventUser:                 NewEventUserClient(cfg),
+		Follow:                    NewFollowClient(cfg),
+		User:                      NewUserClient(cfg),
 	}, nil
 }
 
@@ -111,20 +168,21 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Event:      NewEventClient(cfg),
-		EventUser:  NewEventUserClient(cfg),
-		Follow:     NewFollowClient(cfg),
-		Friendship: NewFriendshipClient(cfg),
-		User:       NewUserClient(cfg),
+		ctx:                       ctx,
+		config:                    cfg,
+		Device:                    NewDeviceClient(cfg),
+		Event:                     NewEventClient(cfg),
+		EventReminderNotification: NewEventReminderNotificationClient(cfg),
+		EventUser:                 NewEventUserClient(cfg),
+		Follow:                    NewFollowClient(cfg),
+		User:                      NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Event.
+//		Device.
 //		Query().
 //		Count(ctx)
 //
@@ -147,11 +205,175 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Event.Use(hooks...)
-	c.EventUser.Use(hooks...)
-	c.Follow.Use(hooks...)
-	c.Friendship.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Device, c.Event, c.EventReminderNotification, c.EventUser, c.Follow, c.User,
+	} {
+		n.Use(hooks...)
+	}
+}
+
+// Intercept adds the query interceptors to all the entity clients.
+// In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
+func (c *Client) Intercept(interceptors ...Interceptor) {
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Device, c.Event, c.EventReminderNotification, c.EventUser, c.Follow, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
+}
+
+// Mutate implements the ent.Mutator interface.
+func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
+	switch m := m.(type) {
+	case *DeviceMutation:
+		return c.Device.mutate(ctx, m)
+	case *EventMutation:
+		return c.Event.mutate(ctx, m)
+	case *EventReminderNotificationMutation:
+		return c.EventReminderNotification.mutate(ctx, m)
+	case *EventUserMutation:
+		return c.EventUser.mutate(ctx, m)
+	case *FollowMutation:
+		return c.Follow.mutate(ctx, m)
+	case *UserMutation:
+		return c.User.mutate(ctx, m)
+	default:
+		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// DeviceClient is a client for the Device schema.
+type DeviceClient struct {
+	config
+}
+
+// NewDeviceClient returns a client for the Device from the given config.
+func NewDeviceClient(c config) *DeviceClient {
+	return &DeviceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `device.Hooks(f(g(h())))`.
+func (c *DeviceClient) Use(hooks ...Hook) {
+	c.hooks.Device = append(c.hooks.Device, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `device.Intercept(f(g(h())))`.
+func (c *DeviceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Device = append(c.inters.Device, interceptors...)
+}
+
+// Create returns a builder for creating a Device entity.
+func (c *DeviceClient) Create() *DeviceCreate {
+	mutation := newDeviceMutation(c.config, OpCreate)
+	return &DeviceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Device entities.
+func (c *DeviceClient) CreateBulk(builders ...*DeviceCreate) *DeviceCreateBulk {
+	return &DeviceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Device.
+func (c *DeviceClient) Update() *DeviceUpdate {
+	mutation := newDeviceMutation(c.config, OpUpdate)
+	return &DeviceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DeviceClient) UpdateOne(d *Device) *DeviceUpdateOne {
+	mutation := newDeviceMutation(c.config, OpUpdateOne, withDevice(d))
+	return &DeviceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DeviceClient) UpdateOneID(id int) *DeviceUpdateOne {
+	mutation := newDeviceMutation(c.config, OpUpdateOne, withDeviceID(id))
+	return &DeviceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Device.
+func (c *DeviceClient) Delete() *DeviceDelete {
+	mutation := newDeviceMutation(c.config, OpDelete)
+	return &DeviceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DeviceClient) DeleteOne(d *Device) *DeviceDeleteOne {
+	return c.DeleteOneID(d.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DeviceClient) DeleteOneID(id int) *DeviceDeleteOne {
+	builder := c.Delete().Where(device.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DeviceDeleteOne{builder}
+}
+
+// Query returns a query builder for Device.
+func (c *DeviceClient) Query() *DeviceQuery {
+	return &DeviceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDevice},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Device entity by its id.
+func (c *DeviceClient) Get(ctx context.Context, id int) (*Device, error) {
+	return c.Query().Where(device.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DeviceClient) GetX(ctx context.Context, id int) *Device {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOwner queries the owner edge of a Device.
+func (c *DeviceClient) QueryOwner(d *Device) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, device.OwnerTable, device.OwnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DeviceClient) Hooks() []Hook {
+	return c.hooks.Device
+}
+
+// Interceptors returns the client interceptors.
+func (c *DeviceClient) Interceptors() []Interceptor {
+	return c.inters.Device
+}
+
+func (c *DeviceClient) mutate(ctx context.Context, m *DeviceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DeviceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DeviceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DeviceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DeviceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Device mutation op: %q", m.Op())
+	}
 }
 
 // EventClient is a client for the Event schema.
@@ -168,6 +390,12 @@ func NewEventClient(c config) *EventClient {
 // A call to `Use(f, g, h)` equals to `event.Hooks(f(g(h())))`.
 func (c *EventClient) Use(hooks ...Hook) {
 	c.hooks.Event = append(c.hooks.Event, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `event.Intercept(f(g(h())))`.
+func (c *EventClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Event = append(c.inters.Event, interceptors...)
 }
 
 // Create returns a builder for creating a Event entity.
@@ -210,7 +438,7 @@ func (c *EventClient) DeleteOne(e *Event) *EventDeleteOne {
 	return c.DeleteOneID(e.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *EventClient) DeleteOneID(id int) *EventDeleteOne {
 	builder := c.Delete().Where(event.ID(id))
 	builder.mutation.id = &id
@@ -222,6 +450,8 @@ func (c *EventClient) DeleteOneID(id int) *EventDeleteOne {
 func (c *EventClient) Query() *EventQuery {
 	return &EventQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeEvent},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -241,8 +471,8 @@ func (c *EventClient) GetX(ctx context.Context, id int) *Event {
 
 // QueryUsers queries the users edge of a Event.
 func (c *EventClient) QueryUsers(e *Event) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := e.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(event.Table, event.FieldID, id),
@@ -255,10 +485,26 @@ func (c *EventClient) QueryUsers(e *Event) *UserQuery {
 	return query
 }
 
+// QueryEventReminderNotifications queries the event_reminder_notifications edge of a Event.
+func (c *EventClient) QueryEventReminderNotifications(e *Event) *EventReminderNotificationQuery {
+	query := (&EventReminderNotificationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(event.Table, event.FieldID, id),
+			sqlgraph.To(eventremindernotification.Table, eventremindernotification.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, event.EventReminderNotificationsTable, event.EventReminderNotificationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryEventUsers queries the event_users edge of a Event.
 func (c *EventClient) QueryEventUsers(e *Event) *EventUserQuery {
-	query := &EventUserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&EventUserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := e.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(event.Table, event.FieldID, id),
@@ -276,6 +522,176 @@ func (c *EventClient) Hooks() []Hook {
 	return c.hooks.Event
 }
 
+// Interceptors returns the client interceptors.
+func (c *EventClient) Interceptors() []Interceptor {
+	return c.inters.Event
+}
+
+func (c *EventClient) mutate(ctx context.Context, m *EventMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Event mutation op: %q", m.Op())
+	}
+}
+
+// EventReminderNotificationClient is a client for the EventReminderNotification schema.
+type EventReminderNotificationClient struct {
+	config
+}
+
+// NewEventReminderNotificationClient returns a client for the EventReminderNotification from the given config.
+func NewEventReminderNotificationClient(c config) *EventReminderNotificationClient {
+	return &EventReminderNotificationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `eventremindernotification.Hooks(f(g(h())))`.
+func (c *EventReminderNotificationClient) Use(hooks ...Hook) {
+	c.hooks.EventReminderNotification = append(c.hooks.EventReminderNotification, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `eventremindernotification.Intercept(f(g(h())))`.
+func (c *EventReminderNotificationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EventReminderNotification = append(c.inters.EventReminderNotification, interceptors...)
+}
+
+// Create returns a builder for creating a EventReminderNotification entity.
+func (c *EventReminderNotificationClient) Create() *EventReminderNotificationCreate {
+	mutation := newEventReminderNotificationMutation(c.config, OpCreate)
+	return &EventReminderNotificationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EventReminderNotification entities.
+func (c *EventReminderNotificationClient) CreateBulk(builders ...*EventReminderNotificationCreate) *EventReminderNotificationCreateBulk {
+	return &EventReminderNotificationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EventReminderNotification.
+func (c *EventReminderNotificationClient) Update() *EventReminderNotificationUpdate {
+	mutation := newEventReminderNotificationMutation(c.config, OpUpdate)
+	return &EventReminderNotificationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EventReminderNotificationClient) UpdateOne(ern *EventReminderNotification) *EventReminderNotificationUpdateOne {
+	mutation := newEventReminderNotificationMutation(c.config, OpUpdateOne, withEventReminderNotification(ern))
+	return &EventReminderNotificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EventReminderNotificationClient) UpdateOneID(id int) *EventReminderNotificationUpdateOne {
+	mutation := newEventReminderNotificationMutation(c.config, OpUpdateOne, withEventReminderNotificationID(id))
+	return &EventReminderNotificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EventReminderNotification.
+func (c *EventReminderNotificationClient) Delete() *EventReminderNotificationDelete {
+	mutation := newEventReminderNotificationMutation(c.config, OpDelete)
+	return &EventReminderNotificationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EventReminderNotificationClient) DeleteOne(ern *EventReminderNotification) *EventReminderNotificationDeleteOne {
+	return c.DeleteOneID(ern.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EventReminderNotificationClient) DeleteOneID(id int) *EventReminderNotificationDeleteOne {
+	builder := c.Delete().Where(eventremindernotification.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EventReminderNotificationDeleteOne{builder}
+}
+
+// Query returns a query builder for EventReminderNotification.
+func (c *EventReminderNotificationClient) Query() *EventReminderNotificationQuery {
+	return &EventReminderNotificationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEventReminderNotification},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EventReminderNotification entity by its id.
+func (c *EventReminderNotificationClient) Get(ctx context.Context, id int) (*EventReminderNotification, error) {
+	return c.Query().Where(eventremindernotification.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EventReminderNotificationClient) GetX(ctx context.Context, id int) *EventReminderNotification {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryEvent queries the event edge of a EventReminderNotification.
+func (c *EventReminderNotificationClient) QueryEvent(ern *EventReminderNotification) *EventQuery {
+	query := (&EventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ern.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(eventremindernotification.Table, eventremindernotification.FieldID, id),
+			sqlgraph.To(event.Table, event.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, eventremindernotification.EventTable, eventremindernotification.EventColumn),
+		)
+		fromV = sqlgraph.Neighbors(ern.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the user edge of a EventReminderNotification.
+func (c *EventReminderNotificationClient) QueryUser(ern *EventReminderNotification) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ern.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(eventremindernotification.Table, eventremindernotification.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, eventremindernotification.UserTable, eventremindernotification.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(ern.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EventReminderNotificationClient) Hooks() []Hook {
+	return c.hooks.EventReminderNotification
+}
+
+// Interceptors returns the client interceptors.
+func (c *EventReminderNotificationClient) Interceptors() []Interceptor {
+	return c.inters.EventReminderNotification
+}
+
+func (c *EventReminderNotificationClient) mutate(ctx context.Context, m *EventReminderNotificationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EventReminderNotificationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EventReminderNotificationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EventReminderNotificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EventReminderNotificationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EventReminderNotification mutation op: %q", m.Op())
+	}
+}
+
 // EventUserClient is a client for the EventUser schema.
 type EventUserClient struct {
 	config
@@ -290,6 +706,12 @@ func NewEventUserClient(c config) *EventUserClient {
 // A call to `Use(f, g, h)` equals to `eventuser.Hooks(f(g(h())))`.
 func (c *EventUserClient) Use(hooks ...Hook) {
 	c.hooks.EventUser = append(c.hooks.EventUser, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `eventuser.Intercept(f(g(h())))`.
+func (c *EventUserClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EventUser = append(c.inters.EventUser, interceptors...)
 }
 
 // Create returns a builder for creating a EventUser entity.
@@ -327,6 +749,8 @@ func (c *EventUserClient) Delete() *EventUserDelete {
 func (c *EventUserClient) Query() *EventUserQuery {
 	return &EventUserQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeEventUser},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -349,6 +773,26 @@ func (c *EventUserClient) Hooks() []Hook {
 	return c.hooks.EventUser
 }
 
+// Interceptors returns the client interceptors.
+func (c *EventUserClient) Interceptors() []Interceptor {
+	return c.inters.EventUser
+}
+
+func (c *EventUserClient) mutate(ctx context.Context, m *EventUserMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EventUserCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EventUserUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EventUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EventUserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EventUser mutation op: %q", m.Op())
+	}
+}
+
 // FollowClient is a client for the Follow schema.
 type FollowClient struct {
 	config
@@ -363,6 +807,12 @@ func NewFollowClient(c config) *FollowClient {
 // A call to `Use(f, g, h)` equals to `follow.Hooks(f(g(h())))`.
 func (c *FollowClient) Use(hooks ...Hook) {
 	c.hooks.Follow = append(c.hooks.Follow, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `follow.Intercept(f(g(h())))`.
+func (c *FollowClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Follow = append(c.inters.Follow, interceptors...)
 }
 
 // Create returns a builder for creating a Follow entity.
@@ -400,6 +850,8 @@ func (c *FollowClient) Delete() *FollowDelete {
 func (c *FollowClient) Query() *FollowQuery {
 	return &FollowQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeFollow},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -422,77 +874,24 @@ func (c *FollowClient) Hooks() []Hook {
 	return c.hooks.Follow
 }
 
-// FriendshipClient is a client for the Friendship schema.
-type FriendshipClient struct {
-	config
+// Interceptors returns the client interceptors.
+func (c *FollowClient) Interceptors() []Interceptor {
+	return c.inters.Follow
 }
 
-// NewFriendshipClient returns a client for the Friendship from the given config.
-func NewFriendshipClient(c config) *FriendshipClient {
-	return &FriendshipClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `friendship.Hooks(f(g(h())))`.
-func (c *FriendshipClient) Use(hooks ...Hook) {
-	c.hooks.Friendship = append(c.hooks.Friendship, hooks...)
-}
-
-// Create returns a builder for creating a Friendship entity.
-func (c *FriendshipClient) Create() *FriendshipCreate {
-	mutation := newFriendshipMutation(c.config, OpCreate)
-	return &FriendshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Friendship entities.
-func (c *FriendshipClient) CreateBulk(builders ...*FriendshipCreate) *FriendshipCreateBulk {
-	return &FriendshipCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Friendship.
-func (c *FriendshipClient) Update() *FriendshipUpdate {
-	mutation := newFriendshipMutation(c.config, OpUpdate)
-	return &FriendshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *FriendshipClient) UpdateOne(f *Friendship) *FriendshipUpdateOne {
-	mutation := newFriendshipMutation(c.config, OpUpdateOne)
-	mutation.user = &f.UserID
-	mutation.friend = &f.FriendID
-	return &FriendshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Friendship.
-func (c *FriendshipClient) Delete() *FriendshipDelete {
-	mutation := newFriendshipMutation(c.config, OpDelete)
-	return &FriendshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Query returns a query builder for Friendship.
-func (c *FriendshipClient) Query() *FriendshipQuery {
-	return &FriendshipQuery{
-		config: c.config,
+func (c *FollowClient) mutate(ctx context.Context, m *FollowMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FollowCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FollowUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FollowUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FollowDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Follow mutation op: %q", m.Op())
 	}
-}
-
-// QueryUser queries the user edge of a Friendship.
-func (c *FriendshipClient) QueryUser(f *Friendship) *UserQuery {
-	return c.Query().
-		Where(friendship.UserID(f.UserID), friendship.FriendID(f.FriendID)).
-		QueryUser()
-}
-
-// QueryFriend queries the friend edge of a Friendship.
-func (c *FriendshipClient) QueryFriend(f *Friendship) *UserQuery {
-	return c.Query().
-		Where(friendship.UserID(f.UserID), friendship.FriendID(f.FriendID)).
-		QueryFriend()
-}
-
-// Hooks returns the client hooks.
-func (c *FriendshipClient) Hooks() []Hook {
-	return c.hooks.Friendship
 }
 
 // UserClient is a client for the User schema.
@@ -509,6 +908,12 @@ func NewUserClient(c config) *UserClient {
 // A call to `Use(f, g, h)` equals to `user.Hooks(f(g(h())))`.
 func (c *UserClient) Use(hooks ...Hook) {
 	c.hooks.User = append(c.hooks.User, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `user.Intercept(f(g(h())))`.
+func (c *UserClient) Intercept(interceptors ...Interceptor) {
+	c.inters.User = append(c.inters.User, interceptors...)
 }
 
 // Create returns a builder for creating a User entity.
@@ -551,7 +956,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -563,6 +968,8 @@ func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 func (c *UserClient) Query() *UserQuery {
 	return &UserQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeUser},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -582,8 +989,8 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 
 // QueryEvents queries the events edge of a User.
 func (c *UserClient) QueryEvents(u *User) *EventQuery {
-	query := &EventQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&EventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -596,26 +1003,10 @@ func (c *UserClient) QueryEvents(u *User) *EventQuery {
 	return query
 }
 
-// QueryFriends queries the friends edge of a User.
-func (c *UserClient) QueryFriends(u *User) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := u.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, user.FriendsTable, user.FriendsPrimaryKey...),
-		)
-		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryFollowers queries the followers edge of a User.
 func (c *UserClient) QueryFollowers(u *User) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -630,8 +1021,8 @@ func (c *UserClient) QueryFollowers(u *User) *UserQuery {
 
 // QueryFollowing queries the following edge of a User.
 func (c *UserClient) QueryFollowing(u *User) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -644,10 +1035,42 @@ func (c *UserClient) QueryFollowing(u *User) *UserQuery {
 	return query
 }
 
+// QueryDevices queries the devices edge of a User.
+func (c *UserClient) QueryDevices(u *User) *DeviceQuery {
+	query := (&DeviceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.DevicesTable, user.DevicesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEventReminderNotifications queries the event_reminder_notifications edge of a User.
+func (c *UserClient) QueryEventReminderNotifications(u *User) *EventReminderNotificationQuery {
+	query := (&EventReminderNotificationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(eventremindernotification.Table, eventremindernotification.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.EventReminderNotificationsTable, user.EventReminderNotificationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryEventUser queries the event_user edge of a User.
 func (c *UserClient) QueryEventUser(u *User) *EventUserQuery {
-	query := &EventUserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&EventUserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -660,31 +1083,15 @@ func (c *UserClient) QueryEventUser(u *User) *EventUserQuery {
 	return query
 }
 
-// QueryFriendships queries the friendships edge of a User.
-func (c *UserClient) QueryFriendships(u *User) *FriendshipQuery {
-	query := &FriendshipQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := u.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(friendship.Table, friendship.UserColumn),
-			sqlgraph.Edge(sqlgraph.O2M, true, user.FriendshipsTable, user.FriendshipsColumn),
-		)
-		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryFollow queries the follow edge of a User.
-func (c *UserClient) QueryFollow(u *User) *FollowQuery {
-	query := &FollowQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+// QueryFollows queries the follows edge of a User.
+func (c *UserClient) QueryFollows(u *User) *FollowQuery {
+	query := (&FollowClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(follow.Table, follow.FollowerColumn),
-			sqlgraph.Edge(sqlgraph.O2M, true, user.FollowTable, user.FollowColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.FollowsTable, user.FollowsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -695,4 +1102,59 @@ func (c *UserClient) QueryFollow(u *User) *FollowQuery {
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserClient) Interceptors() []Interceptor {
+	return c.inters.User
+}
+
+func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown User mutation op: %q", m.Op())
+	}
+}
+
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		Device, Event, EventReminderNotification, EventUser, Follow, User []ent.Hook
+	}
+	inters struct {
+		Device, Event, EventReminderNotification, EventUser, Follow,
+		User []ent.Interceptor
+	}
+)
+
+// ExecContext allows calling the underlying ExecContext method of the driver if it is supported by it.
+// See, database/sql#DB.ExecContext for more information.
+func (c *config) ExecContext(ctx context.Context, query string, args ...any) (stdsql.Result, error) {
+	ex, ok := c.driver.(interface {
+		ExecContext(context.Context, string, ...any) (stdsql.Result, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("Driver.ExecContext is not supported")
+	}
+	return ex.ExecContext(ctx, query, args...)
+}
+
+// QueryContext allows calling the underlying QueryContext method of the driver if it is supported by it.
+// See, database/sql#DB.QueryContext for more information.
+func (c *config) QueryContext(ctx context.Context, query string, args ...any) (*stdsql.Rows, error) {
+	q, ok := c.driver.(interface {
+		QueryContext(context.Context, string, ...any) (*stdsql.Rows, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("Driver.QueryContext is not supported")
+	}
+	return q.QueryContext(ctx, query, args...)
 }

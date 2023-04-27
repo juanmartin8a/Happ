@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelect.dart';
+import 'package:happ_client/src/riverpod/locationSearch/locationDetails.dart';
+import 'package:happ_client/src/riverpod/newEventAddPictures/newEventAddPictures.dart';
 import 'package:happ_client/src/riverpod/newEventComplete/newEventComplete.dart';
-import 'package:happ_client/src/riverpod/newEventComplete/newEventCompleteState.dart';
-import 'package:happ_client/src/screens/events/newEventScreens/DLScreen.dart';
-import 'package:happ_client/src/screens/events/newEventScreens/NPDScreen.dart';
-import 'package:happ_client/src/screens/events/newEventScreens/widgets/NextButton.dart';
+import 'package:happ_client/src/riverpod/pickDateAndTime/pickDateAndTime.dart';
+import 'package:happ_client/src/screens/events/newEvent/DLScreen.dart';
+import 'package:happ_client/src/screens/events/newEvent/IScreen.dart';
+import 'package:happ_client/src/screens/events/newEvent/NPDScreen.dart';
+import 'package:happ_client/src/screens/events/newEvent/widgets/NextButton.dart';
 import 'package:happ_client/src/utils/userLocation/UserLocation.dart';
+import 'package:uuid/uuid.dart';
 
-class NewEvent extends StatefulWidget {
+class NewEvent extends ConsumerStatefulWidget {
   const NewEvent({Key? key}) : super(key: key);
 
   @override
-  State<NewEvent> createState() => _NewEventState();
+  _NewEventState createState() => _NewEventState();
 }
 
-class _NewEventState extends State<NewEvent> {
+class _NewEventState extends ConsumerState<NewEvent> {
   PageController pageController = PageController();
 
   late bool userLocationAccess;
@@ -27,14 +30,30 @@ class _NewEventState extends State<NewEvent> {
 
   int currentPage = 0;
 
+  int eventId = 0;
+
+  bool refresh = false;
+
+  late String uuidKey;
+
   @override
   void initState() {
     super.initState();
+    uuidKey = const Uuid().v4();
     userLocationPermission();
   }
 
   @override
   Widget build(BuildContext context) {
+
+    if (refresh == true) {
+      ref.invalidate(pickDateControllerProvider);
+      ref.invalidate(addPicturesProvider);
+      ref.invalidate(newEventCompleteProvider);
+      ref.invalidate(inviteUserSelectProvider);
+      ref.invalidate(locationDetailsProvider);
+      refresh = false;
+    }
     
     return Material(
       // color: Colors.red,
@@ -51,8 +70,9 @@ class _NewEventState extends State<NewEvent> {
             // 2.- for picking a place and location
             // 3.- for inviting people and adding organizers (admins)
             children: [
-              const NPDScreen(),
-              DLScreen(latitude: latitude, longitude: longitude,)
+              NPDScreen(key: Key("NPD_$uuidKey")),
+              DLScreen(latitude: latitude, longitude: longitude, key: Key("DL_$uuidKey")),
+              IScreen(eventId: eventId, key: Key("I_$uuidKey"))
             ],
             onPageChanged: (page) {
               setState(() {
@@ -92,7 +112,8 @@ class _NewEventState extends State<NewEvent> {
             alignment: Alignment.bottomCenter,
             child: NextButton(
               animateToPage: animateToPage, 
-              page: currentPage
+              page: currentPage,
+              key: Key("nextButtonKey_$uuidKey")
             )
           )
         ],
@@ -113,7 +134,24 @@ class _NewEventState extends State<NewEvent> {
     });
   }
 
-  void animateToPage(int page) {
+  void animateToPage(int page, {int newEventId = 0, bool callRefresh = false}) {
+    if (page == 2) {
+      setState(() {
+        eventId = newEventId;
+      });
+    }
     pageController.animateToPage(page, duration: const Duration(milliseconds: 500), curve: Curves.ease);
+    if (callRefresh == true) {
+      // reset newEventCompleteField
+      // reset pictureSlider
+      // reset dateAndTimeFields
+      // reset inviteGuests
+      // change key in all of them, key is inherited by every child from its parent
+      setState(() {
+        eventId = 0;
+        uuidKey = const Uuid().v4();
+        refresh = true;
+      });
+    }
   }
 }

@@ -1,0 +1,6 @@
+mutation AcceptInvitation($eventId: Int!) {
+  acceptInvitation(eventId: $eventId) {
+    cypherText
+    isHost
+  }
+}

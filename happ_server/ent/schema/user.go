@@ -26,6 +26,10 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
+		field.String("FUID").
+			NotEmpty().
+			// MaxLen(255).
+			Unique(),
 		field.String("name").
 			NotEmpty().
 			MaxLen(255),
@@ -35,18 +39,18 @@ func (User) Fields() []ent.Field {
 			Unique(),
 		field.String("email").
 			NotEmpty().
-			MaxLen(255).
+			// MaxLen(255).
 			Unique(),
 		field.String("profile_pic").
-			NotEmpty().
-			MaxLen(255),
-		field.Time("birthday").
-			SchemaType(map[string]string{
-				dialect.MySQL: "date",
-			}),
-		field.String("password").
-			NotEmpty().
-			MaxLen(255),
+			NotEmpty(),
+		// MaxLen(255),
+		// field.Time("birthday").
+		// 	SchemaType(map[string]string{
+		// 		dialect.MySQL: "date",
+		// 	}),
+		// field.String("password").
+		// 	NotEmpty().
+		// 	MaxLen(255),
 		field.Time("created_at").
 			Default(time.Now).
 			SchemaType(map[string]string{
@@ -74,16 +78,11 @@ func (User) Edges() []ent.Edge {
 		edge.From("events", Event.Type).
 			Ref("users").
 			Through("event_user", EventUser.Type),
-		edge.To("friends", User.Type).
-			Through("friendships", Friendship.Type),
 		edge.To("following", User.Type).
 			From("followers").
-			Through("follow", Follow.Type),
+			Through("follows", Follow.Type),
+		edge.To("devices", Device.Type),
 
-		// Through("friendships", Friendship.Type),
-
-		// edge.To("following", User.Type).
-		// 	From("followers"),
-		// edge.To("friends", User.Type),
+		edge.To("event_reminder_notifications", EventReminderNotification.Type),
 	}
 }

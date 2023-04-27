@@ -1,0 +1,8 @@
+query SearchForUsersToAddAsGuests($search: String!, $eventId: Int!) {
+  searchForUsersToAddAsGuests(search: $search, eventId: $eventId) {
+    id
+    username
+    name
+    profilePic
+  }
+}

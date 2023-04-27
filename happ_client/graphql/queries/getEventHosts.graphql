@@ -1,0 +1,11 @@
+query GetEventHosts($eventId: Int! $limit: Int!, $idsList: [Int!]!) {
+  getEventHosts(eventId: $eventId, limit: $limit, idsList: $idsList) {
+    users {
+      id
+      username
+      name
+      profilePic
+    }
+    hasMore
+	}
+}

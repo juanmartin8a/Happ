@@ -1,23 +1,66 @@
 package meilisearchUtils
 
-import "github.com/meilisearch/meilisearch-go"
+import (
+	"github.com/meilisearch/meilisearch-go"
+)
 
-func GetMeiliClient() *meilisearch.Client {
+var MeiliClient *meilisearch.Client
+
+func GetSimpleMeiliClient() *meilisearch.Client {
 	client := meilisearch.NewClient(meilisearch.ClientConfig{
-		Host: "http://127.0.0.1:7700",
-		// APIKey: "masterKey",
+		Host:   "http://127.0.0.1:7700",
+		APIKey: "tQvcnvWK0BvMMGU0GrL1SwOOXPbs4BF8ZxrGP0YmNKY",
 	})
+
+	// meilisearchClient.
+
 	return client
 }
 
-func GetMeiliUsersIndex() *meilisearch.Index {
-	client := GetMeiliClient()
-	index := client.Index("users")
-	return index
+func GetMeiliClient() (*meilisearch.Client, bool) {
+	client := meilisearch.NewClient(meilisearch.ClientConfig{
+		Host:   "http://127.0.0.1:7700",
+		APIKey: "tQvcnvWK0BvMMGU0GrL1SwOOXPbs4BF8ZxrGP0YmNKY",
+	})
+	isHealthy := client.IsHealthy()
+
+	return client, isHealthy
 }
 
-func GetMeiliFollowIndex() *meilisearch.Index {
-	client := GetMeiliClient()
-	index := client.Index("follows")
-	return index
+// func GetMeiliUsersIndex() (*meilisearch.Index, bool) {
+// 	client, isHealthy := GetMeiliClient()
+// 	if !isHealthy {
+// 		return nil, isHealthy
+// 	}
+// 	index := client.Index("users")
+// 	return index, isHealthy
+// }
+
+func GetMeiliUsersIndex() (*meilisearch.Index, bool) {
+	// client, isHealthy := GetMeiliClient()
+	// if !isHealthy {
+	// 	return nil, isHealthy
+	// }
+	index := MeiliClient.Index("users")
+	isHealthy := MeiliClient.IsHealthy()
+	return index, isHealthy
+}
+
+// func GetMeiliFollowIndex() (*meilisearch.Index, bool) {
+// 	client, isHealthy := GetMeiliClient()
+// 	if !isHealthy {
+// 		return nil, isHealthy
+// 	}
+// 	index := client.Index("follows")
+// 	return index, isHealthy
+// }
+
+func GetMeiliFollowIndex() (*meilisearch.Index, bool) {
+	// client, isHealthy := GetMeiliClient()
+	// if !isHealthy {
+	// 	return nil, isHealthy
+	// }
+	index := MeiliClient.Index("follows")
+	isHealthy := MeiliClient.IsHealthy()
+	return index, isHealthy
 }

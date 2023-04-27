@@ -29,7 +29,10 @@ func (EventUser) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("event_id"),
 		field.Int("user_id"),
+		field.Int("invited_by"),
 		field.Bool("admin").Default(false),
+		field.Bool("creator").Default(false),
+		field.Bool("confirmed").Default(false),
 		field.Time("created_at").
 			Default(time.Now).
 			SchemaType(map[string]string{

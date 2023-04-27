@@ -7,3 +7,9 @@ MultipartFile fromDartMultipartFileToGraphQLUpload(MultipartFile file) => file;
 
 List<MultipartFile> fromGraphQLListUploadToDartListMultipartFile(List<MultipartFile> file) => file;
 List<MultipartFile> fromDartListMultipartFileToGraphQLListUpload(List<MultipartFile> file) => file;
+
+MultipartFile? fromGraphQLUploadNullableToDartMultipartFileNullable(MultipartFile? file) => file;
+MultipartFile? fromDartMultipartFileNullableToGraphQLUploadNullable(MultipartFile? file) => file;
+
+List<MultipartFile>? fromGraphQLListNullableUploadToDartListNullableMultipartFile(List<MultipartFile>? file) => file;
+List<MultipartFile>? fromDartListNullableMultipartFileToGraphQLListNullableUpload(List<MultipartFile>? file) => file;

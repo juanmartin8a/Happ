@@ -17,6 +17,7 @@ class FloatingActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: padding,
+      color: Colors.transparent,
       child: Center(
         child: Icon(
           icon,

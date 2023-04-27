@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"happ/ent/schema/schematype"
 	"time"
 
 	"entgo.io/ent"
@@ -33,14 +34,24 @@ func (Event) Fields() []ent.Field {
 			MaxLen(255),
 		field.String("description").
 			NotEmpty(),
-		field.Int("confirmedCount"),
+		field.String("event_place").
+			NotEmpty(),
+		field.Int("confirmed_count").
+			Default(1),
+		field.Int("confirmed_hosts").
+			Default(1),
 		field.JSON("event_pics", []string{}),
+		field.JSON("light_event_pics", []string{}),
+		field.String("event_key").
+			NotEmpty(),
+		field.String("event_nonce").
+			NotEmpty(),
 		field.Time("event_date").
 			SchemaType(map[string]string{
 				dialect.MySQL: "datetime",
 			}),
-		field.Other("coords", &Point{}).
-			SchemaType(Point{}.SchemaType()),
+		field.Other("coords", &schematype.Point{}).
+			SchemaType(schematype.Point{}.SchemaType()),
 		field.Time("created_at").
 			Default(time.Now).
 			SchemaType(map[string]string{
@@ -67,5 +78,7 @@ func (Event) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("users", User.Type).
 			Through("event_users", EventUser.Type),
+
+		edge.To("event_reminder_notifications", EventReminderNotification.Type),
 	}
 }

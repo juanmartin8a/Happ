@@ -1,5 +1,5 @@
-query SearchUsers($search: String!) {
-  searchUsers(search: $search) {
+query SearchUsers($search: String!, $userSearching: Int!) {
+  searchUsers(search: $search, userSearching: $userSearching) {
     id
     username
     name

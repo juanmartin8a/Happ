@@ -13,8 +13,8 @@ type redisValue struct {
 	Token  string
 }
 
-func RefreshTokenToRedis(userId string, ex time.Duration, token string) {
-	redisClient := GetRedisClient()
+func RefreshTokenToRedis(userId string, ex time.Duration, token string) error {
+	// redisClient := GetRedisClient()
 
 	redisValue := &redisValue{
 		userId,
@@ -26,19 +26,23 @@ func RefreshTokenToRedis(userId string, ex time.Duration, token string) {
 	key := "" + userId + "_" + token
 	value := string(redisValueToJsonBytes)
 
-	redisClient.SetNX(ctx, key, value, ex).Result()
+	_, err := RedisClient.SetNX(ctx, key, value, ex).Result()
+
+	return err
 }
 
-func DeleteTokenFromRedis(key string) {
-	redisClient := GetRedisClient()
+func DeleteTokenFromRedis(key string) error {
+	// redisClient := GetRedisClient()
 
-	redisClient.Del(ctx, key)
+	_, err := RedisClient.Del(ctx, key).Result()
+
+	return err
 }
 
 func VerifyTokenFromRedis(key string) bool {
-	redisClient := GetRedisClient()
+	// redisClient := GetRedisClient()
 
-	_, err := redisClient.Get(ctx, key).Result()
+	_, err := RedisClient.Get(ctx, key).Result()
 
 	return err == nil // if redis res has no error return true otherwise false
 }

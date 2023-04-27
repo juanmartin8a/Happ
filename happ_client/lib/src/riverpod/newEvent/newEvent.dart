@@ -17,19 +17,21 @@ class NewEventController extends StateNotifier<NewEventState> {
     String description,
     String eventDate, 
     List<http.MultipartFile> eventPics,
+    List<http.MultipartFile> eventPicsLight,
     double latitude,
     double longitude,
+    String eventPlace,
   ) async {
     state = NewEventLoadingState();
     try {
-      final res = await eventRepo.newEvent(name, description, eventDate, eventPics, latitude, longitude);
+      final res = await eventRepo.newEvent(name, description, eventDate, eventPics, eventPicsLight, latitude, longitude, eventPlace);
       state = NewEventDoneState(newEventRes: res);
     } catch (e) {
-      // print(e);
-      // state = NewEventErrorState();
+      print(e);
+      state = NewEventErrorState();
     }
   }
 }
 
-final signUpProvider =
+final newEventProvider =
   StateNotifierProvider<NewEventController, NewEventState>((ref) => NewEventController());

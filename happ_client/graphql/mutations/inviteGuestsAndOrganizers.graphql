@@ -1,0 +1,11 @@
+mutation InviteGuestsAndOrganizers(
+  $guests: [Int!]!,
+  $organizers: [Int!]!,
+  $eventId: Int!
+) {
+  inviteGuestsAndOrganizers(
+    guests: $guests,
+    organizers: $organizers,
+    eventId: $eventId
+  )
+}

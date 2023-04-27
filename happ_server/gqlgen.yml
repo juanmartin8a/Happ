@@ -50,12 +50,24 @@ autobind:
 # modelgen, the others will be allowed when binding to fields. Configure them to
 # your liking
 models:
+  EventInviteRes:
+    fields:
+      invitedBy: 
+        resolver: true
+      friends: 
+        resolver: true
   ID:
     model:
+      # - happ/utils/types/typesUtils.CustomID
+      # - github.com/99designs/gqlgen/graphql.String
+      # # - happ/utils/types/typesUtils.Token
       - github.com/99designs/gqlgen/graphql.ID
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
+  # Token:
+  #   model:
+  #     - happ/utils/types/typesUtils.Token
   Int:
     model:
       - github.com/99designs/gqlgen/graphql.Int

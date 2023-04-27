@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 	"happ/ent/eventuser"
 	"happ/ent/predicate"
 
@@ -27,34 +26,7 @@ func (eud *EventUserDelete) Where(ps ...predicate.EventUser) *EventUserDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (eud *EventUserDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(eud.hooks) == 0 {
-		affected, err = eud.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EventUserMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			eud.mutation = mutation
-			affected, err = eud.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(eud.hooks) - 1; i >= 0; i-- {
-			if eud.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = eud.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, eud.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, EventUserMutation](ctx, eud.sqlExec, eud.mutation, eud.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -67,11 +39,7 @@ func (eud *EventUserDelete) ExecX(ctx context.Context) int {
 }
 
 func (eud *EventUserDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: eventuser.Table,
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(eventuser.Table, nil)
 	if ps := eud.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -83,12 +51,19 @@ func (eud *EventUserDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	eud.mutation.done = true
 	return affected, err
 }
 
 // EventUserDeleteOne is the builder for deleting a single EventUser entity.
 type EventUserDeleteOne struct {
 	eud *EventUserDelete
+}
+
+// Where appends a list predicates to the EventUserDelete builder.
+func (eudo *EventUserDeleteOne) Where(ps ...predicate.EventUser) *EventUserDeleteOne {
+	eudo.eud.mutation.Where(ps...)
+	return eudo
 }
 
 // Exec executes the deletion query.
@@ -106,5 +81,7 @@ func (eudo *EventUserDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (eudo *EventUserDeleteOne) ExecX(ctx context.Context) {
-	eudo.eud.ExecX(ctx)
+	if err := eudo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

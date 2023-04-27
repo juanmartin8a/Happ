@@ -36,6 +36,12 @@ func (euc *EventUserCreate) SetUserID(i int) *EventUserCreate {
 	return euc
 }
 
+// SetInvitedBy sets the "invited_by" field.
+func (euc *EventUserCreate) SetInvitedBy(i int) *EventUserCreate {
+	euc.mutation.SetInvitedBy(i)
+	return euc
+}
+
 // SetAdmin sets the "admin" field.
 func (euc *EventUserCreate) SetAdmin(b bool) *EventUserCreate {
 	euc.mutation.SetAdmin(b)
@@ -46,6 +52,34 @@ func (euc *EventUserCreate) SetAdmin(b bool) *EventUserCreate {
 func (euc *EventUserCreate) SetNillableAdmin(b *bool) *EventUserCreate {
 	if b != nil {
 		euc.SetAdmin(*b)
+	}
+	return euc
+}
+
+// SetCreator sets the "creator" field.
+func (euc *EventUserCreate) SetCreator(b bool) *EventUserCreate {
+	euc.mutation.SetCreator(b)
+	return euc
+}
+
+// SetNillableCreator sets the "creator" field if the given value is not nil.
+func (euc *EventUserCreate) SetNillableCreator(b *bool) *EventUserCreate {
+	if b != nil {
+		euc.SetCreator(*b)
+	}
+	return euc
+}
+
+// SetConfirmed sets the "confirmed" field.
+func (euc *EventUserCreate) SetConfirmed(b bool) *EventUserCreate {
+	euc.mutation.SetConfirmed(b)
+	return euc
+}
+
+// SetNillableConfirmed sets the "confirmed" field if the given value is not nil.
+func (euc *EventUserCreate) SetNillableConfirmed(b *bool) *EventUserCreate {
+	if b != nil {
+		euc.SetConfirmed(*b)
 	}
 	return euc
 }
@@ -81,48 +115,8 @@ func (euc *EventUserCreate) Mutation() *EventUserMutation {
 
 // Save creates the EventUser in the database.
 func (euc *EventUserCreate) Save(ctx context.Context) (*EventUser, error) {
-	var (
-		err  error
-		node *EventUser
-	)
 	euc.defaults()
-	if len(euc.hooks) == 0 {
-		if err = euc.check(); err != nil {
-			return nil, err
-		}
-		node, err = euc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EventUserMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = euc.check(); err != nil {
-				return nil, err
-			}
-			euc.mutation = mutation
-			if node, err = euc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			return node, err
-		})
-		for i := len(euc.hooks) - 1; i >= 0; i-- {
-			if euc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = euc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, euc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*EventUser)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from EventUserMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*EventUser, EventUserMutation](ctx, euc.sqlSave, euc.mutation, euc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -153,6 +147,14 @@ func (euc *EventUserCreate) defaults() {
 		v := eventuser.DefaultAdmin
 		euc.mutation.SetAdmin(v)
 	}
+	if _, ok := euc.mutation.Creator(); !ok {
+		v := eventuser.DefaultCreator
+		euc.mutation.SetCreator(v)
+	}
+	if _, ok := euc.mutation.Confirmed(); !ok {
+		v := eventuser.DefaultConfirmed
+		euc.mutation.SetConfirmed(v)
+	}
 	if _, ok := euc.mutation.CreatedAt(); !ok {
 		v := eventuser.DefaultCreatedAt()
 		euc.mutation.SetCreatedAt(v)
@@ -167,8 +169,17 @@ func (euc *EventUserCreate) check() error {
 	if _, ok := euc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "EventUser.user_id"`)}
 	}
+	if _, ok := euc.mutation.InvitedBy(); !ok {
+		return &ValidationError{Name: "invited_by", err: errors.New(`ent: missing required field "EventUser.invited_by"`)}
+	}
 	if _, ok := euc.mutation.Admin(); !ok {
 		return &ValidationError{Name: "admin", err: errors.New(`ent: missing required field "EventUser.admin"`)}
+	}
+	if _, ok := euc.mutation.Creator(); !ok {
+		return &ValidationError{Name: "creator", err: errors.New(`ent: missing required field "EventUser.creator"`)}
+	}
+	if _, ok := euc.mutation.Confirmed(); !ok {
+		return &ValidationError{Name: "confirmed", err: errors.New(`ent: missing required field "EventUser.confirmed"`)}
 	}
 	if _, ok := euc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "EventUser.created_at"`)}
@@ -183,6 +194,9 @@ func (euc *EventUserCreate) check() error {
 }
 
 func (euc *EventUserCreate) sqlSave(ctx context.Context) (*EventUser, error) {
+	if err := euc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := euc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, euc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -196,25 +210,27 @@ func (euc *EventUserCreate) sqlSave(ctx context.Context) (*EventUser, error) {
 func (euc *EventUserCreate) createSpec() (*EventUser, *sqlgraph.CreateSpec) {
 	var (
 		_node = &EventUser{config: euc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: eventuser.Table,
-		}
+		_spec = sqlgraph.NewCreateSpec(eventuser.Table, nil)
 	)
 	_spec.OnConflict = euc.conflict
+	if value, ok := euc.mutation.InvitedBy(); ok {
+		_spec.SetField(eventuser.FieldInvitedBy, field.TypeInt, value)
+		_node.InvitedBy = value
+	}
 	if value, ok := euc.mutation.Admin(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: eventuser.FieldAdmin,
-		})
+		_spec.SetField(eventuser.FieldAdmin, field.TypeBool, value)
 		_node.Admin = value
 	}
+	if value, ok := euc.mutation.Creator(); ok {
+		_spec.SetField(eventuser.FieldCreator, field.TypeBool, value)
+		_node.Creator = value
+	}
+	if value, ok := euc.mutation.Confirmed(); ok {
+		_spec.SetField(eventuser.FieldConfirmed, field.TypeBool, value)
+		_node.Confirmed = value
+	}
 	if value, ok := euc.mutation.CreatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: eventuser.FieldCreatedAt,
-		})
+		_spec.SetField(eventuser.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if nodes := euc.mutation.EventIDs(); len(nodes) > 0 {
@@ -225,10 +241,7 @@ func (euc *EventUserCreate) createSpec() (*EventUser, *sqlgraph.CreateSpec) {
 			Columns: []string{eventuser.EventColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -245,10 +258,7 @@ func (euc *EventUserCreate) createSpec() (*EventUser, *sqlgraph.CreateSpec) {
 			Columns: []string{eventuser.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -335,6 +345,24 @@ func (u *EventUserUpsert) UpdateUserID() *EventUserUpsert {
 	return u
 }
 
+// SetInvitedBy sets the "invited_by" field.
+func (u *EventUserUpsert) SetInvitedBy(v int) *EventUserUpsert {
+	u.Set(eventuser.FieldInvitedBy, v)
+	return u
+}
+
+// UpdateInvitedBy sets the "invited_by" field to the value that was provided on create.
+func (u *EventUserUpsert) UpdateInvitedBy() *EventUserUpsert {
+	u.SetExcluded(eventuser.FieldInvitedBy)
+	return u
+}
+
+// AddInvitedBy adds v to the "invited_by" field.
+func (u *EventUserUpsert) AddInvitedBy(v int) *EventUserUpsert {
+	u.Add(eventuser.FieldInvitedBy, v)
+	return u
+}
+
 // SetAdmin sets the "admin" field.
 func (u *EventUserUpsert) SetAdmin(v bool) *EventUserUpsert {
 	u.Set(eventuser.FieldAdmin, v)
@@ -347,15 +375,27 @@ func (u *EventUserUpsert) UpdateAdmin() *EventUserUpsert {
 	return u
 }
 
-// SetCreatedAt sets the "created_at" field.
-func (u *EventUserUpsert) SetCreatedAt(v time.Time) *EventUserUpsert {
-	u.Set(eventuser.FieldCreatedAt, v)
+// SetCreator sets the "creator" field.
+func (u *EventUserUpsert) SetCreator(v bool) *EventUserUpsert {
+	u.Set(eventuser.FieldCreator, v)
 	return u
 }
 
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *EventUserUpsert) UpdateCreatedAt() *EventUserUpsert {
-	u.SetExcluded(eventuser.FieldCreatedAt)
+// UpdateCreator sets the "creator" field to the value that was provided on create.
+func (u *EventUserUpsert) UpdateCreator() *EventUserUpsert {
+	u.SetExcluded(eventuser.FieldCreator)
+	return u
+}
+
+// SetConfirmed sets the "confirmed" field.
+func (u *EventUserUpsert) SetConfirmed(v bool) *EventUserUpsert {
+	u.Set(eventuser.FieldConfirmed, v)
+	return u
+}
+
+// UpdateConfirmed sets the "confirmed" field to the value that was provided on create.
+func (u *EventUserUpsert) UpdateConfirmed() *EventUserUpsert {
+	u.SetExcluded(eventuser.FieldConfirmed)
 	return u
 }
 
@@ -434,6 +474,27 @@ func (u *EventUserUpsertOne) UpdateUserID() *EventUserUpsertOne {
 	})
 }
 
+// SetInvitedBy sets the "invited_by" field.
+func (u *EventUserUpsertOne) SetInvitedBy(v int) *EventUserUpsertOne {
+	return u.Update(func(s *EventUserUpsert) {
+		s.SetInvitedBy(v)
+	})
+}
+
+// AddInvitedBy adds v to the "invited_by" field.
+func (u *EventUserUpsertOne) AddInvitedBy(v int) *EventUserUpsertOne {
+	return u.Update(func(s *EventUserUpsert) {
+		s.AddInvitedBy(v)
+	})
+}
+
+// UpdateInvitedBy sets the "invited_by" field to the value that was provided on create.
+func (u *EventUserUpsertOne) UpdateInvitedBy() *EventUserUpsertOne {
+	return u.Update(func(s *EventUserUpsert) {
+		s.UpdateInvitedBy()
+	})
+}
+
 // SetAdmin sets the "admin" field.
 func (u *EventUserUpsertOne) SetAdmin(v bool) *EventUserUpsertOne {
 	return u.Update(func(s *EventUserUpsert) {
@@ -448,17 +509,31 @@ func (u *EventUserUpsertOne) UpdateAdmin() *EventUserUpsertOne {
 	})
 }
 
-// SetCreatedAt sets the "created_at" field.
-func (u *EventUserUpsertOne) SetCreatedAt(v time.Time) *EventUserUpsertOne {
+// SetCreator sets the "creator" field.
+func (u *EventUserUpsertOne) SetCreator(v bool) *EventUserUpsertOne {
 	return u.Update(func(s *EventUserUpsert) {
-		s.SetCreatedAt(v)
+		s.SetCreator(v)
 	})
 }
 
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *EventUserUpsertOne) UpdateCreatedAt() *EventUserUpsertOne {
+// UpdateCreator sets the "creator" field to the value that was provided on create.
+func (u *EventUserUpsertOne) UpdateCreator() *EventUserUpsertOne {
 	return u.Update(func(s *EventUserUpsert) {
-		s.UpdateCreatedAt()
+		s.UpdateCreator()
+	})
+}
+
+// SetConfirmed sets the "confirmed" field.
+func (u *EventUserUpsertOne) SetConfirmed(v bool) *EventUserUpsertOne {
+	return u.Update(func(s *EventUserUpsert) {
+		s.SetConfirmed(v)
+	})
+}
+
+// UpdateConfirmed sets the "confirmed" field to the value that was provided on create.
+func (u *EventUserUpsertOne) UpdateConfirmed() *EventUserUpsertOne {
+	return u.Update(func(s *EventUserUpsert) {
+		s.UpdateConfirmed()
 	})
 }
 
@@ -502,8 +577,8 @@ func (eucb *EventUserCreateBulk) Save(ctx context.Context) ([]*EventUser, error)
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, eucb.builders[i+1].mutation)
 				} else {
@@ -678,6 +753,27 @@ func (u *EventUserUpsertBulk) UpdateUserID() *EventUserUpsertBulk {
 	})
 }
 
+// SetInvitedBy sets the "invited_by" field.
+func (u *EventUserUpsertBulk) SetInvitedBy(v int) *EventUserUpsertBulk {
+	return u.Update(func(s *EventUserUpsert) {
+		s.SetInvitedBy(v)
+	})
+}
+
+// AddInvitedBy adds v to the "invited_by" field.
+func (u *EventUserUpsertBulk) AddInvitedBy(v int) *EventUserUpsertBulk {
+	return u.Update(func(s *EventUserUpsert) {
+		s.AddInvitedBy(v)
+	})
+}
+
+// UpdateInvitedBy sets the "invited_by" field to the value that was provided on create.
+func (u *EventUserUpsertBulk) UpdateInvitedBy() *EventUserUpsertBulk {
+	return u.Update(func(s *EventUserUpsert) {
+		s.UpdateInvitedBy()
+	})
+}
+
 // SetAdmin sets the "admin" field.
 func (u *EventUserUpsertBulk) SetAdmin(v bool) *EventUserUpsertBulk {
 	return u.Update(func(s *EventUserUpsert) {
@@ -692,17 +788,31 @@ func (u *EventUserUpsertBulk) UpdateAdmin() *EventUserUpsertBulk {
 	})
 }
 
-// SetCreatedAt sets the "created_at" field.
-func (u *EventUserUpsertBulk) SetCreatedAt(v time.Time) *EventUserUpsertBulk {
+// SetCreator sets the "creator" field.
+func (u *EventUserUpsertBulk) SetCreator(v bool) *EventUserUpsertBulk {
 	return u.Update(func(s *EventUserUpsert) {
-		s.SetCreatedAt(v)
+		s.SetCreator(v)
 	})
 }
 
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *EventUserUpsertBulk) UpdateCreatedAt() *EventUserUpsertBulk {
+// UpdateCreator sets the "creator" field to the value that was provided on create.
+func (u *EventUserUpsertBulk) UpdateCreator() *EventUserUpsertBulk {
 	return u.Update(func(s *EventUserUpsert) {
-		s.UpdateCreatedAt()
+		s.UpdateCreator()
+	})
+}
+
+// SetConfirmed sets the "confirmed" field.
+func (u *EventUserUpsertBulk) SetConfirmed(v bool) *EventUserUpsertBulk {
+	return u.Update(func(s *EventUserUpsert) {
+		s.SetConfirmed(v)
+	})
+}
+
+// UpdateConfirmed sets the "confirmed" field to the value that was provided on create.
+func (u *EventUserUpsertBulk) UpdateConfirmed() *EventUserUpsertBulk {
+	return u.Update(func(s *EventUserUpsert) {
+		s.UpdateConfirmed()
 	})
 }
 

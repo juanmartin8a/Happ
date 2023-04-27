@@ -3,8 +3,8 @@ package meilisearchUtils
 import (
 	"fmt"
 	"happ/ent"
-	"math"
 	"strconv"
+	"strings"
 
 	// "strconv"
 
@@ -12,7 +12,7 @@ import (
 )
 
 func AddUserToMeili(user *ent.User) bool {
-	index := GetMeiliUsersIndex()
+	index, _ := GetMeiliUsersIndex()
 
 	documents := []map[string]interface{}{
 		{
@@ -28,13 +28,36 @@ func AddUserToMeili(user *ent.User) bool {
 	return err == nil
 }
 
-func GetUsersFromMeili(search string) ([]interface{}, error) {
-	index := GetMeiliUsersIndex()
+func RemoveUserFromMeili(userId int) bool {
+	index, isHealthy := GetMeiliFollowIndex()
+	if !isHealthy {
+		return false
+	}
+
+	_, err := index.DeleteDocument(strconv.Itoa(userId))
+
+	return err == nil
+}
+
+func GetUsersFromMeili(search string, filterNotIn []int) ([]interface{}, error) {
+	index, isHealthy := GetMeiliUsersIndex()
+
+	var emptySearchArray []interface{}
+
+	if !isHealthy {
+		return emptySearchArray, nil
+	}
+
+	var filter string
+	if len(filterNotIn) > 0 {
+		filter = fmt.Sprintf("id NOT IN [%s]", strings.Trim(strings.Join(strings.Fields(fmt.Sprint(filterNotIn)), ","), "[]"))
+	}
 
 	searchRes, err := index.Search(
 		search,
 		&meilisearch.SearchRequest{
-			Limit: 15,
+			Limit:  15,
+			Filter: filter,
 		},
 	)
 	if err != nil {
@@ -45,17 +68,20 @@ func GetUsersFromMeili(search string) ([]interface{}, error) {
 	return searchRes.Hits, nil
 }
 
-func AddFollowToMeili(userId1 int, userId2 int) bool {
-	index := GetMeiliFollowIndex()
+func AddFollowToMeili(userID1 int, userID2 int) bool {
+	index, isHealthy := GetMeiliFollowIndex()
+	if !isHealthy {
+		return false
+	}
 
-	lowestNumberUserId := math.Min(float64(userId1), float64(userId2))
-	highestNumberUserId := math.Max(float64(userId1), float64(userId2))
+	// lowestNumberUserId := math.Min(float64(userId1), float64(userId2))
+	// highestNumberUserId := math.Max(float64(userId1), float64(userId2))
 
 	documents := []map[string]interface{}{
 		{
-			"id":      fmt.Sprintf("%s_%s", strconv.Itoa(int(highestNumberUserId)), strconv.Itoa(int(lowestNumberUserId))),
-			"userID1": int(highestNumberUserId),
-			"userID2": int(lowestNumberUserId),
+			"id":      fmt.Sprintf("%s_%s", strconv.Itoa(userID1), strconv.Itoa(userID2)),
+			"userID1": userID1,
+			"userID2": userID2,
 		},
 	}
 
@@ -65,7 +91,15 @@ func AddFollowToMeili(userId1 int, userId2 int) bool {
 }
 
 func GetFollowFromMeili(id string) (interface{}, error) {
-	index := GetMeiliFollowIndex()
+	index, isHealthy := GetMeiliFollowIndex()
+
+	// var emptySearchArray []interface{}
+
+	if !isHealthy {
+		// return emptySearchArray, nil
+		return nil, fmt.Errorf("error: meilisearch client not healthy")
+
+	}
 
 	var a interface{}
 	err := index.GetDocument(
@@ -81,26 +115,29 @@ func GetFollowFromMeili(id string) (interface{}, error) {
 	return a, nil
 }
 
-func RemoveFollowToMeili(userId1 int, userId2 int) bool {
-	index := GetMeiliFollowIndex()
+func RemoveFollowToMeili(userID1 int, userID2 int) bool {
+	index, isHealthy := GetMeiliFollowIndex()
+	if !isHealthy {
+		return false
+	}
 
-	lowestNumberUserId := math.Min(float64(userId1), float64(userId2))
-	highestNumberUserId := math.Max(float64(userId1), float64(userId2))
+	// lowestNumberUserId := math.Min(float64(userId1), float64(userId2))
+	// highestNumberUserId := math.Max(float64(userId1), float64(userId2))
 
-	id := fmt.Sprintf("%s_%s", strconv.Itoa(int(highestNumberUserId)), strconv.Itoa(int(lowestNumberUserId)))
+	id := fmt.Sprintf("%s_%s", strconv.Itoa(userID1), strconv.Itoa(userID2))
 
 	_, err := index.DeleteDocument(id)
 
 	return err == nil
 }
 
-func UpdateUserFromMeili() {
-	index := GetMeiliUsersIndex()
+// func UpdateUserFromMeili() {
+// 	index, _ := GetMeiliUsersIndex()
 
-	documents := []map[string]interface{}{
-		{"id": 1, "profilePic": "https://d3pvchlba3rmqp.cloudfront.net/userProfilePics/blueLobster.jpg"},
-	}
-	res, err := index.UpdateDocuments(documents)
-	fmt.Println(res)
-	fmt.Println(err)
-}
+// 	documents := []map[string]interface{}{
+// 		{"id": 1, "profilePic": "https://d3pvchlba3rmqp.cloudfront.net/userProfilePics/blueLobster.jpg"},
+// 	}
+// 	res, err := index.UpdateDocuments(documents)
+// 	fmt.Println(res)
+// 	fmt.Println(err)
+// }

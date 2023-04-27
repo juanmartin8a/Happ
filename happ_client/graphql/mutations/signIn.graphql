@@ -6,14 +6,9 @@ mutation SignIn($input: SignInInput!) {
       id
       name
       username
+      followState
+      profilePic
     }
-    tokens {
-      accessToken
-      refreshToken
-    }
-    errors {
-      field
-      message
-    }
+    isNew
   }
 }

@@ -1,0 +1,42 @@
+query GetUserEventsFromFriends($limit: Int!, $idsList: [Int!]!) {
+  getUserEventsFromFriends(limit: $limit, idsList: $idsList) {
+    events {
+      event {
+        id,
+        name,
+        description,
+        eventPics
+        lightEventPics
+        confirmedCount
+        confirmedHosts
+        eventPlace
+        coords {
+          latitude
+          longitude
+        }
+        createdAt
+        updatedAt
+        eventDate
+      }
+      invitedByUserId
+      invitedBy {
+        id
+        username
+        name
+        profilePic
+      }
+      invitedUserInfo {
+        isConfirmed
+        isHost
+        isCreator
+      }
+      friends: friends {
+        id
+        name
+        username
+        profilePic
+      }
+    }
+    hasMore
+	}
+}

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -16,6 +17,8 @@ type User struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// FUID holds the value of the "FUID" field.
+	FUID string `json:"FUID,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Username holds the value of the "username" field.
@@ -24,40 +27,45 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// ProfilePic holds the value of the "profile_pic" field.
 	ProfilePic string `json:"profile_pic,omitempty"`
-	// Birthday holds the value of the "birthday" field.
-	Birthday time.Time `json:"birthday,omitempty"`
-	// Password holds the value of the "password" field.
-	Password string `json:"password,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges UserEdges `json:"edges"`
+	Edges        UserEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
 	// Events holds the value of the events edge.
 	Events []*Event `json:"events,omitempty"`
-	// Friends holds the value of the friends edge.
-	Friends []*User `json:"friends,omitempty"`
 	// Followers holds the value of the followers edge.
 	Followers []*User `json:"followers,omitempty"`
 	// Following holds the value of the following edge.
 	Following []*User `json:"following,omitempty"`
+	// Devices holds the value of the devices edge.
+	Devices []*Device `json:"devices,omitempty"`
+	// EventReminderNotifications holds the value of the event_reminder_notifications edge.
+	EventReminderNotifications []*EventReminderNotification `json:"event_reminder_notifications,omitempty"`
 	// EventUser holds the value of the event_user edge.
 	EventUser []*EventUser `json:"event_user,omitempty"`
-	// Friendships holds the value of the friendships edge.
-	Friendships []*Friendship `json:"friendships,omitempty"`
-	// Follow holds the value of the follow edge.
-	Follow []*Follow `json:"follow,omitempty"`
+	// Follows holds the value of the follows edge.
+	Follows []*Follow `json:"follows,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [7]bool
 	// totalCount holds the count of the edges above.
-	totalCount [4]*int
+	totalCount [5]map[string]int
+
+	namedEvents                     map[string][]*Event
+	namedFollowers                  map[string][]*User
+	namedFollowing                  map[string][]*User
+	namedDevices                    map[string][]*Device
+	namedEventReminderNotifications map[string][]*EventReminderNotification
+	namedEventUser                  map[string][]*EventUser
+	namedFollows                    map[string][]*Follow
 }
 
 // EventsOrErr returns the Events value or an error if the edge
@@ -69,19 +77,10 @@ func (e UserEdges) EventsOrErr() ([]*Event, error) {
 	return nil, &NotLoadedError{edge: "events"}
 }
 
-// FriendsOrErr returns the Friends value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) FriendsOrErr() ([]*User, error) {
-	if e.loadedTypes[1] {
-		return e.Friends, nil
-	}
-	return nil, &NotLoadedError{edge: "friends"}
-}
-
 // FollowersOrErr returns the Followers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FollowersOrErr() ([]*User, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.Followers, nil
 	}
 	return nil, &NotLoadedError{edge: "followers"}
@@ -90,52 +89,61 @@ func (e UserEdges) FollowersOrErr() ([]*User, error) {
 // FollowingOrErr returns the Following value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FollowingOrErr() ([]*User, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[2] {
 		return e.Following, nil
 	}
 	return nil, &NotLoadedError{edge: "following"}
 }
 
+// DevicesOrErr returns the Devices value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) DevicesOrErr() ([]*Device, error) {
+	if e.loadedTypes[3] {
+		return e.Devices, nil
+	}
+	return nil, &NotLoadedError{edge: "devices"}
+}
+
+// EventReminderNotificationsOrErr returns the EventReminderNotifications value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) EventReminderNotificationsOrErr() ([]*EventReminderNotification, error) {
+	if e.loadedTypes[4] {
+		return e.EventReminderNotifications, nil
+	}
+	return nil, &NotLoadedError{edge: "event_reminder_notifications"}
+}
+
 // EventUserOrErr returns the EventUser value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) EventUserOrErr() ([]*EventUser, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.EventUser, nil
 	}
 	return nil, &NotLoadedError{edge: "event_user"}
 }
 
-// FriendshipsOrErr returns the Friendships value or an error if the edge
+// FollowsOrErr returns the Follows value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) FriendshipsOrErr() ([]*Friendship, error) {
-	if e.loadedTypes[5] {
-		return e.Friendships, nil
-	}
-	return nil, &NotLoadedError{edge: "friendships"}
-}
-
-// FollowOrErr returns the Follow value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) FollowOrErr() ([]*Follow, error) {
+func (e UserEdges) FollowsOrErr() ([]*Follow, error) {
 	if e.loadedTypes[6] {
-		return e.Follow, nil
+		return e.Follows, nil
 	}
-	return nil, &NotLoadedError{edge: "follow"}
+	return nil, &NotLoadedError{edge: "follows"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*User) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*User) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldName, user.FieldUsername, user.FieldEmail, user.FieldProfilePic, user.FieldPassword:
+		case user.FieldFUID, user.FieldName, user.FieldUsername, user.FieldEmail, user.FieldProfilePic:
 			values[i] = new(sql.NullString)
-		case user.FieldBirthday, user.FieldCreatedAt, user.FieldUpdatedAt:
+		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -143,7 +151,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the User fields.
-func (u *User) assignValues(columns []string, values []interface{}) error {
+func (u *User) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -155,6 +163,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			u.ID = int(value.Int64)
+		case user.FieldFUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field FUID", values[i])
+			} else if value.Valid {
+				u.FUID = value.String
+			}
 		case user.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -179,18 +193,6 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.ProfilePic = value.String
 			}
-		case user.FieldBirthday:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field birthday", values[i])
-			} else if value.Valid {
-				u.Birthday = value.Time
-			}
-		case user.FieldPassword:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field password", values[i])
-			} else if value.Valid {
-				u.Password = value.String
-			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -203,51 +205,59 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.UpdatedAt = value.Time
 			}
+		default:
+			u.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
-// QueryEvents queries the "events" edge of the User entity.
-func (u *User) QueryEvents() *EventQuery {
-	return (&UserClient{config: u.config}).QueryEvents(u)
+// Value returns the ent.Value that was dynamically selected and assigned to the User.
+// This includes values selected through modifiers, order, etc.
+func (u *User) Value(name string) (ent.Value, error) {
+	return u.selectValues.Get(name)
 }
 
-// QueryFriends queries the "friends" edge of the User entity.
-func (u *User) QueryFriends() *UserQuery {
-	return (&UserClient{config: u.config}).QueryFriends(u)
+// QueryEvents queries the "events" edge of the User entity.
+func (u *User) QueryEvents() *EventQuery {
+	return NewUserClient(u.config).QueryEvents(u)
 }
 
 // QueryFollowers queries the "followers" edge of the User entity.
 func (u *User) QueryFollowers() *UserQuery {
-	return (&UserClient{config: u.config}).QueryFollowers(u)
+	return NewUserClient(u.config).QueryFollowers(u)
 }
 
 // QueryFollowing queries the "following" edge of the User entity.
 func (u *User) QueryFollowing() *UserQuery {
-	return (&UserClient{config: u.config}).QueryFollowing(u)
+	return NewUserClient(u.config).QueryFollowing(u)
+}
+
+// QueryDevices queries the "devices" edge of the User entity.
+func (u *User) QueryDevices() *DeviceQuery {
+	return NewUserClient(u.config).QueryDevices(u)
+}
+
+// QueryEventReminderNotifications queries the "event_reminder_notifications" edge of the User entity.
+func (u *User) QueryEventReminderNotifications() *EventReminderNotificationQuery {
+	return NewUserClient(u.config).QueryEventReminderNotifications(u)
 }
 
 // QueryEventUser queries the "event_user" edge of the User entity.
 func (u *User) QueryEventUser() *EventUserQuery {
-	return (&UserClient{config: u.config}).QueryEventUser(u)
+	return NewUserClient(u.config).QueryEventUser(u)
 }
 
-// QueryFriendships queries the "friendships" edge of the User entity.
-func (u *User) QueryFriendships() *FriendshipQuery {
-	return (&UserClient{config: u.config}).QueryFriendships(u)
-}
-
-// QueryFollow queries the "follow" edge of the User entity.
-func (u *User) QueryFollow() *FollowQuery {
-	return (&UserClient{config: u.config}).QueryFollow(u)
+// QueryFollows queries the "follows" edge of the User entity.
+func (u *User) QueryFollows() *FollowQuery {
+	return NewUserClient(u.config).QueryFollows(u)
 }
 
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (u *User) Update() *UserUpdateOne {
-	return (&UserClient{config: u.config}).UpdateOne(u)
+	return NewUserClient(u.config).UpdateOne(u)
 }
 
 // Unwrap unwraps the User entity that was returned from a transaction after it was closed,
@@ -266,6 +276,9 @@ func (u *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
+	builder.WriteString("FUID=")
+	builder.WriteString(u.FUID)
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(u.Name)
 	builder.WriteString(", ")
@@ -278,12 +291,6 @@ func (u *User) String() string {
 	builder.WriteString("profile_pic=")
 	builder.WriteString(u.ProfilePic)
 	builder.WriteString(", ")
-	builder.WriteString("birthday=")
-	builder.WriteString(u.Birthday.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("password=")
-	builder.WriteString(u.Password)
-	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
@@ -293,11 +300,173 @@ func (u *User) String() string {
 	return builder.String()
 }
 
-// Users is a parsable slice of User.
-type Users []*User
+// NamedEvents returns the Events named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedEvents(name string) ([]*Event, error) {
+	if u.Edges.namedEvents == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedEvents[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
 
-func (u Users) config(cfg config) {
-	for _i := range u {
-		u[_i].config = cfg
+func (u *User) appendNamedEvents(name string, edges ...*Event) {
+	if u.Edges.namedEvents == nil {
+		u.Edges.namedEvents = make(map[string][]*Event)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedEvents[name] = []*Event{}
+	} else {
+		u.Edges.namedEvents[name] = append(u.Edges.namedEvents[name], edges...)
 	}
 }
+
+// NamedFollowers returns the Followers named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedFollowers(name string) ([]*User, error) {
+	if u.Edges.namedFollowers == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedFollowers[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedFollowers(name string, edges ...*User) {
+	if u.Edges.namedFollowers == nil {
+		u.Edges.namedFollowers = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedFollowers[name] = []*User{}
+	} else {
+		u.Edges.namedFollowers[name] = append(u.Edges.namedFollowers[name], edges...)
+	}
+}
+
+// NamedFollowing returns the Following named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedFollowing(name string) ([]*User, error) {
+	if u.Edges.namedFollowing == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedFollowing[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedFollowing(name string, edges ...*User) {
+	if u.Edges.namedFollowing == nil {
+		u.Edges.namedFollowing = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedFollowing[name] = []*User{}
+	} else {
+		u.Edges.namedFollowing[name] = append(u.Edges.namedFollowing[name], edges...)
+	}
+}
+
+// NamedDevices returns the Devices named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedDevices(name string) ([]*Device, error) {
+	if u.Edges.namedDevices == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedDevices[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedDevices(name string, edges ...*Device) {
+	if u.Edges.namedDevices == nil {
+		u.Edges.namedDevices = make(map[string][]*Device)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedDevices[name] = []*Device{}
+	} else {
+		u.Edges.namedDevices[name] = append(u.Edges.namedDevices[name], edges...)
+	}
+}
+
+// NamedEventReminderNotifications returns the EventReminderNotifications named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedEventReminderNotifications(name string) ([]*EventReminderNotification, error) {
+	if u.Edges.namedEventReminderNotifications == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedEventReminderNotifications[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedEventReminderNotifications(name string, edges ...*EventReminderNotification) {
+	if u.Edges.namedEventReminderNotifications == nil {
+		u.Edges.namedEventReminderNotifications = make(map[string][]*EventReminderNotification)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedEventReminderNotifications[name] = []*EventReminderNotification{}
+	} else {
+		u.Edges.namedEventReminderNotifications[name] = append(u.Edges.namedEventReminderNotifications[name], edges...)
+	}
+}
+
+// NamedEventUser returns the EventUser named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedEventUser(name string) ([]*EventUser, error) {
+	if u.Edges.namedEventUser == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedEventUser[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedEventUser(name string, edges ...*EventUser) {
+	if u.Edges.namedEventUser == nil {
+		u.Edges.namedEventUser = make(map[string][]*EventUser)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedEventUser[name] = []*EventUser{}
+	} else {
+		u.Edges.namedEventUser[name] = append(u.Edges.namedEventUser[name], edges...)
+	}
+}
+
+// NamedFollows returns the Follows named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedFollows(name string) ([]*Follow, error) {
+	if u.Edges.namedFollows == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedFollows[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedFollows(name string, edges ...*Follow) {
+	if u.Edges.namedFollows == nil {
+		u.Edges.namedFollows = make(map[string][]*Follow)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedFollows[name] = []*Follow{}
+	} else {
+		u.Edges.namedFollows[name] = append(u.Edges.namedFollows[name], edges...)
+	}
+}
+
+// Users is a parsable slice of User.
+type Users []*User

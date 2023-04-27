@@ -4,10 +4,13 @@ import 'package:happ_client/src/utils/network/networkUtils.dart';
 import 'package:happ_client/src/riverpod/locationSearch/locationSearchState.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/utils/constants.dart';
+import 'package:uuid/uuid.dart';
 
 class LocationSearchController extends StateNotifier<LocationSearchState> {
 
   LocationSearchController() : super(LocationSearchInitState());
+
+  String uuid = Uuid().v4();
 
   void search(
     String search,

@@ -33,6 +33,7 @@ class AddRemoveUserController extends StateNotifier<AddRemoveState> {
       }
       // return to see if unchaged is == true
       final res = await userRepo.addOrRemoveUser(followUserId, isFollow);
+      print("grrrrrrr");
       // print(res);
       // if (res.value == 1) {
       //   state = AddRemoveAddState(res: res, operationId: newOperationId,);

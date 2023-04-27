@@ -41,6 +41,19 @@ func (euu *EventUserUpdate) SetUserID(i int) *EventUserUpdate {
 	return euu
 }
 
+// SetInvitedBy sets the "invited_by" field.
+func (euu *EventUserUpdate) SetInvitedBy(i int) *EventUserUpdate {
+	euu.mutation.ResetInvitedBy()
+	euu.mutation.SetInvitedBy(i)
+	return euu
+}
+
+// AddInvitedBy adds i to the "invited_by" field.
+func (euu *EventUserUpdate) AddInvitedBy(i int) *EventUserUpdate {
+	euu.mutation.AddInvitedBy(i)
+	return euu
+}
+
 // SetAdmin sets the "admin" field.
 func (euu *EventUserUpdate) SetAdmin(b bool) *EventUserUpdate {
 	euu.mutation.SetAdmin(b)
@@ -51,6 +64,34 @@ func (euu *EventUserUpdate) SetAdmin(b bool) *EventUserUpdate {
 func (euu *EventUserUpdate) SetNillableAdmin(b *bool) *EventUserUpdate {
 	if b != nil {
 		euu.SetAdmin(*b)
+	}
+	return euu
+}
+
+// SetCreator sets the "creator" field.
+func (euu *EventUserUpdate) SetCreator(b bool) *EventUserUpdate {
+	euu.mutation.SetCreator(b)
+	return euu
+}
+
+// SetNillableCreator sets the "creator" field if the given value is not nil.
+func (euu *EventUserUpdate) SetNillableCreator(b *bool) *EventUserUpdate {
+	if b != nil {
+		euu.SetCreator(*b)
+	}
+	return euu
+}
+
+// SetConfirmed sets the "confirmed" field.
+func (euu *EventUserUpdate) SetConfirmed(b bool) *EventUserUpdate {
+	euu.mutation.SetConfirmed(b)
+	return euu
+}
+
+// SetNillableConfirmed sets the "confirmed" field if the given value is not nil.
+func (euu *EventUserUpdate) SetNillableConfirmed(b *bool) *EventUserUpdate {
+	if b != nil {
+		euu.SetConfirmed(*b)
 	}
 	return euu
 }
@@ -84,40 +125,7 @@ func (euu *EventUserUpdate) ClearUser() *EventUserUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (euu *EventUserUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(euu.hooks) == 0 {
-		if err = euu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = euu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EventUserMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = euu.check(); err != nil {
-				return 0, err
-			}
-			euu.mutation = mutation
-			affected, err = euu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(euu.hooks) - 1; i >= 0; i-- {
-			if euu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = euu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, euu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, EventUserMutation](ctx, euu.sqlSave, euu.mutation, euu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -154,22 +162,10 @@ func (euu *EventUserUpdate) check() error {
 }
 
 func (euu *EventUserUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   eventuser.Table,
-			Columns: eventuser.Columns,
-			CompositeID: []*sqlgraph.FieldSpec{
-				{
-					Type:   field.TypeInt,
-					Column: eventuser.FieldEventID,
-				},
-				{
-					Type:   field.TypeInt,
-					Column: eventuser.FieldUserID,
-				},
-			},
-		},
+	if err := euu.check(); err != nil {
+		return n, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(eventuser.Table, eventuser.Columns, sqlgraph.NewFieldSpec(eventuser.FieldEventID, field.TypeInt), sqlgraph.NewFieldSpec(eventuser.FieldUserID, field.TypeInt))
 	if ps := euu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -177,12 +173,20 @@ func (euu *EventUserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := euu.mutation.InvitedBy(); ok {
+		_spec.SetField(eventuser.FieldInvitedBy, field.TypeInt, value)
+	}
+	if value, ok := euu.mutation.AddedInvitedBy(); ok {
+		_spec.AddField(eventuser.FieldInvitedBy, field.TypeInt, value)
+	}
 	if value, ok := euu.mutation.Admin(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: eventuser.FieldAdmin,
-		})
+		_spec.SetField(eventuser.FieldAdmin, field.TypeBool, value)
+	}
+	if value, ok := euu.mutation.Creator(); ok {
+		_spec.SetField(eventuser.FieldCreator, field.TypeBool, value)
+	}
+	if value, ok := euu.mutation.Confirmed(); ok {
+		_spec.SetField(eventuser.FieldConfirmed, field.TypeBool, value)
 	}
 	if euu.mutation.EventCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -192,10 +196,7 @@ func (euu *EventUserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{eventuser.EventColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -208,10 +209,7 @@ func (euu *EventUserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{eventuser.EventColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -227,10 +225,7 @@ func (euu *EventUserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{eventuser.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -243,10 +238,7 @@ func (euu *EventUserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{eventuser.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -262,6 +254,7 @@ func (euu *EventUserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	euu.mutation.done = true
 	return n, nil
 }
 
@@ -285,6 +278,19 @@ func (euuo *EventUserUpdateOne) SetUserID(i int) *EventUserUpdateOne {
 	return euuo
 }
 
+// SetInvitedBy sets the "invited_by" field.
+func (euuo *EventUserUpdateOne) SetInvitedBy(i int) *EventUserUpdateOne {
+	euuo.mutation.ResetInvitedBy()
+	euuo.mutation.SetInvitedBy(i)
+	return euuo
+}
+
+// AddInvitedBy adds i to the "invited_by" field.
+func (euuo *EventUserUpdateOne) AddInvitedBy(i int) *EventUserUpdateOne {
+	euuo.mutation.AddInvitedBy(i)
+	return euuo
+}
+
 // SetAdmin sets the "admin" field.
 func (euuo *EventUserUpdateOne) SetAdmin(b bool) *EventUserUpdateOne {
 	euuo.mutation.SetAdmin(b)
@@ -295,6 +301,34 @@ func (euuo *EventUserUpdateOne) SetAdmin(b bool) *EventUserUpdateOne {
 func (euuo *EventUserUpdateOne) SetNillableAdmin(b *bool) *EventUserUpdateOne {
 	if b != nil {
 		euuo.SetAdmin(*b)
+	}
+	return euuo
+}
+
+// SetCreator sets the "creator" field.
+func (euuo *EventUserUpdateOne) SetCreator(b bool) *EventUserUpdateOne {
+	euuo.mutation.SetCreator(b)
+	return euuo
+}
+
+// SetNillableCreator sets the "creator" field if the given value is not nil.
+func (euuo *EventUserUpdateOne) SetNillableCreator(b *bool) *EventUserUpdateOne {
+	if b != nil {
+		euuo.SetCreator(*b)
+	}
+	return euuo
+}
+
+// SetConfirmed sets the "confirmed" field.
+func (euuo *EventUserUpdateOne) SetConfirmed(b bool) *EventUserUpdateOne {
+	euuo.mutation.SetConfirmed(b)
+	return euuo
+}
+
+// SetNillableConfirmed sets the "confirmed" field if the given value is not nil.
+func (euuo *EventUserUpdateOne) SetNillableConfirmed(b *bool) *EventUserUpdateOne {
+	if b != nil {
+		euuo.SetConfirmed(*b)
 	}
 	return euuo
 }
@@ -326,6 +360,12 @@ func (euuo *EventUserUpdateOne) ClearUser() *EventUserUpdateOne {
 	return euuo
 }
 
+// Where appends a list predicates to the EventUserUpdate builder.
+func (euuo *EventUserUpdateOne) Where(ps ...predicate.EventUser) *EventUserUpdateOne {
+	euuo.mutation.Where(ps...)
+	return euuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (euuo *EventUserUpdateOne) Select(field string, fields ...string) *EventUserUpdateOne {
@@ -335,46 +375,7 @@ func (euuo *EventUserUpdateOne) Select(field string, fields ...string) *EventUse
 
 // Save executes the query and returns the updated EventUser entity.
 func (euuo *EventUserUpdateOne) Save(ctx context.Context) (*EventUser, error) {
-	var (
-		err  error
-		node *EventUser
-	)
-	if len(euuo.hooks) == 0 {
-		if err = euuo.check(); err != nil {
-			return nil, err
-		}
-		node, err = euuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EventUserMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = euuo.check(); err != nil {
-				return nil, err
-			}
-			euuo.mutation = mutation
-			node, err = euuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(euuo.hooks) - 1; i >= 0; i-- {
-			if euuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = euuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, euuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*EventUser)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from EventUserMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*EventUser, EventUserMutation](ctx, euuo.sqlSave, euuo.mutation, euuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -411,22 +412,10 @@ func (euuo *EventUserUpdateOne) check() error {
 }
 
 func (euuo *EventUserUpdateOne) sqlSave(ctx context.Context) (_node *EventUser, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   eventuser.Table,
-			Columns: eventuser.Columns,
-			CompositeID: []*sqlgraph.FieldSpec{
-				{
-					Type:   field.TypeInt,
-					Column: eventuser.FieldEventID,
-				},
-				{
-					Type:   field.TypeInt,
-					Column: eventuser.FieldUserID,
-				},
-			},
-		},
+	if err := euuo.check(); err != nil {
+		return _node, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(eventuser.Table, eventuser.Columns, sqlgraph.NewFieldSpec(eventuser.FieldEventID, field.TypeInt), sqlgraph.NewFieldSpec(eventuser.FieldUserID, field.TypeInt))
 	if id, ok := euuo.mutation.EventID(); !ok {
 		return nil, &ValidationError{Name: "event_id", err: errors.New(`ent: missing "EventUser.event_id" for update`)}
 	} else {
@@ -453,12 +442,20 @@ func (euuo *EventUserUpdateOne) sqlSave(ctx context.Context) (_node *EventUser, 
 			}
 		}
 	}
+	if value, ok := euuo.mutation.InvitedBy(); ok {
+		_spec.SetField(eventuser.FieldInvitedBy, field.TypeInt, value)
+	}
+	if value, ok := euuo.mutation.AddedInvitedBy(); ok {
+		_spec.AddField(eventuser.FieldInvitedBy, field.TypeInt, value)
+	}
 	if value, ok := euuo.mutation.Admin(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: eventuser.FieldAdmin,
-		})
+		_spec.SetField(eventuser.FieldAdmin, field.TypeBool, value)
+	}
+	if value, ok := euuo.mutation.Creator(); ok {
+		_spec.SetField(eventuser.FieldCreator, field.TypeBool, value)
+	}
+	if value, ok := euuo.mutation.Confirmed(); ok {
+		_spec.SetField(eventuser.FieldConfirmed, field.TypeBool, value)
 	}
 	if euuo.mutation.EventCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -468,10 +465,7 @@ func (euuo *EventUserUpdateOne) sqlSave(ctx context.Context) (_node *EventUser, 
 			Columns: []string{eventuser.EventColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -484,10 +478,7 @@ func (euuo *EventUserUpdateOne) sqlSave(ctx context.Context) (_node *EventUser, 
 			Columns: []string{eventuser.EventColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -503,10 +494,7 @@ func (euuo *EventUserUpdateOne) sqlSave(ctx context.Context) (_node *EventUser, 
 			Columns: []string{eventuser.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -519,10 +507,7 @@ func (euuo *EventUserUpdateOne) sqlSave(ctx context.Context) (_node *EventUser, 
 			Columns: []string{eventuser.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -541,5 +526,6 @@ func (euuo *EventUserUpdateOne) sqlSave(ctx context.Context) (_node *EventUser, 
 		}
 		return nil, err
 	}
+	euuo.mutation.done = true
 	return _node, nil
 }

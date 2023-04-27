@@ -4,6 +4,9 @@ package user
 
 import (
 	"time"
+
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -11,6 +14,8 @@ const (
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldFUID holds the string denoting the fuid field in the database.
+	FieldFUID = "fuid"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldUsername holds the string denoting the username field in the database.
@@ -19,28 +24,24 @@ const (
 	FieldEmail = "email"
 	// FieldProfilePic holds the string denoting the profile_pic field in the database.
 	FieldProfilePic = "profile_pic"
-	// FieldBirthday holds the string denoting the birthday field in the database.
-	FieldBirthday = "birthday"
-	// FieldPassword holds the string denoting the password field in the database.
-	FieldPassword = "password"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
 	// EdgeEvents holds the string denoting the events edge name in mutations.
 	EdgeEvents = "events"
-	// EdgeFriends holds the string denoting the friends edge name in mutations.
-	EdgeFriends = "friends"
 	// EdgeFollowers holds the string denoting the followers edge name in mutations.
 	EdgeFollowers = "followers"
 	// EdgeFollowing holds the string denoting the following edge name in mutations.
 	EdgeFollowing = "following"
+	// EdgeDevices holds the string denoting the devices edge name in mutations.
+	EdgeDevices = "devices"
+	// EdgeEventReminderNotifications holds the string denoting the event_reminder_notifications edge name in mutations.
+	EdgeEventReminderNotifications = "event_reminder_notifications"
 	// EdgeEventUser holds the string denoting the event_user edge name in mutations.
 	EdgeEventUser = "event_user"
-	// EdgeFriendships holds the string denoting the friendships edge name in mutations.
-	EdgeFriendships = "friendships"
-	// EdgeFollow holds the string denoting the follow edge name in mutations.
-	EdgeFollow = "follow"
+	// EdgeFollows holds the string denoting the follows edge name in mutations.
+	EdgeFollows = "follows"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// EventsTable is the table that holds the events relation/edge. The primary key declared below.
@@ -48,12 +49,24 @@ const (
 	// EventsInverseTable is the table name for the Event entity.
 	// It exists in this package in order to avoid circular dependency with the "event" package.
 	EventsInverseTable = "events"
-	// FriendsTable is the table that holds the friends relation/edge. The primary key declared below.
-	FriendsTable = "friendships"
 	// FollowersTable is the table that holds the followers relation/edge. The primary key declared below.
 	FollowersTable = "follows"
 	// FollowingTable is the table that holds the following relation/edge. The primary key declared below.
-	FollowingTable = "user_following"
+	FollowingTable = "follows"
+	// DevicesTable is the table that holds the devices relation/edge.
+	DevicesTable = "devices"
+	// DevicesInverseTable is the table name for the Device entity.
+	// It exists in this package in order to avoid circular dependency with the "device" package.
+	DevicesInverseTable = "devices"
+	// DevicesColumn is the table column denoting the devices relation/edge.
+	DevicesColumn = "user_devices"
+	// EventReminderNotificationsTable is the table that holds the event_reminder_notifications relation/edge.
+	EventReminderNotificationsTable = "event_reminder_notifications"
+	// EventReminderNotificationsInverseTable is the table name for the EventReminderNotification entity.
+	// It exists in this package in order to avoid circular dependency with the "eventremindernotification" package.
+	EventReminderNotificationsInverseTable = "event_reminder_notifications"
+	// EventReminderNotificationsColumn is the table column denoting the event_reminder_notifications relation/edge.
+	EventReminderNotificationsColumn = "user_id"
 	// EventUserTable is the table that holds the event_user relation/edge.
 	EventUserTable = "event_users"
 	// EventUserInverseTable is the table name for the EventUser entity.
@@ -61,31 +74,23 @@ const (
 	EventUserInverseTable = "event_users"
 	// EventUserColumn is the table column denoting the event_user relation/edge.
 	EventUserColumn = "user_id"
-	// FriendshipsTable is the table that holds the friendships relation/edge.
-	FriendshipsTable = "friendships"
-	// FriendshipsInverseTable is the table name for the Friendship entity.
-	// It exists in this package in order to avoid circular dependency with the "friendship" package.
-	FriendshipsInverseTable = "friendships"
-	// FriendshipsColumn is the table column denoting the friendships relation/edge.
-	FriendshipsColumn = "user_id"
-	// FollowTable is the table that holds the follow relation/edge.
-	FollowTable = "follows"
-	// FollowInverseTable is the table name for the Follow entity.
+	// FollowsTable is the table that holds the follows relation/edge.
+	FollowsTable = "follows"
+	// FollowsInverseTable is the table name for the Follow entity.
 	// It exists in this package in order to avoid circular dependency with the "follow" package.
-	FollowInverseTable = "follows"
-	// FollowColumn is the table column denoting the follow relation/edge.
-	FollowColumn = "follower_id"
+	FollowsInverseTable = "follows"
+	// FollowsColumn is the table column denoting the follows relation/edge.
+	FollowsColumn = "follower_id"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
+	FieldFUID,
 	FieldName,
 	FieldUsername,
 	FieldEmail,
 	FieldProfilePic,
-	FieldBirthday,
-	FieldPassword,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -94,9 +99,6 @@ var (
 	// EventsPrimaryKey and EventsColumn2 are the table columns denoting the
 	// primary key for the events relation (M2M).
 	EventsPrimaryKey = []string{"event_id", "user_id"}
-	// FriendsPrimaryKey and FriendsColumn2 are the table columns denoting the
-	// primary key for the friends relation (M2M).
-	FriendsPrimaryKey = []string{"user_id", "friend_id"}
 	// FollowersPrimaryKey and FollowersColumn2 are the table columns denoting the
 	// primary key for the followers relation (M2M).
 	FollowersPrimaryKey = []string{"user_id", "follower_id"}
@@ -116,6 +118,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// FUIDValidator is a validator for the "FUID" field. It is called by the builders before save.
+	FUIDValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
@@ -124,10 +128,198 @@ var (
 	EmailValidator func(string) error
 	// ProfilePicValidator is a validator for the "profile_pic" field. It is called by the builders before save.
 	ProfilePicValidator func(string) error
-	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
-	PasswordValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
 	DefaultUpdatedAt func() time.Time
 )
+
+// OrderOption defines the ordering options for the User queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByFUID orders the results by the FUID field.
+func ByFUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFUID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByUsername orders the results by the username field.
+func ByUsername(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUsername, opts...).ToFunc()
+}
+
+// ByEmail orders the results by the email field.
+func ByEmail(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEmail, opts...).ToFunc()
+}
+
+// ByProfilePic orders the results by the profile_pic field.
+func ByProfilePic(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProfilePic, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByEventsCount orders the results by events count.
+func ByEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEventsStep(), opts...)
+	}
+}
+
+// ByEvents orders the results by events terms.
+func ByEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFollowersCount orders the results by followers count.
+func ByFollowersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFollowersStep(), opts...)
+	}
+}
+
+// ByFollowers orders the results by followers terms.
+func ByFollowers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFollowersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFollowingCount orders the results by following count.
+func ByFollowingCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFollowingStep(), opts...)
+	}
+}
+
+// ByFollowing orders the results by following terms.
+func ByFollowing(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFollowingStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDevicesCount orders the results by devices count.
+func ByDevicesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDevicesStep(), opts...)
+	}
+}
+
+// ByDevices orders the results by devices terms.
+func ByDevices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDevicesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByEventReminderNotificationsCount orders the results by event_reminder_notifications count.
+func ByEventReminderNotificationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEventReminderNotificationsStep(), opts...)
+	}
+}
+
+// ByEventReminderNotifications orders the results by event_reminder_notifications terms.
+func ByEventReminderNotifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEventReminderNotificationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByEventUserCount orders the results by event_user count.
+func ByEventUserCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEventUserStep(), opts...)
+	}
+}
+
+// ByEventUser orders the results by event_user terms.
+func ByEventUser(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEventUserStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFollowsCount orders the results by follows count.
+func ByFollowsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFollowsStep(), opts...)
+	}
+}
+
+// ByFollows orders the results by follows terms.
+func ByFollows(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFollowsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, EventsTable, EventsPrimaryKey...),
+	)
+}
+func newFollowersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, FollowersTable, FollowersPrimaryKey...),
+	)
+}
+func newFollowingStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, FollowingTable, FollowingPrimaryKey...),
+	)
+}
+func newDevicesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DevicesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DevicesTable, DevicesColumn),
+	)
+}
+func newEventReminderNotificationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EventReminderNotificationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EventReminderNotificationsTable, EventReminderNotificationsColumn),
+	)
+}
+func newEventUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EventUserInverseTable, EventUserColumn),
+		sqlgraph.Edge(sqlgraph.O2M, true, EventUserTable, EventUserColumn),
+	)
+}
+func newFollowsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FollowsInverseTable, FollowsColumn),
+		sqlgraph.Edge(sqlgraph.O2M, true, FollowsTable, FollowsColumn),
+	)
+}

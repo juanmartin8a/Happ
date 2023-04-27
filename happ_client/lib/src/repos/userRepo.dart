@@ -16,6 +16,8 @@ class UserRepo {
       UserOptions().userAccessQueryOptions()
     );
 
+    print(result);
+
     if (result.hasException) {
       throw (result.exception as OperationException);
     } else {
@@ -25,79 +27,64 @@ class UserRepo {
     }
   }
 
-  Future<SignIn$Mutation$UserAuthResponse> signIn(
-    String usernameOrEmail, String password
+  Future<SignIn$Mutation$SignInResponse> signIn(
+    String token,
+    SignInProvider provider,
+    String? name,
+    String? authorizationCode
   ) async {
     final result = await client.mutate(
-      UserOptions().signInMutationOptions(usernameOrEmail, password)
+      UserOptions().signInMutationOptions(token, provider, name, authorizationCode)
     );
+
+    print("result");
+    print(result);
 
     if (result.hasException) {
       throw (result.exception as OperationException);
     } else {
-      if ((result.data as Map<String, dynamic>)["signIn"]["tokens"] != null) {
-        // print(result.data);
-        await JWT().createJWTS(
-          (result.data as Map<String, dynamic>)["signIn"]["tokens"]["accessToken"],
-          (result.data as Map<String, dynamic>)["signIn"]["tokens"]["refreshToken"]
-        );
-        var refreshToken = await JWT().getRefreshJWT();
+      // if ((result.data as Map<String, dynamic>)["signIn"]["tokens"] != null) {
+      //   // print(result.data);
+      //   // await JWT().createJWTS(
+      //   //   (result.data as Map<String, dynamic>)["signIn"]["tokens"]["accessToken"],
+      //   //   (result.data as Map<String, dynamic>)["signIn"]["tokens"]["refreshToken"]
+      //   // );
+      //   // var refreshToken = await JWT().getRefreshJWT();
 
-        print("refresh token is: $refreshToken");
-      }
-      print((result.data as Map<String, dynamic>)["signIn"]["user"]["id"].runtimeType);
-      return SignIn$Mutation$UserAuthResponse.fromJson(
+      //   // print("refresh token is: $refreshToken");
+      // }
+      // print((result.data as Map<String, dynamic>)["signIn"]["user"]["id"].runtimeType);
+      return SignIn$Mutation$SignInResponse.fromJson(
         (result.data as Map<String, dynamic>)["signIn"]
       );
     }
   }
 
-  Future<SignUp$Mutation$UserAuthResponse> signUp(
-    String name,
-    String username,
-    String email, 
-    String password,
-    String birthday,
-  ) async {
-    final result = await client.mutate(
-      UserOptions().signUpMutationOptions(name, username, email, password,birthday)
-    );
+  // Future<SignUp$Mutation$UserAuthResponse> signUp(
+  //   String name,
+  //   String username,
+  //   String email, 
+  //   String password,
+  //   String birthday,
+  // ) async {
+  //   final result = await client.mutate(
+  //     UserOptions().signUpMutationOptions(name, username, email, password,birthday)
+  //   );
 
-    if (result.hasException) {
-      throw (result.exception as OperationException);
-    } else {
-      if ((result.data as Map<String, dynamic>)["signUp"]["tokens"] != null) {
-        await JWT().createJWTS(
-          (result.data as Map<String, dynamic>)["signUp"]["tokens"]["accessToken"],
-          (result.data as Map<String, dynamic>)["signUp"]["tokens"]["refreshToken"]
-        );
-      }
-      return SignUp$Mutation$UserAuthResponse.fromJson(
-        (result.data as Map<String, dynamic>)["signUp"]
-      );
-    }
-  }
-
-  Future<QueryResult> refreshTokens(String token) async {
-    print("sapo");
-    final result = await client.mutate(
-      UserOptions().refreshTokensMutationOptions(token)
-    );
-
-    print(result);
-
-    if (result.hasException) {
-      await JWT().deleteJWTS();
-      throw (result.exception as OperationException);
-    } else {
-      await JWT().createJWTS(
-        result.data!["refreshTokens"]["accessToken"],
-        result.data!["refreshTokens"]["refreshToken"]
-      );
-    }
-
-    return result;
-  }
+  //   if (result.hasException) {
+  //     throw (result.exception as OperationException);
+  //   } else {
+  //     if ((result.data as Map<String, dynamic>)["signUp"]["tokens"] != null) {
+  //       await JWT().createJWTS(
+  //         (result.data as Map<String, dynamic>)["signUp"]["tokens"]["accessToken"],
+  //         (result.data as Map<String, dynamic>)["signUp"]["tokens"]["refreshToken"]
+  //       );
+  //     }
+  //     return SignUp$Mutation$UserAuthResponse.fromJson(
+  //       (result.data as Map<String, dynamic>)["signUp"]
+  //     );
+  //   }
+  // }
 
   Future<UserFromId$Query$User> getUser(
     int userId
@@ -116,18 +103,32 @@ class UserRepo {
   }
 
   Future<SearchUsers$Query> searchUsers(
-    String search
+    String search,
+    int userSearching
   ) async {
     final result = await client.query(
-      UserOptions().searchUsersQueryOptions(search)
+      UserOptions().searchUsersQueryOptions(search, userSearching)
     );
-
-    print(result);
 
     if (result.hasException) {
       throw (result.exception as OperationException);
     } else {
       return SearchUsers$Query.fromJson(result.data as Map<String, dynamic>);
+    }
+  }
+
+  Future<SearchForUsersToAddAsGuests$Query> searchUsersToAddAsGuests(
+    String search,
+    int eventId
+  ) async {
+    final result = await client.query(
+      UserOptions().searchUsersToAddAsGuestsQueryOptions(search, eventId)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return SearchForUsersToAddAsGuests$Query.fromJson(result.data as Map<String, dynamic>);
     }
   }
 
@@ -144,6 +145,22 @@ class UserRepo {
     } else {
       return AddOrRemoveUser$Mutation$AddResponse.fromJson(
         (result.data as Map<String, dynamic>)["addOrRemoveUser"]
+      );
+    }
+  }
+
+  Future<SaveDevice$Mutation> saveDevice(
+    String token,
+  ) async {
+    final result = await client.mutate(
+      UserOptions().saveDeviceMutationOptions(token)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return SaveDevice$Mutation.fromJson(
+        result.data!
       );
     }
   }

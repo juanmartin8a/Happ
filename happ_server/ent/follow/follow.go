@@ -4,6 +4,9 @@ package follow
 
 import (
 	"time"
+
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -65,3 +68,54 @@ var (
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )
+
+// OrderOption defines the ordering options for the Follow queries.
+type OrderOption func(*sql.Selector)
+
+// ByUserID orders the results by the user_id field.
+func ByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByFollowerID orders the results by the follower_id field.
+func ByFollowerID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFollowerID, opts...).ToFunc()
+}
+
+// ByValid orders the results by the valid field.
+func ByValid(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldValid, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUserField orders the results by user field.
+func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByFollowerField orders the results by follower field.
+func ByFollowerField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFollowerStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, UserColumn),
+		sqlgraph.To(UserInverseTable, UserFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, UserTable, UserColumn),
+	)
+}
+func newFollowerStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FollowerColumn),
+		sqlgraph.To(FollowerInverseTable, UserFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, FollowerTable, FollowerColumn),
+	)
+}

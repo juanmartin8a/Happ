@@ -8,17 +8,40 @@ import (
 	"happ/ent"
 )
 
+// The DeviceFunc type is an adapter to allow the use of ordinary
+// function as Device mutator.
+type DeviceFunc func(context.Context, *ent.DeviceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DeviceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DeviceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeviceMutation", m)
+}
+
 // The EventFunc type is an adapter to allow the use of ordinary
 // function as Event mutator.
 type EventFunc func(context.Context, *ent.EventMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f EventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.EventMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EventMutation", m)
+	if mv, ok := m.(*ent.EventMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EventMutation", m)
+}
+
+// The EventReminderNotificationFunc type is an adapter to allow the use of ordinary
+// function as EventReminderNotification mutator.
+type EventReminderNotificationFunc func(context.Context, *ent.EventReminderNotificationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EventReminderNotificationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EventReminderNotificationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EventReminderNotificationMutation", m)
 }
 
 // The EventUserFunc type is an adapter to allow the use of ordinary
@@ -27,11 +50,10 @@ type EventUserFunc func(context.Context, *ent.EventUserMutation) (ent.Value, err
 
 // Mutate calls f(ctx, m).
 func (f EventUserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.EventUserMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EventUserMutation", m)
+	if mv, ok := m.(*ent.EventUserMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EventUserMutation", m)
 }
 
 // The FollowFunc type is an adapter to allow the use of ordinary
@@ -40,24 +62,10 @@ type FollowFunc func(context.Context, *ent.FollowMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f FollowFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.FollowMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FollowMutation", m)
+	if mv, ok := m.(*ent.FollowMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
-}
-
-// The FriendshipFunc type is an adapter to allow the use of ordinary
-// function as Friendship mutator.
-type FriendshipFunc func(context.Context, *ent.FriendshipMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f FriendshipFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.FriendshipMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FriendshipMutation", m)
-	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FollowMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
@@ -66,11 +74,10 @@ type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.UserMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+	if mv, ok := m.(*ent.UserMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
 }
 
 // Condition is a hook condition function.

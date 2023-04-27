@@ -1,3 +1,4 @@
+import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/repos/userRepo.dart';
 import 'package:happ_client/src/riverpod/signIn/signInState.dart';
 import 'package:happ_client/src/riverpod/userAccess/userAccess.dart';
@@ -11,10 +12,15 @@ class SignInController extends StateNotifier<SignInState> {
 
   UserAccessController get userAccess => UserAccessController();
 
-  void signIn(String usernameOrEmail, String password) async {
+  void signIn(
+    String token,
+    SignInProvider provider,
+    String? name,
+    String? authorizationCode
+  ) async {
     state = SignInLoadingState();
     try {
-      final res = await userRepo.signIn(usernameOrEmail, password);
+      final res = await userRepo.signIn(token, provider, name, authorizationCode);
       state = SignInDoneState(signInRes: res);
     } catch (e) {
       print(e);

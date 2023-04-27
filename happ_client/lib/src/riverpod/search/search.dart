@@ -3,16 +3,21 @@ import 'package:happ_client/src/repos/userRepo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/riverpod/search/searchState.dart';
 
+import '../../utils/user/currentUser.dart';
+
 class SearchController extends StateNotifier<SearchState> {
 
-  SearchController() : super(SearchInitState());
+  final UserFromId$Query$User currentUser;
+
+  SearchController({required this.currentUser}) : super(SearchInitState());
 
   UserRepo get userRepo => UserRepo();
 
+  // ADD userSearching here
   void searchUsers(String search) async {
     // state = ProfileLoadingState();
     try {
-      final res = await userRepo.searchUsers(search);
+      final res = await userRepo.searchUsers(search, currentUser.id);
       // print(res);
       state = SearchLoadedState(searchUsersRes: res.searchUsers);
     } catch (e) {
@@ -37,7 +42,7 @@ class SearchController extends StateNotifier<SearchState> {
   }
 }
 
-final searchProvider =
-  StateNotifierProvider<SearchController, SearchState>(
-    (ref) => SearchController()
-  );
+// final searchProvider =
+//   StateNotifierProvider<SearchController, SearchState>(
+//     (ref) => SearchController()
+//   );

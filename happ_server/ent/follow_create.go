@@ -80,48 +80,8 @@ func (fc *FollowCreate) Mutation() *FollowMutation {
 
 // Save creates the Follow in the database.
 func (fc *FollowCreate) Save(ctx context.Context) (*Follow, error) {
-	var (
-		err  error
-		node *Follow
-	)
 	fc.defaults()
-	if len(fc.hooks) == 0 {
-		if err = fc.check(); err != nil {
-			return nil, err
-		}
-		node, err = fc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*FollowMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = fc.check(); err != nil {
-				return nil, err
-			}
-			fc.mutation = mutation
-			if node, err = fc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			return node, err
-		})
-		for i := len(fc.hooks) - 1; i >= 0; i-- {
-			if fc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = fc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, fc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Follow)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from FollowMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Follow, FollowMutation](ctx, fc.sqlSave, fc.mutation, fc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -182,6 +142,9 @@ func (fc *FollowCreate) check() error {
 }
 
 func (fc *FollowCreate) sqlSave(ctx context.Context) (*Follow, error) {
+	if err := fc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := fc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, fc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -195,25 +158,15 @@ func (fc *FollowCreate) sqlSave(ctx context.Context) (*Follow, error) {
 func (fc *FollowCreate) createSpec() (*Follow, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Follow{config: fc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: follow.Table,
-		}
+		_spec = sqlgraph.NewCreateSpec(follow.Table, nil)
 	)
 	_spec.OnConflict = fc.conflict
 	if value, ok := fc.mutation.Valid(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: follow.FieldValid,
-		})
+		_spec.SetField(follow.FieldValid, field.TypeBool, value)
 		_node.Valid = value
 	}
 	if value, ok := fc.mutation.CreatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: follow.FieldCreatedAt,
-		})
+		_spec.SetField(follow.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if nodes := fc.mutation.UserIDs(); len(nodes) > 0 {
@@ -224,10 +177,7 @@ func (fc *FollowCreate) createSpec() (*Follow, *sqlgraph.CreateSpec) {
 			Columns: []string{follow.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -244,10 +194,7 @@ func (fc *FollowCreate) createSpec() (*Follow, *sqlgraph.CreateSpec) {
 			Columns: []string{follow.FollowerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -346,18 +293,6 @@ func (u *FollowUpsert) UpdateValid() *FollowUpsert {
 	return u
 }
 
-// SetCreatedAt sets the "created_at" field.
-func (u *FollowUpsert) SetCreatedAt(v time.Time) *FollowUpsert {
-	u.Set(follow.FieldCreatedAt, v)
-	return u
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *FollowUpsert) UpdateCreatedAt() *FollowUpsert {
-	u.SetExcluded(follow.FieldCreatedAt)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -447,20 +382,6 @@ func (u *FollowUpsertOne) UpdateValid() *FollowUpsertOne {
 	})
 }
 
-// SetCreatedAt sets the "created_at" field.
-func (u *FollowUpsertOne) SetCreatedAt(v time.Time) *FollowUpsertOne {
-	return u.Update(func(s *FollowUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *FollowUpsertOne) UpdateCreatedAt() *FollowUpsertOne {
-	return u.Update(func(s *FollowUpsert) {
-		s.UpdateCreatedAt()
-	})
-}
-
 // Exec executes the query.
 func (u *FollowUpsertOne) Exec(ctx context.Context) error {
 	if len(u.create.conflict) == 0 {
@@ -501,8 +422,8 @@ func (fcb *FollowCreateBulk) Save(ctx context.Context) ([]*Follow, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, fcb.builders[i+1].mutation)
 				} else {
@@ -688,20 +609,6 @@ func (u *FollowUpsertBulk) SetValid(v bool) *FollowUpsertBulk {
 func (u *FollowUpsertBulk) UpdateValid() *FollowUpsertBulk {
 	return u.Update(func(s *FollowUpsert) {
 		s.UpdateValid()
-	})
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (u *FollowUpsertBulk) SetCreatedAt(v time.Time) *FollowUpsertBulk {
-	return u.Update(func(s *FollowUpsert) {
-		s.SetCreatedAt(v)
-	})
-}
-
-// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
-func (u *FollowUpsertBulk) UpdateCreatedAt() *FollowUpsertBulk {
-	return u.Update(func(s *FollowUpsert) {
-		s.UpdateCreatedAt()
 	})
 }
 

@@ -3,57 +3,76 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 
 class UserOptions {
 
-  MutationOptions signUpMutationOptions(
-    String name,
-    String username,
-    String email, 
-    String password,
-    String birthday,
+  // MutationOptions signUpMutationOptions(
+  //   String name,
+  //   String username,
+  //   String email, 
+  //   String password,
+  //   String birthday,
+  // ) {
+  //   MutationOptions mutationOptions = MutationOptions(
+  //     document: SignUpMutation(
+  //       variables: SignUpArguments(
+  //         input: SignUpInput(
+  //           name: name,
+  //           username: username,
+  //           email: email,
+  //           password: password,
+  //           birthday: birthday,
+  //         ),
+  //       )
+  //     ).document,
+  //     variables: {
+  //       "input": {
+  //         "name": name,
+  //         "username": username,
+  //         "email": email,
+  //         "birthday": birthday,
+  //         "password": password,
+  //       }
+  //     },
+  //     fetchPolicy: FetchPolicy.networkOnly
+  //   );
+
+  //   return mutationOptions;
+  // }
+
+  MutationOptions signInMutationOptions(
+    String token,
+    SignInProvider provider,
+    String? name,
+    String? authorizationCode
   ) {
-    MutationOptions mutationOptions = MutationOptions(
-      document: SignUpMutation(
-        variables: SignUpArguments(
-          input: SignUpInput(
-            name: name,
-            username: username,
-            email: email,
-            password: password,
-            birthday: birthday,
-          ),
-        )
-      ).document,
-      variables: {
-        "input": {
-          "name": name,
-          "username": username,
-          "email": email,
-          "birthday": birthday,
-          "password": password,
-        }
-      },
-      fetchPolicy: FetchPolicy.networkOnly
-    );
+    const pictureActionEnumMap = {
+      SignInProvider.apple: 'APPLE',
+      SignInProvider.google: 'GOOGLE',
+    };
 
-    return mutationOptions;
-  }
+    AppleData? appleData = provider == SignInProvider.apple 
+    ? AppleData(
+      name: name!, 
+      authorizationCode: authorizationCode!
+    )
+    : null;
 
-  MutationOptions signInMutationOptions(String usernameOrEmail, String password) {
     MutationOptions mutationOptions = MutationOptions(
       document: SignInMutation(
         variables: SignInArguments(
           input: SignInInput(
-            usernameOrEmail: usernameOrEmail,
-            password: password,
+            token: token,
+            provider: provider,
+            appleData: appleData
           ),
         )
       ).document,
       variables: {
         "input": {
-          "usernameOrEmail": usernameOrEmail,
-          "password": password
+          "token": token,
+          "provider": pictureActionEnumMap[provider],
+          "appleData": appleData?.toJson(),
         }
       },
-      fetchPolicy: FetchPolicy.networkOnly
+      fetchPolicy: FetchPolicy.noCache
     );
 
     return mutationOptions;
@@ -62,26 +81,10 @@ class UserOptions {
   QueryOptions userAccessQueryOptions() {
     QueryOptions queryOptions = QueryOptions(
       document: UserAccessQuery().document,
-      fetchPolicy: FetchPolicy.networkOnly
+      fetchPolicy: FetchPolicy.noCache
     );
 
     return queryOptions;
-  }
-
-  MutationOptions refreshTokensMutationOptions(String token) {
-    MutationOptions mutationOptions = MutationOptions(
-      document: RefreshTokensMutation(
-        variables: RefreshTokensArguments(
-          token: token
-        )
-      ).document,
-      variables: {
-        "token": token
-      },
-      fetchPolicy: FetchPolicy.networkOnly
-    );
-
-    return mutationOptions;
   }
 
   QueryOptions userFromIdQueryOptions(int id) {
@@ -94,23 +97,43 @@ class UserOptions {
       variables: {
         "id": id
       },
-      fetchPolicy: FetchPolicy.networkOnly
+      fetchPolicy: FetchPolicy.noCache
     );
 
     return queryOptions;
   }
 
-  QueryOptions searchUsersQueryOptions(String search) {
+  QueryOptions searchUsersQueryOptions(String search, int userSearching) {
     QueryOptions queryOptions = QueryOptions(
       document: SearchUsersQuery(
         variables: SearchUsersArguments(
           search: search,
+          userSearching: userSearching,
         )
       ).document,
       variables: {
-        "search": search
+        "search": search,
+        "userSearching": userSearching,
       },
-      fetchPolicy: FetchPolicy.networkOnly
+      fetchPolicy: FetchPolicy.noCache
+    );
+
+    return queryOptions;
+  }
+
+  QueryOptions searchUsersToAddAsGuestsQueryOptions(String search, int eventId) {
+    QueryOptions queryOptions = QueryOptions(
+      document: SearchForUsersToAddAsGuestsQuery(
+        variables: SearchForUsersToAddAsGuestsArguments(
+          search: search,
+          eventId: eventId,
+        )
+      ).document,
+      variables: {
+        "search": search,
+        "eventId": eventId,
+      },
+      fetchPolicy: FetchPolicy.noCache
     );
 
     return queryOptions;
@@ -128,7 +151,23 @@ class UserOptions {
         "followUserId": followUserId,
         "isFollow": isFollow
       },
-      fetchPolicy: FetchPolicy.networkOnly
+      fetchPolicy: FetchPolicy.noCache
+    );
+
+    return mutationOptions;
+  }
+
+  MutationOptions saveDeviceMutationOptions(String token) {
+    MutationOptions  mutationOptions = MutationOptions(
+      document: SaveDeviceMutation(
+        variables: SaveDeviceArguments(
+          token: token
+        )
+      ).document,
+      variables: {
+        "token": token
+      },
+      fetchPolicy: FetchPolicy.noCache
     );
 
     return mutationOptions;

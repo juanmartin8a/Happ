@@ -3,6 +3,8 @@ query UserAccess() {
     id
     name
     username
+    followState
+    profilePic
     # followState
   }
 }

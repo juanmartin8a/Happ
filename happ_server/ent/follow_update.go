@@ -83,40 +83,7 @@ func (fu *FollowUpdate) ClearFollower() *FollowUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (fu *FollowUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(fu.hooks) == 0 {
-		if err = fu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = fu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*FollowMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = fu.check(); err != nil {
-				return 0, err
-			}
-			fu.mutation = mutation
-			affected, err = fu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(fu.hooks) - 1; i >= 0; i-- {
-			if fu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = fu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, fu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, FollowMutation](ctx, fu.sqlSave, fu.mutation, fu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -153,22 +120,10 @@ func (fu *FollowUpdate) check() error {
 }
 
 func (fu *FollowUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   follow.Table,
-			Columns: follow.Columns,
-			CompositeID: []*sqlgraph.FieldSpec{
-				{
-					Type:   field.TypeInt,
-					Column: follow.FieldUserID,
-				},
-				{
-					Type:   field.TypeInt,
-					Column: follow.FieldFollowerID,
-				},
-			},
-		},
+	if err := fu.check(); err != nil {
+		return n, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(follow.Table, follow.Columns, sqlgraph.NewFieldSpec(follow.FieldUserID, field.TypeInt), sqlgraph.NewFieldSpec(follow.FieldFollowerID, field.TypeInt))
 	if ps := fu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -177,11 +132,7 @@ func (fu *FollowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := fu.mutation.Valid(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: follow.FieldValid,
-		})
+		_spec.SetField(follow.FieldValid, field.TypeBool, value)
 	}
 	if fu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -191,10 +142,7 @@ func (fu *FollowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{follow.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -207,10 +155,7 @@ func (fu *FollowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{follow.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -226,10 +171,7 @@ func (fu *FollowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{follow.FollowerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -242,10 +184,7 @@ func (fu *FollowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{follow.FollowerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -261,6 +200,7 @@ func (fu *FollowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	fu.mutation.done = true
 	return n, nil
 }
 
@@ -325,6 +265,12 @@ func (fuo *FollowUpdateOne) ClearFollower() *FollowUpdateOne {
 	return fuo
 }
 
+// Where appends a list predicates to the FollowUpdate builder.
+func (fuo *FollowUpdateOne) Where(ps ...predicate.Follow) *FollowUpdateOne {
+	fuo.mutation.Where(ps...)
+	return fuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (fuo *FollowUpdateOne) Select(field string, fields ...string) *FollowUpdateOne {
@@ -334,46 +280,7 @@ func (fuo *FollowUpdateOne) Select(field string, fields ...string) *FollowUpdate
 
 // Save executes the query and returns the updated Follow entity.
 func (fuo *FollowUpdateOne) Save(ctx context.Context) (*Follow, error) {
-	var (
-		err  error
-		node *Follow
-	)
-	if len(fuo.hooks) == 0 {
-		if err = fuo.check(); err != nil {
-			return nil, err
-		}
-		node, err = fuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*FollowMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = fuo.check(); err != nil {
-				return nil, err
-			}
-			fuo.mutation = mutation
-			node, err = fuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(fuo.hooks) - 1; i >= 0; i-- {
-			if fuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = fuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, fuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Follow)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from FollowMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Follow, FollowMutation](ctx, fuo.sqlSave, fuo.mutation, fuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -410,22 +317,10 @@ func (fuo *FollowUpdateOne) check() error {
 }
 
 func (fuo *FollowUpdateOne) sqlSave(ctx context.Context) (_node *Follow, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   follow.Table,
-			Columns: follow.Columns,
-			CompositeID: []*sqlgraph.FieldSpec{
-				{
-					Type:   field.TypeInt,
-					Column: follow.FieldUserID,
-				},
-				{
-					Type:   field.TypeInt,
-					Column: follow.FieldFollowerID,
-				},
-			},
-		},
+	if err := fuo.check(); err != nil {
+		return _node, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(follow.Table, follow.Columns, sqlgraph.NewFieldSpec(follow.FieldUserID, field.TypeInt), sqlgraph.NewFieldSpec(follow.FieldFollowerID, field.TypeInt))
 	if id, ok := fuo.mutation.UserID(); !ok {
 		return nil, &ValidationError{Name: "user_id", err: errors.New(`ent: missing "Follow.user_id" for update`)}
 	} else {
@@ -453,11 +348,7 @@ func (fuo *FollowUpdateOne) sqlSave(ctx context.Context) (_node *Follow, err err
 		}
 	}
 	if value, ok := fuo.mutation.Valid(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: follow.FieldValid,
-		})
+		_spec.SetField(follow.FieldValid, field.TypeBool, value)
 	}
 	if fuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -467,10 +358,7 @@ func (fuo *FollowUpdateOne) sqlSave(ctx context.Context) (_node *Follow, err err
 			Columns: []string{follow.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -483,10 +371,7 @@ func (fuo *FollowUpdateOne) sqlSave(ctx context.Context) (_node *Follow, err err
 			Columns: []string{follow.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -502,10 +387,7 @@ func (fuo *FollowUpdateOne) sqlSave(ctx context.Context) (_node *Follow, err err
 			Columns: []string{follow.FollowerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -518,10 +400,7 @@ func (fuo *FollowUpdateOne) sqlSave(ctx context.Context) (_node *Follow, err err
 			Columns: []string{follow.FollowerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -540,5 +419,6 @@ func (fuo *FollowUpdateOne) sqlSave(ctx context.Context) (_node *Follow, err err
 		}
 		return nil, err
 	}
+	fuo.mutation.done = true
 	return _node, nil
 }

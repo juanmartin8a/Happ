@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 	"happ/ent/follow"
 	"happ/ent/predicate"
 
@@ -27,34 +26,7 @@ func (fd *FollowDelete) Where(ps ...predicate.Follow) *FollowDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (fd *FollowDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(fd.hooks) == 0 {
-		affected, err = fd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*FollowMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			fd.mutation = mutation
-			affected, err = fd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(fd.hooks) - 1; i >= 0; i-- {
-			if fd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = fd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, fd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, FollowMutation](ctx, fd.sqlExec, fd.mutation, fd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -67,11 +39,7 @@ func (fd *FollowDelete) ExecX(ctx context.Context) int {
 }
 
 func (fd *FollowDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: follow.Table,
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(follow.Table, nil)
 	if ps := fd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -83,12 +51,19 @@ func (fd *FollowDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	fd.mutation.done = true
 	return affected, err
 }
 
 // FollowDeleteOne is the builder for deleting a single Follow entity.
 type FollowDeleteOne struct {
 	fd *FollowDelete
+}
+
+// Where appends a list predicates to the FollowDelete builder.
+func (fdo *FollowDeleteOne) Where(ps ...predicate.Follow) *FollowDeleteOne {
+	fdo.fd.mutation.Where(ps...)
+	return fdo
 }
 
 // Exec executes the deletion query.
@@ -106,5 +81,7 @@ func (fdo *FollowDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (fdo *FollowDeleteOne) ExecX(ctx context.Context) {
-	fdo.fd.ExecX(ctx)
+	if err := fdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

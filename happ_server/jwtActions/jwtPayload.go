@@ -1,6 +1,6 @@
 package jwtActions
 
-import "github.com/golang-jwt/jwt/v4"
+import "github.com/golang-jwt/jwt/v5"
 
 type JWTPayload struct {
 	*jwt.RegisteredClaims

@@ -1,8 +1,10 @@
 package database
 
 import (
+	"fmt"
 	"happ/config"
 	"happ/ent"
+	awsParameterStore "happ/utils/aws/awsParams"
 
 	"entgo.io/ent/dialect"
 	"github.com/go-sql-driver/mysql"
@@ -17,11 +19,35 @@ func New() string {
 		params["tls"] = config.C.Database.Params.TLS
 	}
 
+	// Get from values from database
+	userBytes, err := awsParameterStore.GetParamTypeSecretString(config.C.Database.User)
+	if err != nil {
+		panic(fmt.Sprintf("error while getting db user: %s", err))
+	}
+
+	addressBytes, err := awsParameterStore.GetParamTypeSecretString(config.C.Database.Addr)
+	if err != nil {
+		panic(fmt.Sprintf("error while getting db address: %s", err))
+	}
+
+	passwordBytes, err := awsParameterStore.GetParamTypeSecretString(config.C.Database.Password)
+	if err != nil {
+		panic(fmt.Sprintf("error while getting db password: %s", err))
+	}
+
+	user := string(userBytes)
+	address := string(addressBytes)
+	password := string(passwordBytes)
+
+	fmt.Println(user)
+	fmt.Println(address)
+	fmt.Println(password)
+
 	mc := mysql.Config{
-		User:                 config.C.Database.User,
-		Passwd:               config.C.Database.Password,
+		User:                 user,     //config.C.Database.User,
+		Passwd:               password, //config.C.Database.Password,
 		Net:                  config.C.Database.Net,
-		Addr:                 config.C.Database.Addr,
+		Addr:                 address, //config.C.Database.Addr,
 		DBName:               config.C.Database.DBName,
 		AllowNativePasswords: config.C.Database.AllowNativePasswords,
 		Params:               params,

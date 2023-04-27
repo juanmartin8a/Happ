@@ -104,21 +104,21 @@ type CreateFriendshipInput struct {
 }
 
 // Mutate applies the CreateFriendshipInput on the FriendshipMutation builder.
-func (i *CreateFriendshipInput) Mutate(m *FriendshipMutation) {
-	m.SetUserIDFriend(i.UserIDFriend)
-	m.SetFriendIDFriend(i.FriendIDFriend)
-	if v := i.CreatedAt; v != nil {
-		m.SetCreatedAt(*v)
-	}
-	m.SetUserID(i.UserID)
-	m.SetFriendID(i.FriendID)
-}
+// func (i *CreateFriendshipInput) Mutate(m *FriendshipMutation) {
+// 	m.SetUserIDFriend(i.UserIDFriend)
+// 	m.SetFriendIDFriend(i.FriendIDFriend)
+// 	if v := i.CreatedAt; v != nil {
+// 		m.SetCreatedAt(*v)
+// 	}
+// 	m.SetUserID(i.UserID)
+// 	m.SetFriendID(i.FriendID)
+// }
 
 // SetInput applies the change-set in the CreateFriendshipInput on the FriendshipCreate builder.
-func (c *FriendshipCreate) SetInput(i CreateFriendshipInput) *FriendshipCreate {
-	i.Mutate(c.Mutation())
-	return c
-}
+// func (c *FriendshipCreate) SetInput(i CreateFriendshipInput) *FriendshipCreate {
+// 	i.Mutate(c.Mutation())
+// 	return c
+// }
 
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
@@ -126,8 +126,6 @@ type CreateUserInput struct {
 	Username     string
 	Email        string
 	ProfilePic   string
-	Birthday     time.Time
-	Password     string
 	CreatedAt    *time.Time
 	UpdatedAt    *time.Time
 	EventIDs     []int
@@ -142,8 +140,6 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	m.SetUsername(i.Username)
 	m.SetEmail(i.Email)
 	m.SetProfilePic(i.ProfilePic)
-	m.SetBirthday(i.Birthday)
-	m.SetPassword(i.Password)
 	if v := i.CreatedAt; v != nil {
 		m.SetCreatedAt(*v)
 	}
@@ -153,9 +149,9 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	if v := i.EventIDs; len(v) > 0 {
 		m.AddEventIDs(v...)
 	}
-	if v := i.FriendIDs; len(v) > 0 {
-		m.AddFriendIDs(v...)
-	}
+	// if v := i.FriendIDs; len(v) > 0 {
+	// 	m.AddFriendIDs(v...)
+	// }
 	if v := i.FollowerIDs; len(v) > 0 {
 		m.AddFollowerIDs(v...)
 	}

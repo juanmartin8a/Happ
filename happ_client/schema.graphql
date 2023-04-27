@@ -10,8 +10,6 @@ type User {
   name: String!
   username: String!
   email: String!
-  birthday: String!
-  password: String!
   followState: Boolean!
   createdAt: String!
   updatedAt: String!
@@ -23,11 +21,38 @@ type Event {
   name: String!
   description: String!
   confirmedCount: Int!
-  eventPics: String!
+  confirmedHosts: Int!
+  eventPics: [String!]!
+  lightEventPics: [String!]!
   eventDate: String!
   createdAt: String!
   updatedAt: String!
+  eventPlace: String!
   coords: EventCoordinates!
+}
+
+type EventInviteRes {
+  event: Event!
+  invitedByUserId: Int!
+  invitedBy: User!
+  invitedUserInfo: InvitedUserInfo!
+  friends: [User!]!
+}
+
+type PaginatedEventResults {
+  events: [EventInviteRes!]!
+  hasMore: Boolean!
+}
+
+type PaginatedEventUsersResults {
+  users: [User!]!
+  hasMore: Boolean!
+}
+
+type InvitedUserInfo {
+  isConfirmed: Boolean!
+  isHost: Boolean!
+  isCreator: Boolean!
 }
 
 type ErrorResponse {
@@ -43,9 +68,20 @@ input SignUpInput {
   birthday: String!
 }
 
+enum SignInProvider {
+  APPLE
+  GOOGLE
+}
+
+input AppleData {
+  name: String!,
+  authorizationCode: String!
+}
+
 input SignInInput {
-  usernameOrEmail: String!
-  password: String!
+  token: String!
+  provider: SignInProvider!
+  appleData: AppleData
 }
 
 input NewEventInput {
@@ -53,19 +89,38 @@ input NewEventInput {
   description: String!
   eventDate: String!
   eventPics: [Upload!]!
+  eventPicsLight: [Upload!]!,
+  eventPlace: String!,
   latitude: Float!,
   longitude: Float!,
 }
 
-type TokenResponse {
-  refreshToken: String!
-  accessToken: String!
+input UpdateEventInput {
+  name: String
+  description: String
+  eventDate: String
+  eventPics: [UpdatePictureInput!],
+  eventPicsLight: [UpdatePictureInput!],
+  eventPlace: String,
+  latitude: Float,
+  longitude: Float,
 }
 
-type UserAuthResponse {
+input UpdatePictureInput {
+  index: Int!
+  file: Upload
+  action: PictureAction!
+}
+
+enum PictureAction {
+  ADD
+  REPLACE
+  DELETE
+}
+
+type SignInResponse {
   user: User
-  tokens: TokenResponse
-  errors: [ErrorResponse!]
+  isNew: Boolean
 }
 
 type CreateEventResponse {
@@ -78,6 +133,11 @@ type AddResponse {
   unchanged: Boolean!
 }
 
+type AcceptInvitationResponse {
+  cypherText: String
+  isHost: Boolean!
+}
+
 type Query {
   user(
     username: String!
@@ -87,23 +147,47 @@ type Query {
   ): User,
   searchUsers(
     search: String!
+    userSearching: Int!
   ): [User!]!,
   userAccess: User,
+  getUserEvents(
+    limit: Int!
+    idsList: [Int!]!
+  ): PaginatedEventResults!,
+  getUserEventsFromFriends(
+    limit: Int!
+    idsList: [Int!]!
+  ): PaginatedEventResults!,
+  getUserOtherEvents(
+    limit: Int!
+    idsList: [Int!]!
+  ): PaginatedEventResults!,
+  seePass(
+    eventId: Int!
+  ): String
+  getEventGuests(
+    eventId: Int!
+    limit: Int!
+    idsList: [Int!]!
+  ): PaginatedEventUsersResults!,
+  getEventHosts(
+    eventId: Int!
+    limit: Int!
+    idsList: [Int!]!
+  ): PaginatedEventUsersResults!,
+  searchForUsersToAddAsGuests(
+    search: String!
+    eventId: Int!
+  ): [User!]!,
 }
 
 type Mutation {
-  signUp(
-    input: SignUpInput!
-  ): UserAuthResponse,
   signIn(
     input: SignInInput!
-  ): UserAuthResponse,
+  ): SignInResponse!,
   signOut(
     token: String!
   ): Boolean!
-  refreshTokens(
-    token: String!
-  ): TokenResponse
   addOrRemoveUser(
     followUserId: Int!
     isFollow: Boolean!
@@ -111,4 +195,33 @@ type Mutation {
   newEvent(
     input: NewEventInput!
   ): CreateEventResponse!
+  inviteGuestsAndOrganizers(
+    guests: [Int!]!,
+    organizers: [Int!]!,
+    eventId: Int!
+  ): Boolean!
+  acceptInvitation(
+    eventId: Int!
+  ): AcceptInvitationResponse!
+  updateEvent(
+    input: UpdateEventInput!,
+    eventId: Int!
+  ): CreateEventResponse!,
+  deleteEvent(
+    eventId: Int!
+  ): Boolean,
+  addGuests(
+    eventId: Int!
+    userIds: [Int!]!
+  ): Boolean
+  removeGuests(
+    eventId: Int!
+    userIds: [Int!]!
+  ): Boolean,
+  leaveEvent(
+    eventId: Int!
+  ): Boolean
+  saveDevice(
+    token: String!
+  ): Boolean
 }

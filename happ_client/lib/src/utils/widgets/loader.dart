@@ -16,7 +16,7 @@ class Loader extends StatelessWidget {
       padding: padding,
       child: Center(
         child: Theme(
-          data: ThemeData(cupertinoOverrideTheme: const CupertinoThemeData(brightness: Brightness.dark)),
+          data: ThemeData(cupertinoOverrideTheme: const CupertinoThemeData(brightness: Brightness.light)),
           child: CupertinoActivityIndicator(
             radius: radius,
           )

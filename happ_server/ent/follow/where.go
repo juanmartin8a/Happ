@@ -12,180 +12,112 @@ import (
 
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v int) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUserID), v))
-	})
+	return predicate.Follow(sql.FieldEQ(FieldUserID, v))
 }
 
 // FollowerID applies equality check predicate on the "follower_id" field. It's identical to FollowerIDEQ.
 func FollowerID(v int) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldFollowerID), v))
-	})
+	return predicate.Follow(sql.FieldEQ(FieldFollowerID, v))
 }
 
 // Valid applies equality check predicate on the "valid" field. It's identical to ValidEQ.
 func Valid(v bool) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldValid), v))
-	})
+	return predicate.Follow(sql.FieldEQ(FieldValid, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Follow(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
 func UserIDEQ(v int) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUserID), v))
-	})
+	return predicate.Follow(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "user_id" field.
 func UserIDNEQ(v int) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUserID), v))
-	})
+	return predicate.Follow(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "user_id" field.
 func UserIDIn(vs ...int) predicate.Follow {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldUserID), v...))
-	})
+	return predicate.Follow(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
 func UserIDNotIn(vs ...int) predicate.Follow {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldUserID), v...))
-	})
+	return predicate.Follow(sql.FieldNotIn(FieldUserID, vs...))
 }
 
 // FollowerIDEQ applies the EQ predicate on the "follower_id" field.
 func FollowerIDEQ(v int) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldFollowerID), v))
-	})
+	return predicate.Follow(sql.FieldEQ(FieldFollowerID, v))
 }
 
 // FollowerIDNEQ applies the NEQ predicate on the "follower_id" field.
 func FollowerIDNEQ(v int) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldFollowerID), v))
-	})
+	return predicate.Follow(sql.FieldNEQ(FieldFollowerID, v))
 }
 
 // FollowerIDIn applies the In predicate on the "follower_id" field.
 func FollowerIDIn(vs ...int) predicate.Follow {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldFollowerID), v...))
-	})
+	return predicate.Follow(sql.FieldIn(FieldFollowerID, vs...))
 }
 
 // FollowerIDNotIn applies the NotIn predicate on the "follower_id" field.
 func FollowerIDNotIn(vs ...int) predicate.Follow {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldFollowerID), v...))
-	})
+	return predicate.Follow(sql.FieldNotIn(FieldFollowerID, vs...))
 }
 
 // ValidEQ applies the EQ predicate on the "valid" field.
 func ValidEQ(v bool) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldValid), v))
-	})
+	return predicate.Follow(sql.FieldEQ(FieldValid, v))
 }
 
 // ValidNEQ applies the NEQ predicate on the "valid" field.
 func ValidNEQ(v bool) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldValid), v))
-	})
+	return predicate.Follow(sql.FieldNEQ(FieldValid, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Follow(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
 func CreatedAtNEQ(v time.Time) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Follow(sql.FieldNEQ(FieldCreatedAt, v))
 }
 
 // CreatedAtIn applies the In predicate on the "created_at" field.
 func CreatedAtIn(vs ...time.Time) predicate.Follow {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldCreatedAt), v...))
-	})
+	return predicate.Follow(sql.FieldIn(FieldCreatedAt, vs...))
 }
 
 // CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
 func CreatedAtNotIn(vs ...time.Time) predicate.Follow {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldCreatedAt), v...))
-	})
+	return predicate.Follow(sql.FieldNotIn(FieldCreatedAt, vs...))
 }
 
 // CreatedAtGT applies the GT predicate on the "created_at" field.
 func CreatedAtGT(v time.Time) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Follow(sql.FieldGT(FieldCreatedAt, v))
 }
 
 // CreatedAtGTE applies the GTE predicate on the "created_at" field.
 func CreatedAtGTE(v time.Time) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Follow(sql.FieldGTE(FieldCreatedAt, v))
 }
 
 // CreatedAtLT applies the LT predicate on the "created_at" field.
 func CreatedAtLT(v time.Time) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Follow(sql.FieldLT(FieldCreatedAt, v))
 }
 
 // CreatedAtLTE applies the LTE predicate on the "created_at" field.
 func CreatedAtLTE(v time.Time) predicate.Follow {
-	return predicate.Follow(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Follow(sql.FieldLTE(FieldCreatedAt, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.
@@ -193,7 +125,6 @@ func HasUser() predicate.Follow {
 	return predicate.Follow(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, UserColumn),
-			sqlgraph.To(UserInverseTable, UserFieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, UserTable, UserColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -203,11 +134,7 @@ func HasUser() predicate.Follow {
 // HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
 func HasUserWith(preds ...predicate.User) predicate.Follow {
 	return predicate.Follow(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, UserColumn),
-			sqlgraph.To(UserInverseTable, UserFieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, UserTable, UserColumn),
-		)
+		step := newUserStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -221,7 +148,6 @@ func HasFollower() predicate.Follow {
 	return predicate.Follow(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FollowerColumn),
-			sqlgraph.To(FollowerInverseTable, UserFieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, FollowerTable, FollowerColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -231,11 +157,7 @@ func HasFollower() predicate.Follow {
 // HasFollowerWith applies the HasEdge predicate on the "follower" edge with a given conditions (other predicates).
 func HasFollowerWith(preds ...predicate.User) predicate.Follow {
 	return predicate.Follow(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FollowerColumn),
-			sqlgraph.To(FollowerInverseTable, UserFieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, FollowerTable, FollowerColumn),
-		)
+		step := newFollowerStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

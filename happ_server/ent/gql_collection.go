@@ -4,10 +4,96 @@ package ent
 
 import (
 	"context"
+	"happ/ent/device"
+	"happ/ent/event"
+	"happ/ent/eventremindernotification"
+	"happ/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 )
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (d *DeviceQuery) CollectFields(ctx context.Context, satisfies ...string) (*DeviceQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return d, nil
+	}
+	if err := d.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
+func (d *DeviceQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(device.Columns))
+		selectedFields = []string{device.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "owner":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: d.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			d.withOwner = query
+		case "userID":
+			if _, ok := fieldSeen[device.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, device.FieldUserID)
+				fieldSeen[device.FieldUserID] = struct{}{}
+			}
+		case "token":
+			if _, ok := fieldSeen[device.FieldToken]; !ok {
+				selectedFields = append(selectedFields, device.FieldToken)
+				fieldSeen[device.FieldToken] = struct{}{}
+			}
+		case "createdAt":
+			if _, ok := fieldSeen[device.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, device.FieldCreatedAt)
+				fieldSeen[device.FieldCreatedAt] = struct{}{}
+			}
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		d.Select(selectedFields...)
+	}
+	return nil
+}
+
+type devicePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []DevicePaginateOption
+}
+
+func newDevicePaginateArgs(rv map[string]interface{}) *devicePaginateArgs {
+	args := &devicePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (e *EventQuery) CollectFields(ctx context.Context, satisfies ...string) (*EventQuery, error) {
@@ -21,20 +107,110 @@ func (e *EventQuery) CollectFields(ctx context.Context, satisfies ...string) (*E
 	return e, nil
 }
 
-func (e *EventQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (e *EventQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(event.Columns))
+		selectedFields = []string{event.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
 		case "users":
 			var (
-				path  = append(path, field.Name)
-				query = &UserQuery{config: e.config}
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: e.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
-			e.withUsers = query
+			e.WithNamedUsers(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
+		case "eventReminderNotifications":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&EventReminderNotificationClient{config: e.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			e.WithNamedEventReminderNotifications(alias, func(wq *EventReminderNotificationQuery) {
+				*wq = *query
+			})
+		case "name":
+			if _, ok := fieldSeen[event.FieldName]; !ok {
+				selectedFields = append(selectedFields, event.FieldName)
+				fieldSeen[event.FieldName] = struct{}{}
+			}
+		case "description":
+			if _, ok := fieldSeen[event.FieldDescription]; !ok {
+				selectedFields = append(selectedFields, event.FieldDescription)
+				fieldSeen[event.FieldDescription] = struct{}{}
+			}
+		case "eventPlace":
+			if _, ok := fieldSeen[event.FieldEventPlace]; !ok {
+				selectedFields = append(selectedFields, event.FieldEventPlace)
+				fieldSeen[event.FieldEventPlace] = struct{}{}
+			}
+		case "confirmedCount":
+			if _, ok := fieldSeen[event.FieldConfirmedCount]; !ok {
+				selectedFields = append(selectedFields, event.FieldConfirmedCount)
+				fieldSeen[event.FieldConfirmedCount] = struct{}{}
+			}
+		case "confirmedHosts":
+			if _, ok := fieldSeen[event.FieldConfirmedHosts]; !ok {
+				selectedFields = append(selectedFields, event.FieldConfirmedHosts)
+				fieldSeen[event.FieldConfirmedHosts] = struct{}{}
+			}
+		case "eventPics":
+			if _, ok := fieldSeen[event.FieldEventPics]; !ok {
+				selectedFields = append(selectedFields, event.FieldEventPics)
+				fieldSeen[event.FieldEventPics] = struct{}{}
+			}
+		case "lightEventPics":
+			if _, ok := fieldSeen[event.FieldLightEventPics]; !ok {
+				selectedFields = append(selectedFields, event.FieldLightEventPics)
+				fieldSeen[event.FieldLightEventPics] = struct{}{}
+			}
+		case "eventKey":
+			if _, ok := fieldSeen[event.FieldEventKey]; !ok {
+				selectedFields = append(selectedFields, event.FieldEventKey)
+				fieldSeen[event.FieldEventKey] = struct{}{}
+			}
+		case "eventNonce":
+			if _, ok := fieldSeen[event.FieldEventNonce]; !ok {
+				selectedFields = append(selectedFields, event.FieldEventNonce)
+				fieldSeen[event.FieldEventNonce] = struct{}{}
+			}
+		case "eventDate":
+			if _, ok := fieldSeen[event.FieldEventDate]; !ok {
+				selectedFields = append(selectedFields, event.FieldEventDate)
+				fieldSeen[event.FieldEventDate] = struct{}{}
+			}
+		case "coords":
+			if _, ok := fieldSeen[event.FieldCoords]; !ok {
+				selectedFields = append(selectedFields, event.FieldCoords)
+				fieldSeen[event.FieldCoords] = struct{}{}
+			}
+		case "createdAt":
+			if _, ok := fieldSeen[event.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, event.FieldCreatedAt)
+				fieldSeen[event.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[event.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, event.FieldUpdatedAt)
+				fieldSeen[event.FieldUpdatedAt] = struct{}{}
+			}
+		default:
+			unknownSeen = true
 		}
+	}
+	if !unknownSeen {
+		e.Select(selectedFields...)
 	}
 	return nil
 }
@@ -66,6 +242,111 @@ func newEventPaginateArgs(rv map[string]interface{}) *eventPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ern *EventReminderNotificationQuery) CollectFields(ctx context.Context, satisfies ...string) (*EventReminderNotificationQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ern, nil
+	}
+	if err := ern.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ern, nil
+}
+
+func (ern *EventReminderNotificationQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(eventremindernotification.Columns))
+		selectedFields = []string{eventremindernotification.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "event":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&EventClient{config: ern.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			ern.withEvent = query
+			if _, ok := fieldSeen[eventremindernotification.FieldEventID]; !ok {
+				selectedFields = append(selectedFields, eventremindernotification.FieldEventID)
+				fieldSeen[eventremindernotification.FieldEventID] = struct{}{}
+			}
+		case "user":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: ern.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			ern.withUser = query
+			if _, ok := fieldSeen[eventremindernotification.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, eventremindernotification.FieldUserID)
+				fieldSeen[eventremindernotification.FieldUserID] = struct{}{}
+			}
+		case "eventID":
+			if _, ok := fieldSeen[eventremindernotification.FieldEventID]; !ok {
+				selectedFields = append(selectedFields, eventremindernotification.FieldEventID)
+				fieldSeen[eventremindernotification.FieldEventID] = struct{}{}
+			}
+		case "userID":
+			if _, ok := fieldSeen[eventremindernotification.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, eventremindernotification.FieldUserID)
+				fieldSeen[eventremindernotification.FieldUserID] = struct{}{}
+			}
+		case "daysLeft":
+			if _, ok := fieldSeen[eventremindernotification.FieldDaysLeft]; !ok {
+				selectedFields = append(selectedFields, eventremindernotification.FieldDaysLeft)
+				fieldSeen[eventremindernotification.FieldDaysLeft] = struct{}{}
+			}
+		case "sentAt":
+			if _, ok := fieldSeen[eventremindernotification.FieldSentAt]; !ok {
+				selectedFields = append(selectedFields, eventremindernotification.FieldSentAt)
+				fieldSeen[eventremindernotification.FieldSentAt] = struct{}{}
+			}
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		ern.Select(selectedFields...)
+	}
+	return nil
+}
+
+type eventremindernotificationPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []EventReminderNotificationPaginateOption
+}
+
+func newEventReminderNotificationPaginateArgs(rv map[string]interface{}) *eventremindernotificationPaginateArgs {
+	args := &eventremindernotificationPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -77,47 +358,116 @@ func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*Us
 	return u, nil
 }
 
-func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(user.Columns))
+		selectedFields = []string{user.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
 		case "events":
 			var (
-				path  = append(path, field.Name)
-				query = &EventQuery{config: u.config}
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&EventClient{config: u.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
-			u.withEvents = query
-		case "friends":
-			var (
-				path  = append(path, field.Name)
-				query = &UserQuery{config: u.config}
-			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
-			}
-			u.withFriends = query
+			u.WithNamedEvents(alias, func(wq *EventQuery) {
+				*wq = *query
+			})
 		case "followers":
 			var (
-				path  = append(path, field.Name)
-				query = &UserQuery{config: u.config}
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: u.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
-			u.withFollowers = query
+			u.WithNamedFollowers(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
 		case "following":
 			var (
-				path  = append(path, field.Name)
-				query = &UserQuery{config: u.config}
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: u.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
-			u.withFollowing = query
+			u.WithNamedFollowing(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
+		case "devices":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&DeviceClient{config: u.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedDevices(alias, func(wq *DeviceQuery) {
+				*wq = *query
+			})
+		case "eventReminderNotifications":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&EventReminderNotificationClient{config: u.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedEventReminderNotifications(alias, func(wq *EventReminderNotificationQuery) {
+				*wq = *query
+			})
+		case "fuid":
+			if _, ok := fieldSeen[user.FieldFUID]; !ok {
+				selectedFields = append(selectedFields, user.FieldFUID)
+				fieldSeen[user.FieldFUID] = struct{}{}
+			}
+		case "name":
+			if _, ok := fieldSeen[user.FieldName]; !ok {
+				selectedFields = append(selectedFields, user.FieldName)
+				fieldSeen[user.FieldName] = struct{}{}
+			}
+		case "username":
+			if _, ok := fieldSeen[user.FieldUsername]; !ok {
+				selectedFields = append(selectedFields, user.FieldUsername)
+				fieldSeen[user.FieldUsername] = struct{}{}
+			}
+		case "email":
+			if _, ok := fieldSeen[user.FieldEmail]; !ok {
+				selectedFields = append(selectedFields, user.FieldEmail)
+				fieldSeen[user.FieldEmail] = struct{}{}
+			}
+		case "profilePic":
+			if _, ok := fieldSeen[user.FieldProfilePic]; !ok {
+				selectedFields = append(selectedFields, user.FieldProfilePic)
+				fieldSeen[user.FieldProfilePic] = struct{}{}
+			}
+		case "createdAt":
+			if _, ok := fieldSeen[user.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, user.FieldCreatedAt)
+				fieldSeen[user.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[user.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, user.FieldUpdatedAt)
+				fieldSeen[user.FieldUpdatedAt] = struct{}{}
+			}
+		default:
+			unknownSeen = true
 		}
+	}
+	if !unknownSeen {
+		u.Select(selectedFields...)
 	}
 	return nil
 }
@@ -168,7 +518,7 @@ func fieldArgs(ctx context.Context, whereInput interface{}, path ...string) map[
 	for _, name := range path {
 		var field *graphql.CollectedField
 		for _, f := range graphql.CollectFields(oc, fc.Field.Selections, nil) {
-			if f.Name == name {
+			if f.Alias == name {
 				field = &f
 				break
 			}
@@ -205,7 +555,7 @@ func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]
 		}
 		c := &Cursor{}
 		if c.UnmarshalGQL(v) == nil {
-			args[k] = &c
+			args[k] = c
 		}
 	}
 	if v, ok := args[whereField]; ok && whereInput != nil {

@@ -5,17 +5,39 @@ Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor
 """
 scalar Cursor
+type Device implements Node {
+  id: ID!
+  userID: Int!
+  token: String!
+  createdAt: Time!
+  owner: User
+}
 type Event implements Node {
   id: ID!
   name: String!
   description: String!
-  confirmedcount: Int!
+  eventPlace: String!
+  confirmedCount: Int!
+  confirmedHosts: Int!
   eventPics: [String!]!
+  lightEventPics: [String!]!
+  eventKey: String!
+  eventNonce: String!
   eventDate: Time!
   coords: Point!
   createdAt: Time!
   updatedAt: Time!
   users: [User!]
+  eventReminderNotifications: [EventReminderNotification!]
+}
+type EventReminderNotification implements Node {
+  id: ID!
+  eventID: ID!
+  userID: ID!
+  daysLeft: Int!
+  sentAt: Time!
+  event: Event!
+  user: User!
 }
 """
 An object with an ID.
@@ -58,18 +80,20 @@ type Query {
     ids: [ID!]!
   ): [Node]!
 }
+"""The builtin Time type"""
+scalar Time
 type User implements Node {
   id: ID!
+  fuid: String!
   name: String!
   username: String!
   email: String!
   profilePic: String!
-  birthday: Time!
-  password: String!
   createdAt: Time!
   updatedAt: Time!
   events: [Event!]
-  friends: [User!]
   followers: [User!]
   following: [User!]
+  devices: [Device!]
+  eventReminderNotifications: [EventReminderNotification!]
 }

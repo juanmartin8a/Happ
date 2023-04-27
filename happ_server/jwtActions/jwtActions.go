@@ -1,109 +1,149 @@
 package jwtActions
 
-import (
-	"fmt"
-	"happ/graph/model"
-	redisUtils "happ/utils/redis"
-	"io/ioutil"
-	"math/rand"
-	"path/filepath"
-	"strconv"
-	"time"
+// import (
+// 	"fmt"
+// 	"happ/graph/model"
+// 	awsParameterStore "happ/utils/aws/awsParams"
+// 	redisUtils "happ/utils/redis"
+// 	"math/rand"
+// 	"strconv"
+// 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
-)
+// 	"github.com/golang-jwt/jwt/v5"
+// )
 
-func CreateTokens(userId string, prevRefreshToken string) *model.TokenResponse { //user *ent.User
+// // func CreateTokens(userId string, prevRefreshToken string) *model.TokenResponse { //user *ent.User
 
-	accessDir, _ := filepath.Abs("./keys/access/rsa_private.pem")
-	refreshDir, _ := filepath.Abs("./keys/refresh/rsa_private.pem")
+// // 	// var keyName string
+// // 	// if !prevRefreshToken {
+// // 	// 	keyName = "Happ_dev_access_priv_key"
+// // 	// } else {
+// // 	// 	keyName = "Happ_dev_refresh_priv_key"
+// // 	// }
 
-	privAKey, _ := ioutil.ReadFile(accessDir)
-	privRKey, _ := ioutil.ReadFile(refreshDir)
+// // 	privAccessKey, err := awsParameterStore.GetRSAPrivKeyParam("Happ_dev_access_priv_key")
+// // 	if err != nil {
+// // 		// return nil, fmt.Errorf("Error while GetRSAPrivKeyParam: %w", err)
+// // 		return &model.TokenResponse{}
+// // 	}
 
-	timeToExpAccess := time.Second * 60 * 60 * 24
-	timeToExpRefresh := time.Second * 60 * 60 * 24 * 3
+// // 	privRefreshKey, err := awsParameterStore.GetRSAPrivKeyParam("Happ_dev_refresh_priv_key")
+// // 	if err != nil {
+// // 		return &model.TokenResponse{}
+// // 		// return nil, fmt.Errorf("Error while GetRSAPrivKeyParam: %w", err)
+// // 	}
 
-	iat := time.Now()
-	expAccess := iat.Add(timeToExpAccess)
-	expRefresh := iat.Add(timeToExpRefresh)
+// // 	// key, err := jwt.ParseRSAPublicKeyFromPEM(pubKey)
+// // 	// if err != nil {
+// // 	// 	return nil, fmt.Errorf("validate: parse key: %w", err)
+// // 	// }
 
-	// userIdString := strconv.Itoa(userId)
-	randomInt := rand.Intn(9999-0+1) + 0
-	roles := []string{"user"}
+// // 	// accessDir, _ := filepath.Abs("./keys/access/rsa_private.pem")
+// // 	// refreshDir, _ := filepath.Abs("./keys/refresh/rsa_private.pem")
 
-	payloadAccess := &JWTPayload{
-		RegisteredClaims: &jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expAccess),
-			IssuedAt:  jwt.NewNumericDate(iat),
-		},
-		Id:        userId,
-		RandomInt: strconv.Itoa(randomInt),
-		Roles:     roles,
-	}
+// // 	// privAKey, _ := ioutil.ReadFile(accessDir)
+// // 	// privRKey, _ := ioutil.ReadFile(refreshDir)
 
-	payloadRefresh := &JWTPayload{
-		RegisteredClaims: &jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expRefresh),
-			IssuedAt:  jwt.NewNumericDate(iat),
-		},
-		Id:        userId,
-		RandomInt: strconv.Itoa(randomInt),
-		Roles:     roles,
-	}
+// // 	timeToExpAccess := time.Second * 60 * 60 * 24
+// // 	timeToExpRefresh := time.Second * 60 * 60 * 24 * 3
 
-	accessT := jwt.NewWithClaims(jwt.SigningMethodRS256, payloadAccess)
-	refreshT := jwt.NewWithClaims(jwt.SigningMethodRS256, payloadRefresh)
+// // 	iat := time.Now()
+// // 	expAccess := iat.Add(timeToExpAccess)
+// // 	expRefresh := iat.Add(timeToExpRefresh)
 
-	accessKey, _ := jwt.ParseRSAPrivateKeyFromPEM(privAKey)
-	refreshKey, _ := jwt.ParseRSAPrivateKeyFromPEM(privRKey)
+// // 	// userIdString := strconv.Itoa(userId)
+// // 	randomInt := rand.Intn(9999-0+1) + 0
+// // 	roles := []string{"user"}
 
-	accessToken, _ := accessT.SignedString(accessKey)
-	refreshToken, _ := refreshT.SignedString(refreshKey)
+// // 	payloadAccess := &JWTPayload{
+// // 		RegisteredClaims: &jwt.RegisteredClaims{
+// // 			ExpiresAt: jwt.NewNumericDate(expAccess),
+// // 			IssuedAt:  jwt.NewNumericDate(iat),
+// // 		},
+// // 		Id:        userId,
+// // 		RandomInt: strconv.Itoa(randomInt),
+// // 		Roles:     roles,
+// // 	}
 
-	redisUtils.RefreshTokenToRedis(userId, timeToExpRefresh, refreshToken)
+// // 	payloadRefresh := &JWTPayload{
+// // 		RegisteredClaims: &jwt.RegisteredClaims{
+// // 			ExpiresAt: jwt.NewNumericDate(expRefresh),
+// // 			IssuedAt:  jwt.NewNumericDate(iat),
+// // 		},
+// // 		Id:        userId,
+// // 		RandomInt: strconv.Itoa(randomInt),
+// // 		Roles:     roles,
+// // 	}
 
-	if prevRefreshToken != "" {
-		redisUtils.DeleteTokenFromRedis("" + userId + "_" + prevRefreshToken)
-	}
+// // 	accessT := jwt.NewWithClaims(jwt.SigningMethodRS256, payloadAccess)
+// // 	refreshT := jwt.NewWithClaims(jwt.SigningMethodRS256, payloadRefresh)
 
-	return &model.TokenResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}
-}
+// // 	accessToken, _ := accessT.SignedString(privAccessKey)
+// // 	refreshToken, _ := refreshT.SignedString(privRefreshKey)
 
-func ValidateToken(token string, isRefresh bool) (jwt.MapClaims, error) {
+// // 	err = redisUtils.RefreshTokenToRedis(userId, timeToExpRefresh, refreshToken)
+// // 	if err != nil {
+// // 		return &model.TokenResponse{}
+// // 	}
 
-	keyDir, _ := filepath.Abs("./keys/access/rsa_public.pem")
+// // 	if prevRefreshToken != "" {
+// // 		err = redisUtils.DeleteTokenFromRedis("" + userId + "_" + prevRefreshToken)
+// // 		if err != nil {
+// // 			fmt.Println("Error deleting token from redis")
+// // 		}
+// // 	}
 
-	if isRefresh {
-		keyDir, _ = filepath.Abs("./keys/refresh/rsa_public.pem")
-	}
+// // 	return &model.TokenResponse{
+// // 		AccessToken:  accessToken,
+// // 		RefreshToken: refreshToken,
+// // 	}
+// // }
 
-	pubKey, _ := ioutil.ReadFile(keyDir)
+// func ValidateToken(token string, isRefresh bool) (jwt.MapClaims, error) {
 
-	key, err := jwt.ParseRSAPublicKeyFromPEM(pubKey)
-	if err != nil {
-		return nil, fmt.Errorf("validate: parse key: %w", err)
-	}
+// 	// keyDir, _ := filepath.Abs("./keys/access/rsa_public.pem")
 
-	tokenPayload, err := jwt.Parse(token, func(jwtToken *jwt.Token) (interface{}, error) {
-		if _, ok := jwtToken.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected method: %s", jwtToken.Header["alg"])
-		}
+// 	// if isRefresh {
+// 	// 	keyDir, _ = filepath.Abs("./keys/refresh/rsa_public.pem")
+// 	// }
 
-		return key, nil
-	})
+// 	// pubKey, _ := ioutil.ReadFile(keyDir)
+// 	var keyName string
+// 	if !isRefresh {
+// 		keyName = "Happ_dev_access_pub_key"
+// 	} else {
+// 		keyName = "Happ_dev_refresh_pub_key"
+// 	}
 
-	if err != nil {
-		return nil, fmt.Errorf("validate: %w", err)
-	}
+// 	pubKey, err := awsParameterStore.GetRSAPubKeyParam(keyName)
+// 	if err != nil {
+// 		fmt.Println("Error while GetRSAPubKeyParam: %w", err)
+// 		return nil, fmt.Errorf("error while GetRSAPubKeyParam: %w", err)
+// 	}
 
-	payload, ok := tokenPayload.Claims.(jwt.MapClaims) //(*JWTPayload)
-	if !ok || !tokenPayload.Valid {
-		return nil, fmt.Errorf("validate: invalid")
-	}
+// 	key, err := jwt.ParseRSAPublicKeyFromPEM(pubKey)
+// 	if err != nil {
+// 		fmt.Println("validate: parse key: %w", err)
+// 		return nil, fmt.Errorf("validate: parse key: %w", err)
+// 	}
 
-	return payload, nil
-}
+// 	tokenPayload, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+// 		// Verify the signing algorithm and extract the RSA public key for verification
+// 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+// 			fmt.Printf("unexpected signing method: %v", token.Header["alg"])
+// 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+// 		}
+// 		return key, nil
+// 	})
+
+// 	if err != nil {
+// 		return nil, fmt.Errorf("validate: %w", err)
+// 	}
+
+// 	payload, ok := tokenPayload.Claims.(jwt.MapClaims) //(*JWTPayload)
+// 	if !ok || !tokenPayload.Valid {
+// 		return nil, fmt.Errorf("validate: invalid")
+// 	}
+
+// 	return payload, nil
+// }

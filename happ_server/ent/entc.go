@@ -13,7 +13,9 @@ import (
 )
 
 func main() {
+	// rt := reflect.TypeOf(uuid.UUID{})
 	ex, err := entgql.NewExtension(
+		// entgql.Skip("Device"),
 		entgql.WithSchemaGenerator(),
 		entgql.WithSchemaPath("ent.graphql"),
 		entgql.WithConfigPath("../gqlgen.yml"),
@@ -30,7 +32,30 @@ func main() {
 			gen.FeatureExecQuery,
 			gen.FeatureEntQL,
 		},
+		// IDType: &field.TypeInfo{
+		// 	Type: field.TypeString,
+		// },
 	}, opts...); err != nil {
 		log.Fatalf("Error: failed running ent codegen: %v", err)
 	}
 }
+
+// package main
+
+// import (
+// 	"log"
+
+// 	"entgo.io/contrib/entgql"
+// 	"entgo.io/ent/entc"
+// 	"entgo.io/ent/entc/gen"
+// )
+
+// func main() {
+// 	ex, err := entgql.NewExtension()
+// 	if err != nil {
+// 		log.Fatalf("creating entgql extension: %v", err)
+// 	}
+// 	if err := entc.Generate("./schema", &gen.Config{}, entc.Extensions(ex)); err != nil {
+// 		log.Fatalf("running ent codegen: %v", err)
+// 	}
+// }
