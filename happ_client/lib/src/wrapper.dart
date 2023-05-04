@@ -1,16 +1,9 @@
-
-
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
-import 'package:happ_client/src/repos/userRepo.dart';
 import 'package:happ_client/src/riverpod/authFlowNotifier/authFlowNotifier.dart';
 import 'package:happ_client/src/riverpod/authFlowNotifier/authFlowNotifierState.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
 import 'package:happ_client/src/riverpod/firebaseAuthProvider/firebaseAuthProvider.dart';
-import 'package:happ_client/src/riverpod/userAccess/userAccess.dart';
-import 'package:happ_client/src/riverpod/userAccess/userAccessState.dart';
 import 'package:happ_client/src/screens/auth/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,29 +22,21 @@ class Wrapper extends ConsumerStatefulWidget {
 }
 
 class WrapperState extends ConsumerState<Wrapper> {
-
-  // UserRepo get userRepo => UserRepo();
-
   bool isAuth = false;
   bool isComplete = false;
+  late Stream<User?> authStateChanges;
 
-  bool isSaveLoading = false;
+  String tokenId = "";
 
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-    //   ref.read(userAccessProvider.notifier).userAccess();
-    // });
-    // ref.read(userAccessProvider.notifier).userAccess();
+    final auth = ref.read(firebaseAuthProvider);
+    authStateChanges = auth.authStateChanges();
   }
-
-  // const Wrapper({Key? key}): super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final auth = ref.watch(firebaseAuthProvider);
-    final authStateChanges = auth.authStateChanges();
 
     ref.listen(authFlowNotifierProvider, (prev, next) {
       if (next is AuthFlowNotifierDoneState) {
@@ -66,6 +51,7 @@ class WrapperState extends ConsumerState<Wrapper> {
     return StreamBuilder<User?>(
       stream: authStateChanges,
       builder: (context, snapshot) {
+        print("toromax");
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
         } else {
@@ -75,13 +61,14 @@ class WrapperState extends ConsumerState<Wrapper> {
             return const Auth();
           } else {
             if (isAuth) {
-              return const Home();
+              return const Home(key: Key("Home"));
             }
+
             return FutureBuilder(
-              future: saveCurrentUser(auth),
+              future: saveCurrentUser(ref.read(firebaseAuthProvider)),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
-                  return const Home();
+                  return const Home(key: Key("Home"));
                 } else {
                   return Container();
                 }
@@ -96,7 +83,6 @@ class WrapperState extends ConsumerState<Wrapper> {
   Future<void> saveCurrentUser(FirebaseAuth auth) async {
 
     String token = await auth.currentUser!.getIdToken();
-
     Map<String, dynamic> claims = parseJwt(token);
     if (!claims.containsKey("id")) {
       token = await auth.currentUser!.getIdToken(true);
@@ -104,7 +90,7 @@ class WrapperState extends ConsumerState<Wrapper> {
     }
     int userId = claims["id"];
 
-    // print(claims);
+    print("userId: $userId");
 
     Map<String, dynamic> userJson = {
       "id": userId,

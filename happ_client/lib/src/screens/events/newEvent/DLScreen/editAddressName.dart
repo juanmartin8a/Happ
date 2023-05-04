@@ -78,7 +78,6 @@ class _DLScreenEditAddressState extends ConsumerState<DLScreenEditAddress> {
           _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
           _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
         });
-        // print("name 2");
         ref.read(newEventCompleteProvider.notifier).fieldChange(
           eventPlace: name,
         );
@@ -90,6 +89,7 @@ class _DLScreenEditAddressState extends ConsumerState<DLScreenEditAddress> {
       // width: (MediaQuery.of(context).size.width - 32) * 0.5,
       decoration: BoxDecoration(
         color: Colors.grey[200],
+        // color: Colors.red,
         borderRadius: BorderRadius.circular(12)
       ),
       padding: const EdgeInsets.only(left: 8),
@@ -118,6 +118,7 @@ class _DLScreenEditAddressState extends ConsumerState<DLScreenEditAddress> {
                 // scrollPhysics: NeverScrollableScrollPhysics(),
                 // cursorC
                 maxLines: 1,
+                autofocus: false,
                 style: TextStyle(
                   color: Colors.grey[850]!,
                   fontSize: 14,

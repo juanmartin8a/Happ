@@ -2,7 +2,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/riverpod/locationSearch/locationDetails.dart';
-import 'package:happ_client/src/utils/buttons/changeOnTap.dart';
+import 'package:happ_client/src/utils/buttons/customGestureDetector.dart';
 
 class SearchLocationTile extends ConsumerWidget {
   final dynamic tile;
@@ -51,7 +51,7 @@ class SearchLocationTile extends ConsumerWidget {
         ),
       ],
     );
-    return CustomGestureDetector(
+    return BackgroundChangeOnTapGestureDetector(
       onTap: () async {        
         ref.read(
           isNew 
@@ -60,17 +60,8 @@ class SearchLocationTile extends ConsumerWidget {
         ).getPlaceDetails(tile["place_id"], tile["description"]);
         Navigator.pop(context);
       },
-      prevWidget: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-        color: Colors.transparent,
-        child: widget
-      ),
-      afterWidget: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-        color: Colors.grey[200],
-        child: widget
-      ),
-      key: Key("place_id_${tile["place_id"]}")
+      key: Key("place_id_${tile["place_id"]}"),
+      child: widget
     );
   }
 }

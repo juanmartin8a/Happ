@@ -343,4 +343,25 @@ class EventOptions {
 
     return mutationOptions;
   }
+
+  MutationOptions scanPassMutationOptions(
+    int eventId,
+    String cypherText
+  ) {
+    MutationOptions mutationOptions = MutationOptions(
+      document: ScanPassMutation(
+        variables: ScanPassArguments(
+          eventId: eventId,
+          cypherText: cypherText,
+        )
+      ).document,
+      variables: {
+        "eventId": eventId,
+        "cypherText": cypherText,
+      },
+      fetchPolicy: FetchPolicy.noCache
+    );
+
+    return mutationOptions;
+  }
 }

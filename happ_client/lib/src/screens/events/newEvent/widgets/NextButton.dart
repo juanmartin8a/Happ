@@ -115,7 +115,7 @@ class _NextButtonState extends ConsumerState<NextButton> {
       },
       child: Container(
         width: MediaQuery.of(context).size.width * 0.5,
-        margin: const EdgeInsets.only(bottom: 20),
+        margin: EdgeInsets.only(bottom: 20 + 36 + MediaQuery.of(context).padding.bottom),
         height: 45,
         decoration: BoxDecoration(
           color: buttonColor,

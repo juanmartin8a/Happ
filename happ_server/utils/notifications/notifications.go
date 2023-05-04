@@ -9,11 +9,8 @@ import (
 	"log"
 )
 
-func SendPushNotifications(client *ent.Client, userId int, title string, body string) {
+func SendPushNotifications(client *ent.Client, ctx context.Context, userId int, title string, body string) {
 	fmt.Println("called goroutine notifications")
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	devices, err := client.Device.Query().
 		Where(
@@ -31,11 +28,8 @@ func SendPushNotifications(client *ent.Client, userId int, title string, body st
 	}
 }
 
-func SendManyPushNotifications(client *ent.Client, userIds []int, title string, body string) {
+func SendManyPushNotifications(client *ent.Client, ctx context.Context, userIds []int, title string, body string) {
 	fmt.Println("called goroutine notifications")
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	devices, err := client.Device.Query().
 		Where(
@@ -53,11 +47,8 @@ func SendManyPushNotifications(client *ent.Client, userIds []int, title string, 
 	}
 }
 
-func SendPushNotificationsWithDevices(client *ent.Client, devices []string, title string, body string) {
+func SendPushNotificationsWithDevices(ctx context.Context, devices []string, title string, body string) {
 	fmt.Println("called goroutine notifications")
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	_, err := firebaseUtils.SendManyPushNotifications(title, body, devices, ctx)
 	if err != nil {

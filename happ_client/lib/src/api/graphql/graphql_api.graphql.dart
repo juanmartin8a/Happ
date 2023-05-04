@@ -10,6 +10,21 @@ import 'package:happ_client/src/api/graphql/upload_serializer.dart';
 part 'graphql_api.graphql.g.dart';
 
 @JsonSerializable(explicitToJson: true)
+class SaveDevice$Mutation extends JsonSerializable with EquatableMixin {
+  SaveDevice$Mutation();
+
+  factory SaveDevice$Mutation.fromJson(Map<String, dynamic> json) =>
+      _$SaveDevice$MutationFromJson(json);
+
+  bool? saveDevice;
+
+  @override
+  List<Object?> get props => [saveDevice];
+  @override
+  Map<String, dynamic> toJson() => _$SaveDevice$MutationToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
 class AddOrRemoveUser$Mutation$AddResponse extends JsonSerializable
     with EquatableMixin {
   AddOrRemoveUser$Mutation$AddResponse();
@@ -543,6 +558,21 @@ class AppleData extends JsonSerializable with EquatableMixin {
   List<Object?> get props => [name, authorizationCode];
   @override
   Map<String, dynamic> toJson() => _$AppleDataToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class DeleteUser$Mutation extends JsonSerializable with EquatableMixin {
+  DeleteUser$Mutation();
+
+  factory DeleteUser$Mutation.fromJson(Map<String, dynamic> json) =>
+      _$DeleteUser$MutationFromJson(json);
+
+  late bool deleteUser;
+
+  @override
+  List<Object?> get props => [deleteUser];
+  @override
+  Map<String, dynamic> toJson() => _$DeleteUser$MutationToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -1583,18 +1613,18 @@ class GetEventGuests$Query extends JsonSerializable with EquatableMixin {
 }
 
 @JsonSerializable(explicitToJson: true)
-class SaveDevice$Mutation extends JsonSerializable with EquatableMixin {
-  SaveDevice$Mutation();
+class ScanPass$Mutation extends JsonSerializable with EquatableMixin {
+  ScanPass$Mutation();
 
-  factory SaveDevice$Mutation.fromJson(Map<String, dynamic> json) =>
-      _$SaveDevice$MutationFromJson(json);
+  factory ScanPass$Mutation.fromJson(Map<String, dynamic> json) =>
+      _$ScanPass$MutationFromJson(json);
 
-  bool? saveDevice;
+  bool? scanPass;
 
   @override
-  List<Object?> get props => [saveDevice];
+  List<Object?> get props => [scanPass];
   @override
-  Map<String, dynamic> toJson() => _$SaveDevice$MutationToJson(this);
+  Map<String, dynamic> toJson() => _$ScanPass$MutationToJson(this);
 }
 
 enum PictureAction {
@@ -1615,6 +1645,70 @@ enum SignInProvider {
   google,
   @JsonValue('ARTEMIS_UNKNOWN')
   artemisUnknown,
+}
+
+@JsonSerializable(explicitToJson: true)
+class SaveDeviceArguments extends JsonSerializable with EquatableMixin {
+  SaveDeviceArguments({required this.token});
+
+  @override
+  factory SaveDeviceArguments.fromJson(Map<String, dynamic> json) =>
+      _$SaveDeviceArgumentsFromJson(json);
+
+  late String token;
+
+  @override
+  List<Object?> get props => [token];
+  @override
+  Map<String, dynamic> toJson() => _$SaveDeviceArgumentsToJson(this);
+}
+
+final SAVE_DEVICE_MUTATION_DOCUMENT_OPERATION_NAME = 'SaveDevice';
+final SAVE_DEVICE_MUTATION_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+      type: OperationType.mutation,
+      name: NameNode(value: 'SaveDevice'),
+      variableDefinitions: [
+        VariableDefinitionNode(
+            variable: VariableNode(name: NameNode(value: 'token')),
+            type:
+                NamedTypeNode(name: NameNode(value: 'String'), isNonNull: true),
+            defaultValue: DefaultValueNode(value: null),
+            directives: [])
+      ],
+      directives: [],
+      selectionSet: SelectionSetNode(selections: [
+        FieldNode(
+            name: NameNode(value: 'saveDevice'),
+            alias: null,
+            arguments: [
+              ArgumentNode(
+                  name: NameNode(value: 'token'),
+                  value: VariableNode(name: NameNode(value: 'token')))
+            ],
+            directives: [],
+            selectionSet: null)
+      ]))
+]);
+
+class SaveDeviceMutation
+    extends GraphQLQuery<SaveDevice$Mutation, SaveDeviceArguments> {
+  SaveDeviceMutation({required this.variables});
+
+  @override
+  final DocumentNode document = SAVE_DEVICE_MUTATION_DOCUMENT;
+
+  @override
+  final String operationName = SAVE_DEVICE_MUTATION_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final SaveDeviceArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  SaveDevice$Mutation parse(Map<String, dynamic> json) =>
+      SaveDevice$Mutation.fromJson(json);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -2314,6 +2408,40 @@ class SignInMutation extends GraphQLQuery<SignIn$Mutation, SignInArguments> {
   @override
   SignIn$Mutation parse(Map<String, dynamic> json) =>
       SignIn$Mutation.fromJson(json);
+}
+
+final DELETE_USER_MUTATION_DOCUMENT_OPERATION_NAME = 'DeleteUser';
+final DELETE_USER_MUTATION_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+      type: OperationType.mutation,
+      name: NameNode(value: 'DeleteUser'),
+      variableDefinitions: [],
+      directives: [],
+      selectionSet: SelectionSetNode(selections: [
+        FieldNode(
+            name: NameNode(value: 'deleteUser'),
+            alias: null,
+            arguments: [],
+            directives: [],
+            selectionSet: null)
+      ]))
+]);
+
+class DeleteUserMutation
+    extends GraphQLQuery<DeleteUser$Mutation, JsonSerializable> {
+  DeleteUserMutation();
+
+  @override
+  final DocumentNode document = DELETE_USER_MUTATION_DOCUMENT;
+
+  @override
+  final String operationName = DELETE_USER_MUTATION_DOCUMENT_OPERATION_NAME;
+
+  @override
+  List<Object?> get props => [document, operationName];
+  @override
+  DeleteUser$Mutation parse(Map<String, dynamic> json) =>
+      DeleteUser$Mutation.fromJson(json);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -4124,29 +4252,36 @@ class GetEventGuestsQuery
 }
 
 @JsonSerializable(explicitToJson: true)
-class SaveDeviceArguments extends JsonSerializable with EquatableMixin {
-  SaveDeviceArguments({required this.token});
+class ScanPassArguments extends JsonSerializable with EquatableMixin {
+  ScanPassArguments({required this.eventId, required this.cypherText});
 
   @override
-  factory SaveDeviceArguments.fromJson(Map<String, dynamic> json) =>
-      _$SaveDeviceArgumentsFromJson(json);
+  factory ScanPassArguments.fromJson(Map<String, dynamic> json) =>
+      _$ScanPassArgumentsFromJson(json);
 
-  late String token;
+  late int eventId;
+
+  late String cypherText;
 
   @override
-  List<Object?> get props => [token];
+  List<Object?> get props => [eventId, cypherText];
   @override
-  Map<String, dynamic> toJson() => _$SaveDeviceArgumentsToJson(this);
+  Map<String, dynamic> toJson() => _$ScanPassArgumentsToJson(this);
 }
 
-final SAVE_DEVICE_MUTATION_DOCUMENT_OPERATION_NAME = 'SaveDevice';
-final SAVE_DEVICE_MUTATION_DOCUMENT = DocumentNode(definitions: [
+final SCAN_PASS_MUTATION_DOCUMENT_OPERATION_NAME = 'ScanPass';
+final SCAN_PASS_MUTATION_DOCUMENT = DocumentNode(definitions: [
   OperationDefinitionNode(
       type: OperationType.mutation,
-      name: NameNode(value: 'SaveDevice'),
+      name: NameNode(value: 'ScanPass'),
       variableDefinitions: [
         VariableDefinitionNode(
-            variable: VariableNode(name: NameNode(value: 'token')),
+            variable: VariableNode(name: NameNode(value: 'eventId')),
+            type: NamedTypeNode(name: NameNode(value: 'Int'), isNonNull: true),
+            defaultValue: DefaultValueNode(value: null),
+            directives: []),
+        VariableDefinitionNode(
+            variable: VariableNode(name: NameNode(value: 'cypherText')),
             type:
                 NamedTypeNode(name: NameNode(value: 'String'), isNonNull: true),
             defaultValue: DefaultValueNode(value: null),
@@ -4155,34 +4290,37 @@ final SAVE_DEVICE_MUTATION_DOCUMENT = DocumentNode(definitions: [
       directives: [],
       selectionSet: SelectionSetNode(selections: [
         FieldNode(
-            name: NameNode(value: 'saveDevice'),
+            name: NameNode(value: 'scanPass'),
             alias: null,
             arguments: [
               ArgumentNode(
-                  name: NameNode(value: 'token'),
-                  value: VariableNode(name: NameNode(value: 'token')))
+                  name: NameNode(value: 'eventId'),
+                  value: VariableNode(name: NameNode(value: 'eventId'))),
+              ArgumentNode(
+                  name: NameNode(value: 'cypherText'),
+                  value: VariableNode(name: NameNode(value: 'cypherText')))
             ],
             directives: [],
             selectionSet: null)
       ]))
 ]);
 
-class SaveDeviceMutation
-    extends GraphQLQuery<SaveDevice$Mutation, SaveDeviceArguments> {
-  SaveDeviceMutation({required this.variables});
+class ScanPassMutation
+    extends GraphQLQuery<ScanPass$Mutation, ScanPassArguments> {
+  ScanPassMutation({required this.variables});
 
   @override
-  final DocumentNode document = SAVE_DEVICE_MUTATION_DOCUMENT;
+  final DocumentNode document = SCAN_PASS_MUTATION_DOCUMENT;
 
   @override
-  final String operationName = SAVE_DEVICE_MUTATION_DOCUMENT_OPERATION_NAME;
+  final String operationName = SCAN_PASS_MUTATION_DOCUMENT_OPERATION_NAME;
 
   @override
-  final SaveDeviceArguments variables;
+  final ScanPassArguments variables;
 
   @override
   List<Object?> get props => [document, operationName, variables];
   @override
-  SaveDevice$Mutation parse(Map<String, dynamic> json) =>
-      SaveDevice$Mutation.fromJson(json);
+  ScanPass$Mutation parse(Map<String, dynamic> json) =>
+      ScanPass$Mutation.fromJson(json);
 }

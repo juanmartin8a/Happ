@@ -28,13 +28,13 @@ class _SearchBarState extends ConsumerState<SearchBar> {
   final TextEditingController _textEditingController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      FocusScope.of(context).requestFocus(_focusNode);
-    });
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+  //     FocusScope.of(context).requestFocus(_focusNode);
+  //   });
+  // }
 
   @override
   void dispose() {
@@ -72,6 +72,7 @@ class _SearchBarState extends ConsumerState<SearchBar> {
                     textInputAction: TextInputAction.done,
                     focusNode:  _focusNode,
                     controller: _textEditingController,
+                    // autofocus: false,
                     // cursorColor: Colors.black,
                     textAlignVertical: TextAlignVertical.center,
                     keyboardAppearance: Brightness.dark,

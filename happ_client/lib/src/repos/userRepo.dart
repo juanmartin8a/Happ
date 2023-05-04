@@ -165,4 +165,18 @@ class UserRepo {
     }
   }
 
+  Future<DeleteUser$Mutation> deleteUser() async {
+    final result = await client.mutate(
+      UserOptions().deleteUser()
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return DeleteUser$Mutation.fromJson(
+        result.data!
+      );
+    }
+  }
+
 }

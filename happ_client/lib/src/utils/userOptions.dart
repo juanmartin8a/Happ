@@ -173,4 +173,13 @@ class UserOptions {
     return mutationOptions;
   }
 
+  MutationOptions deleteUser() {
+    MutationOptions  mutationOptions = MutationOptions(
+      document: DeleteUserMutation().document,
+      fetchPolicy: FetchPolicy.noCache
+    );
+
+    return mutationOptions;
+  }
+
 }

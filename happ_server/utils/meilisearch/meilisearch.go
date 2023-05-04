@@ -56,7 +56,7 @@ func GetUsersFromMeili(search string, filterNotIn []int) ([]interface{}, error) 
 	searchRes, err := index.Search(
 		search,
 		&meilisearch.SearchRequest{
-			Limit:  15,
+			Limit:  20,
 			Filter: filter,
 		},
 	)
@@ -93,12 +93,8 @@ func AddFollowToMeili(userID1 int, userID2 int) bool {
 func GetFollowFromMeili(id string) (interface{}, error) {
 	index, isHealthy := GetMeiliFollowIndex()
 
-	// var emptySearchArray []interface{}
-
 	if !isHealthy {
-		// return emptySearchArray, nil
 		return nil, fmt.Errorf("error: meilisearch client not healthy")
-
 	}
 
 	var a interface{}
@@ -115,19 +111,26 @@ func GetFollowFromMeili(id string) (interface{}, error) {
 	return a, nil
 }
 
-func RemoveFollowToMeili(userID1 int, userID2 int) bool {
+func RemoveFollowFromMeili(userID1 int, userID2 int) bool {
 	index, isHealthy := GetMeiliFollowIndex()
 	if !isHealthy {
 		return false
 	}
 
-	// lowestNumberUserId := math.Min(float64(userId1), float64(userId2))
-	// highestNumberUserId := math.Max(float64(userId1), float64(userId2))
-
 	id := fmt.Sprintf("%s_%s", strconv.Itoa(userID1), strconv.Itoa(userID2))
 
 	_, err := index.DeleteDocument(id)
 
+	return err == nil
+}
+
+func RemoveFollowsFromMeili(ids []string) bool {
+	index, isHealthy := GetMeiliFollowIndex()
+	if !isHealthy {
+		return false
+	}
+
+	_, err := index.DeleteDocuments(ids)
 	return err == nil
 }
 

@@ -2,7 +2,7 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/riverpod/locationSearch/locationSearch.dart';
-import 'package:happ_client/src/utils/buttons/changeOnTap.dart';
+import 'package:happ_client/src/utils/buttons/customGestureDetector.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
 import 'package:uuid/uuid.dart';
 
@@ -100,10 +100,10 @@ class _SearchLocationBarState extends ConsumerState<SearchLocationBar> with Auto
             ),
           ),
           GestureDetector(
-            onTap: () {
-              _textEditingController.clear();
-              FocusScope.of(context).unfocus();
-            },
+            // onTap: () {
+            //   // _textEditingController.clear();
+            //   // FocusScope.of(context).unfocus();
+            // },
             child: CustomGestureDetector(
               prevWidget: Container(
                 padding: const EdgeInsets.only(right: 8),
@@ -124,7 +124,7 @@ class _SearchLocationBarState extends ConsumerState<SearchLocationBar> with Auto
                   "Cancel",
                   style: TextStyle(
                     color: Colors.grey[600],
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600
                   )
                 )

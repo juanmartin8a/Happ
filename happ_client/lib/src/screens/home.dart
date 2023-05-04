@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -12,6 +14,8 @@ import 'package:happ_client/src/screens/events/newEvent.dart';
 import 'package:happ_client/src/screens/main/main.dart';
 import 'package:happ_client/src/screens/profile/profile.dart';
 import 'package:happ_client/src/screens/search/search.dart';
+import 'package:happ_client/src/screens/settings/settings.dart';
+import 'package:happ_client/src/utils/indicators/circularTabIndicator.dart';
 import 'package:happ_client/src/utils/widgets/screenTabWrapper.dart';
 import 'package:hive/hive.dart';
 import 'package:iconsax/iconsax.dart';
@@ -58,21 +62,22 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     // final statusBar = MediaQuery.of(context).viewPadding.top;
     // print()
+    // print("bottom: ${MediaQuery.of(context).padding.bottom}");
     return AnnotatedRegion<SystemUiOverlayStyle>( 
       value: SystemUiOverlayStyle.dark,
       child: SafeArea(
         top: false,
-        bottom: true,
+        bottom: false,
         // maintainBottomViewPadding: true,
         child: Scaffold(
           resizeToAvoidBottomInset: false,
           backgroundColor: Colors.black,
-          body: Column(
+          body: Stack(
             // padding: EdgeInsets.zero,
             children: [
-              Expanded(
-                // height: MediaQuery.of(context).size.height - (40 + 34),
-                // width: MediaQuery.of(context).size.width * 0.8,
+              SizedBox(
+                height: MediaQuery.of(context).size.height,
+                // width: MediaQuery.of(context).size.width,
                 child: TabBarView(
                   controller: _tabController,
                   viewportFraction: 1.03,
@@ -101,11 +106,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         child: NewEvent(),
                       )
                     ),
-                    FractionallySizedBox(
+                    const FractionallySizedBox(
                       widthFactor: 1 / 1.03,
                       child: ScreenTabWrapper(
-                        key: const Key("profileTab"),
-                        child: Container()
+                        key: Key("settings Tab"),
+                        child: Settings()
                         // Profile(
                         //   // userId: userId,
                         //   user: widget.user, 
@@ -116,125 +121,99 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   ]
                 ),
               ),
-              SizedBox(
-                // color: Colors.red,
-                height: 36,//36,
-                // width: MediaQuery.of(context).size.width * 0.8,
-                child: TabBar(
-                  controller: _tabController,
-                  labelPadding: EdgeInsets.zero,
-                  padding: EdgeInsets.zero,
-                  indicatorPadding: EdgeInsets.zero,
-                  indicator: BoxDecoration(),
-                  indicatorWeight: 0,
-                  // indicatorSize: TabBa,
-                  // indicatorSize: ,
-                  // isScrollable: ,
-                  tabs: [
-                    Tab(
-                      child: Icon(
-                        FluentIcons.home_16_regular,
-                        size: 28,
-                        color: Colors.grey[600]
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: ClipRRect(
+                  child: Container(
+                    color: Colors.white,
+                    height: 38 + MediaQuery.of(context).padding.bottom,//36,
+                    // width: MediaQuery.of(context).size.width * 0.8,
+                    // margin: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+                    // decoration: BoxDecoration(
+                    //   color: Colors.red,
+                    //   // border: Border(
+                    //   //   top: BorderSide(color: Colors.grey[200]!, width: 1)
+                    //   // )
+                    // ),
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+                      child: TabBar(
+                        // labelColor: Colors.red,
+                        controller: _tabController,
+                        labelPadding: EdgeInsets.zero,
+                        padding: EdgeInsets.zero,
+                        indicatorPadding: EdgeInsets.zero,
+                        // indicator: CircularTabIndicator(color: Colors.greenAccent[700]!, radius: 2.5),
+                        indicator: const BoxDecoration(),
+                        // indicatorWeight: 0,
+                        // indicatorSize: TabBa,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        // isScrollable: ,
+                        tabs: [
+                          AnimatedBuilder(
+                            animation: _tabController.animation!,
+                            builder: (context, child) {
+                              return Tab(
+                                // height: 36,
+                                child: Icon(
+                                  _tabController.index == 0
+                                  ? FluentIcons.home_16_filled
+                                  : FluentIcons.home_16_regular,
+                                  size: 30,
+                                  color: _tabController.index == 0 ? Colors.black : Colors.grey[850]
+                                ),
+                              );
+                            }
+                          ),
+                          AnimatedBuilder(
+                            animation: _tabController.animation!,
+                            builder: (context, child) {
+                              return Tab(
+                                child: Icon(
+                                  EvaIcons.search,
+                                  size: 30,
+                                  color: _tabController.index == 1 ? Colors.black : Colors.grey[850]
+                                ),
+                              );
+                            }
+                          ),
+                          AnimatedBuilder(
+                            animation: _tabController.animation!,
+                            builder: (context, child) {
+                              return Tab(
+                                child: Icon(
+                                  _tabController.index == 2
+                                  ? FluentIcons.add_square_24_filled
+                                  : FluentIcons.add_square_24_regular,
+                                  size: 30,
+                                  color: _tabController.index == 2 ? Colors.black : Colors.grey[850]
+                                ),
+                              );
+                            }
+                          ),
+                          AnimatedBuilder(
+                            animation: _tabController.animation!,
+                            builder: (context, child) {
+                              return Tab(
+                                child: Icon(
+                                  // _tabController.index == 3
+                                  // ? FluentIcons.settings_16_filled
+                                  // : FluentIcons.settings_16_regular,
+                                  EvaIcons.menu,
+                                  size: 30,
+                                  color: _tabController.index == 3 ? Colors.black : Colors.grey[850]
+                                ),
+                              );
+                            }
+                          ),
+                        ],
                       ),
                     ),
-                    Tab(
-                      child: Icon(
-                        FluentIcons.search_16_regular,
-                        size: 28,
-                        color: Colors.grey[600]
-                      ),
-                    ),
-                    Tab(
-                      child: Icon(
-                        FluentIcons.add_square_24_regular,
-                        size: 28,
-                        color: Colors.grey[600]
-                      ),
-                    ),
-                    Tab(
-                      child: Icon(
-                        FluentIcons.person_16_regular,
-                        size: 28,
-                        color: Colors.grey[600]
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               )
             ],
           )
-          // Stack(
-          //   children: [
-          //     Center(
-          //       child: PageView(
-          //         children: [
-          //           Container(color: Colors.blue),
-          //           Profile(
-          //             // userId: userId,
-          //             user: user,
-          //             key: Key("user_id_${user.id}")
-          //           ),
-          //         ],
-          //       )
-          //     ),
-          //     Align(
-          //       alignment: Alignment.topCenter,
-          //       child: Container(
-          //         margin: EdgeInsets.only(top:statusBar, left: 8, right: 8),
-          //         height: 45,
-          //         color: Colors.transparent,
-          //         child: Align(
-          //           alignment: Alignment.center,
-          //           child: Row(
-          //             crossAxisAlignment: CrossAxisAlignment.stretch,
-          //             children: [
-          //               Container(
-          //                 color: Colors.transparent,
-          //                 child: const Text(
-          //                   "Happ",
-          //                   style: TextStyle(
-          //                     color: Colors.black,
-          //                     fontSize: 30,
-          //                     fontWeight: FontWeight.w800
-          //                   )
-          //                 ),
-          //               ),
-          //               const Spacer(),
-          //               GestureDetector(
-          //                 onTap: () {
-          //                   showGeneralDialog(
-          //                     context: context, 
-          //                     // barrierDismissible: true,
-          //                     // useSafeArea: false,
-          //                     barrierColor: Colors.transparent,
-          //                     transitionDuration: const Duration(milliseconds: 200),
-          //                     pageBuilder: (context, anim1, anim2) {
-          //                       return Search(key: Key(const Uuid().v4()));
-          //                     }
-          //                   );
-          //                 },
-          //                 child: const SizedBox(
-          //                   height: 45,
-          //                   width: 45,
-          //                   // decoration: BoxDecoration(
-          //                   //   // color: Colors.grey[350],
-          //                   //   shape: BoxShape.circle
-          //                   // ),
-          //                   child: Icon(
-          //                     EvaIcons.searchOutline,
-          //                     size: 35
-          //                   )
-          //                 ),
-          //               )
-          //             ],
-          //           ),
-          //         ),
-          //       ),
-          //     ),
-          //     // Container(color: Colors.red,)
-          //   ],
-          // ),
         ),
       ),
     );
@@ -253,11 +232,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       sound: true,
     );
 
-    print('User granted permission: ${settings.authorizationStatus}');
-    
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       String? currentToken = await messaging.getToken();
-      print(currentToken);
 
       var box = Hive.box('myBox');
 

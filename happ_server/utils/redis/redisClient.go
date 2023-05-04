@@ -1,13 +1,13 @@
 package redisUtils
 
-import "github.com/go-redis/redis/v9"
+// import "github.com/go-redis/redis/v9"
 
-var RedisClient *redis.Client
+// var RedisClient *redis.Client
 
-func GetRedisClient() *redis.Client {
-	return redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
-}
+// func GetRedisClient() *redis.Client {
+// 	return redis.NewClient(&redis.Options{
+// 		Addr:     "localhost:6379",
+// 		Password: "",
+// 		DB:       0,
+// 	})
+// }

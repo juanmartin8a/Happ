@@ -387,7 +387,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                               )
                             ),
                             const SizedBox(height: 8),
-                            DLScreenEditAddress(isNew: false, address: event.eventPlace,),
+                            DLScreenEditAddress(isNew: false, address: event.eventPlace),
                             // SizedBox(
                             //   height: MediaQuery.of(context).padding.top + 45,
                             //   // color: Colors.yellow
@@ -401,6 +401,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                           ],
                         ),
                       ),
+                      SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
                       const SizedBox(height: 150)
                     ],
                   ),

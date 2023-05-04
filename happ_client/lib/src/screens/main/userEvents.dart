@@ -299,6 +299,7 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
         padding: const EdgeInsets.all(0),
         controller: scrollController,
         children: [
+          // SizedBox(height: 450),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
             // color: Colors.red,

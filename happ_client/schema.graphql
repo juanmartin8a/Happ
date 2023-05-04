@@ -185,9 +185,7 @@ type Mutation {
   signIn(
     input: SignInInput!
   ): SignInResponse!,
-  signOut(
-    token: String!
-  ): Boolean!
+  deleteUser: Boolean!,
   addOrRemoveUser(
     followUserId: Int!
     isFollow: Boolean!
@@ -218,6 +216,10 @@ type Mutation {
     eventId: Int!
     userIds: [Int!]!
   ): Boolean,
+  scanPass(
+    eventId: Int!
+    cypherText: String!
+  ): Boolean
   leaveEvent(
     eventId: Int!
   ): Boolean

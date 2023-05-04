@@ -107,6 +107,7 @@ type ComplexityRoot struct {
 		AddGuests                 func(childComplexity int, eventID int, userIds []int) int
 		AddOrRemoveUser           func(childComplexity int, followUserID int, isFollow bool) int
 		DeleteEvent               func(childComplexity int, eventID int) int
+		DeleteUser                func(childComplexity int) int
 		InviteGuestsAndOrganizers func(childComplexity int, guests []int, organizers []int, eventID int) int
 		LeaveEvent                func(childComplexity int, eventID int) int
 		NewEvent                  func(childComplexity int, input model.NewEventInput) int
@@ -114,7 +115,6 @@ type ComplexityRoot struct {
 		SaveDevice                func(childComplexity int, token string) int
 		ScanPass                  func(childComplexity int, eventID int, cypherText string) int
 		SignIn                    func(childComplexity int, input model.SignInInput) int
-		SignOut                   func(childComplexity int, token string) int
 		UpdateEvent               func(childComplexity int, input model.UpdateEventInput, eventID int) int
 	}
 
@@ -175,7 +175,7 @@ type EventInviteResResolver interface {
 }
 type MutationResolver interface {
 	SignIn(ctx context.Context, input model.SignInInput) (*model.SignInResponse, error)
-	SignOut(ctx context.Context, token string) (bool, error)
+	DeleteUser(ctx context.Context) (bool, error)
 	AddOrRemoveUser(ctx context.Context, followUserID int, isFollow bool) (*model.AddResponse, error)
 	NewEvent(ctx context.Context, input model.NewEventInput) (*model.CreateEventResponse, error)
 	InviteGuestsAndOrganizers(ctx context.Context, guests []int, organizers []int, eventID int) (bool, error)
@@ -482,6 +482,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteEvent(childComplexity, args["eventId"].(int)), true
 
+	case "Mutation.deleteUser":
+		if e.complexity.Mutation.DeleteUser == nil {
+			break
+		}
+
+		return e.complexity.Mutation.DeleteUser(childComplexity), true
+
 	case "Mutation.inviteGuestsAndOrganizers":
 		if e.complexity.Mutation.InviteGuestsAndOrganizers == nil {
 			break
@@ -565,18 +572,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SignIn(childComplexity, args["input"].(model.SignInInput)), true
-
-	case "Mutation.signOut":
-		if e.complexity.Mutation.SignOut == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_signOut_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SignOut(childComplexity, args["token"].(string)), true
 
 	case "Mutation.updateEvent":
 		if e.complexity.Mutation.UpdateEvent == nil {
@@ -1126,9 +1121,10 @@ type Mutation {
   signIn(
     input: SignInInput!
   ): SignInResponse!,
-  signOut(
-    token: String!
-  ): Boolean!
+  deleteUser: Boolean!,
+  # signOut(
+  #   token: String!
+  # ): Boolean!
   # refreshTokens(
   #   token: String!
   # ): TokenResponse
@@ -1398,21 +1394,6 @@ func (ec *executionContext) field_Mutation_signIn_args(ctx context.Context, rawA
 		}
 	}
 	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_signOut_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["token"] = arg0
 	return args, nil
 }
 
@@ -3219,8 +3200,8 @@ func (ec *executionContext) fieldContext_Mutation_signIn(ctx context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_signOut(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_signOut(ctx, field)
+func (ec *executionContext) _Mutation_deleteUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteUser(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3233,7 +3214,7 @@ func (ec *executionContext) _Mutation_signOut(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SignOut(rctx, fc.Args["token"].(string))
+		return ec.resolvers.Mutation().DeleteUser(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3250,7 +3231,7 @@ func (ec *executionContext) _Mutation_signOut(ctx context.Context, field graphql
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_signOut(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_deleteUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -3259,17 +3240,6 @@ func (ec *executionContext) fieldContext_Mutation_signOut(ctx context.Context, f
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_signOut_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
@@ -8109,10 +8079,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "signOut":
+		case "deleteUser":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_signOut(ctx, field)
+				return ec._Mutation_deleteUser(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

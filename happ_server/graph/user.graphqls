@@ -212,9 +212,10 @@ type Mutation {
   signIn(
     input: SignInInput!
   ): SignInResponse!,
-  signOut(
-    token: String!
-  ): Boolean!
+  deleteUser: Boolean!,
+  # signOut(
+  #   token: String!
+  # ): Boolean!
   # refreshTokens(
   #   token: String!
   # ): TokenResponse

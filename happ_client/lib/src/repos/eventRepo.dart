@@ -270,4 +270,21 @@ class EventRepo {
       );
     }
   }
+
+  Future<ScanPass$Mutation> scanPass(
+    int eventId,
+    String cypherText
+  ) async {
+    final result = await client.mutate(
+      EventOptions().scanPassMutationOptions(eventId, cypherText)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return ScanPass$Mutation.fromJson(
+        result.data!,
+      );
+    }
+  }
 }

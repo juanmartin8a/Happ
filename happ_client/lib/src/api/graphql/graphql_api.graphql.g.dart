@@ -7,6 +7,15 @@ part of 'graphql_api.graphql.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+SaveDevice$Mutation _$SaveDevice$MutationFromJson(Map<String, dynamic> json) =>
+    SaveDevice$Mutation()..saveDevice = json['saveDevice'] as bool?;
+
+Map<String, dynamic> _$SaveDevice$MutationToJson(
+        SaveDevice$Mutation instance) =>
+    <String, dynamic>{
+      'saveDevice': instance.saveDevice,
+    };
+
 AddOrRemoveUser$Mutation$AddResponse
     _$AddOrRemoveUser$Mutation$AddResponseFromJson(Map<String, dynamic> json) =>
         AddOrRemoveUser$Mutation$AddResponse()
@@ -406,6 +415,15 @@ AppleData _$AppleDataFromJson(Map<String, dynamic> json) => AppleData(
 Map<String, dynamic> _$AppleDataToJson(AppleData instance) => <String, dynamic>{
       'name': instance.name,
       'authorizationCode': instance.authorizationCode,
+    };
+
+DeleteUser$Mutation _$DeleteUser$MutationFromJson(Map<String, dynamic> json) =>
+    DeleteUser$Mutation()..deleteUser = json['deleteUser'] as bool;
+
+Map<String, dynamic> _$DeleteUser$MutationToJson(
+        DeleteUser$Mutation instance) =>
+    <String, dynamic>{
+      'deleteUser': instance.deleteUser,
     };
 
 AcceptInvitation$Mutation$AcceptInvitationResponse
@@ -1231,13 +1249,23 @@ Map<String, dynamic> _$GetEventGuests$QueryToJson(
       'getEventGuests': instance.getEventGuests.toJson(),
     };
 
-SaveDevice$Mutation _$SaveDevice$MutationFromJson(Map<String, dynamic> json) =>
-    SaveDevice$Mutation()..saveDevice = json['saveDevice'] as bool?;
+ScanPass$Mutation _$ScanPass$MutationFromJson(Map<String, dynamic> json) =>
+    ScanPass$Mutation()..scanPass = json['scanPass'] as bool?;
 
-Map<String, dynamic> _$SaveDevice$MutationToJson(
-        SaveDevice$Mutation instance) =>
+Map<String, dynamic> _$ScanPass$MutationToJson(ScanPass$Mutation instance) =>
     <String, dynamic>{
-      'saveDevice': instance.saveDevice,
+      'scanPass': instance.scanPass,
+    };
+
+SaveDeviceArguments _$SaveDeviceArgumentsFromJson(Map<String, dynamic> json) =>
+    SaveDeviceArguments(
+      token: json['token'] as String,
+    );
+
+Map<String, dynamic> _$SaveDeviceArgumentsToJson(
+        SaveDeviceArguments instance) =>
+    <String, dynamic>{
+      'token': instance.token,
     };
 
 AddOrRemoveUserArguments _$AddOrRemoveUserArgumentsFromJson(
@@ -1489,13 +1517,14 @@ Map<String, dynamic> _$GetEventGuestsArgumentsToJson(
       'idsList': instance.idsList,
     };
 
-SaveDeviceArguments _$SaveDeviceArgumentsFromJson(Map<String, dynamic> json) =>
-    SaveDeviceArguments(
-      token: json['token'] as String,
+ScanPassArguments _$ScanPassArgumentsFromJson(Map<String, dynamic> json) =>
+    ScanPassArguments(
+      eventId: json['eventId'] as int,
+      cypherText: json['cypherText'] as String,
     );
 
-Map<String, dynamic> _$SaveDeviceArgumentsToJson(
-        SaveDeviceArguments instance) =>
+Map<String, dynamic> _$ScanPassArgumentsToJson(ScanPassArguments instance) =>
     <String, dynamic>{
-      'token': instance.token,
+      'eventId': instance.eventId,
+      'cypherText': instance.cypherText,
     };

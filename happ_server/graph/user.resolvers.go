@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"happ/ent"
+	"happ/ent/device"
 	"happ/ent/event"
 	"happ/ent/eventuser"
 	"happ/ent/follow"
@@ -28,7 +29,6 @@ import (
 	meilisearchUtils "happ/utils/meilisearch"
 	"happ/utils/newEventUtils"
 	"happ/utils/notifications"
-	redisUtils "happ/utils/redis"
 	"io"
 	"log"
 	"math/rand"
@@ -100,7 +100,7 @@ func (r *eventInviteResResolver) Friends(ctx context.Context, obj *model.EventIn
 	}
 
 	// QUERY MADE BY CHAT GPT
-	res, _ := r.client.QueryContext(ctx, `
+	res, err := r.client.QueryContext(ctx, `
 		SELECT u.*, f.user_id FROM users u
 
 		LEFT JOIN follows f ON f.user_id = u.id AND f.follower_id = `+strconv.Itoa(*userId)+` AND f.valid = true
@@ -112,6 +112,9 @@ func (r *eventInviteResResolver) Friends(ctx context.Context, obj *model.EventIn
 
 		LIMIT 3;
 	`)
+	if err != nil {
+		return users, nil
+	}
 
 	for res.Next() {
 		var id int
@@ -140,17 +143,16 @@ func (r *eventInviteResResolver) Friends(ctx context.Context, obj *model.EventIn
 			&user_id,
 		); err != nil {
 			// Check for a scan error.
-			// Query rows will be closed with defer.
 			log.Fatal(err)
+			var emptyUsersSlice []*ent.User
+			return emptyUsersSlice, err
 		}
 
 		event := ent.User{
-			ID:       id,
-			Name:     name,
-			Username: username,
-			Email:    email,
-			// Birthday:   birthday,
-			// Password:   password,
+			ID:         id,
+			Name:       name,
+			Username:   username,
+			Email:      email,
 			CreatedAt:  created_at,
 			UpdatedAt:  updated_at,
 			ProfilePic: profile_pic,
@@ -160,6 +162,8 @@ func (r *eventInviteResResolver) Friends(ctx context.Context, obj *model.EventIn
 		// events = append(events, &event)
 		users = append(users, &event)
 	}
+
+	res.Close()
 
 	return users, nil
 }
@@ -352,12 +356,345 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 	}, nil
 }
 
-// SignOut is the resolver for the signOut field.
-func (r *mutationResolver) SignOut(ctx context.Context, token string) (bool, error) {
-	userId, err := utils.IsAuth(ctx)
+// DeleteUser is the resolver for the deleteUser field.
+func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 
-	if err == nil {
-		redisUtils.DeleteTokenFromRedis("" + strconv.Itoa(*userId) + "_" + token)
+	userId, authErr := utils.IsAuth(ctx)
+	if authErr != nil {
+		return false, authErr
+	}
+
+	type EventToCancel struct {
+		EventID   int
+		EventName string
+	}
+
+	type EventToUpdate struct {
+		EventName        string
+		EventAdminTokens []string
+	}
+
+	var eventsToCancel []EventToCancel
+	var eventsToUpdate []EventToUpdate
+
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	eventUsers, err := tx.EventUser.Query().
+		Where(
+			eventuser.And(
+				eventuser.UserID(*userId),
+				eventuser.Confirmed(true),
+			),
+		).
+		All(ctx)
+	if err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			err = fmt.Errorf("%w: %v", err, rerr)
+			return false, err
+		}
+	}
+
+	if len(eventUsers) > 0 {
+		var eventIdsWhereGuest []int
+		var eventIdsWhereHost []int
+		var eventIdsWhereCreator []int
+		for _, eventUser := range eventUsers {
+			if eventUser.Admin {
+				eventIdsWhereHost = append(eventIdsWhereHost, eventUser.EventID)
+				if eventUser.Creator {
+					eventIdsWhereCreator = append(eventIdsWhereCreator, eventUser.EventID)
+				}
+			} else {
+				eventIdsWhereGuest = append(eventIdsWhereGuest, eventUser.EventID)
+			}
+		}
+
+		if len(eventIdsWhereGuest) > 0 {
+			_, err = tx.Event.Update().
+				Where(event.IDIn(eventIdsWhereGuest...)).
+				AddConfirmedCount(-1).
+				Save(ctx)
+			if err != nil {
+				fmt.Printf("error while updating event: %s", err)
+				if rerr := tx.Rollback(); rerr != nil {
+					err = fmt.Errorf("%w: %v", err, rerr)
+					return false, err
+				}
+				return false, err
+			}
+		}
+
+		if len(eventIdsWhereHost) > 0 {
+			_, err = tx.Event.Update().
+				Where(event.IDIn(eventIdsWhereHost...)).
+				AddConfirmedCount(-1).
+				AddConfirmedHosts(-1).
+				Save(ctx)
+			if err != nil {
+				fmt.Printf("error while updating event: %s", err)
+				if rerr := tx.Rollback(); rerr != nil {
+					err = fmt.Errorf("%w: %v", err, rerr)
+					return false, err
+				}
+				return false, err
+			}
+		}
+
+		if len(eventIdsWhereCreator) > 0 {
+			events, err := tx.Event.Query().
+				Where(event.IDIn(eventIdsWhereCreator...)).
+				All(ctx)
+			if err != nil {
+				fmt.Printf("error while getting events: %s", err)
+				if rerr := tx.Rollback(); rerr != nil {
+					err = fmt.Errorf("%w: %v", err, rerr)
+					return false, err
+				}
+				return false, err
+			}
+
+			rand.Seed(time.Now().Unix())
+
+			for _, event := range events {
+				if event.ConfirmedHosts <= 1 {
+					// delete event
+					err = tx.Event.DeleteOne(event).Exec(ctx)
+					if err != nil {
+						if rerr := tx.Rollback(); rerr != nil {
+							err = fmt.Errorf("%w: %v", err, rerr)
+							return false, err
+						}
+						return false, err
+					}
+
+					// Send event cancel notifications
+					eventsToCancel = append(eventsToCancel, EventToCancel{
+						EventID:   event.ID,
+						EventName: event.Name,
+					})
+
+				} else if event.ConfirmedHosts > 1 {
+
+					rows, allGuestsErr := tx.QueryContext(ctx, `
+						SELECT d.token, eu.user_id FROM event_users eu
+						LEFT JOIN devices d ON eu.user_id = d.user_id
+						WHERE eu.event_id = ? AND eu.confirmed = true AND eu.admin = true AND NOT eu.user_id = ?;
+					`, event.ID, *userId)
+					if allGuestsErr != nil {
+						if rerr := tx.Rollback(); rerr != nil {
+							err = fmt.Errorf("%w: %v", err, rerr)
+							return false, err
+						}
+						return false, err
+					}
+
+					affectedRows := 0
+					var eventAdmins []int
+					var eventAdminTokens []string
+					for rows.Next() {
+						var token *string
+						var userID int
+						if err := rows.Scan(&token, &userID); err != nil {
+							log.Printf("Error scanning event_user row: %v", err)
+							continue
+						}
+
+						eventAdmins = append(eventAdmins, userID)
+
+						if token != nil {
+							nonNilToken := *token
+							eventAdminTokens = append(eventAdminTokens, nonNilToken)
+						}
+
+						affectedRows++
+					}
+
+					if affectedRows > 0 {
+						eventAdmins = utils.RemoveIntDuplicates(eventAdmins)
+
+						selectedAdmin := eventAdmins[rand.Intn(len(eventAdmins))]
+
+						err = tx.EventUser.Update().
+							Where(
+								eventuser.And(
+									eventuser.EventID(event.ID),
+									eventuser.UserID(selectedAdmin),
+								),
+							).
+							SetCreator(true).
+							Exec(ctx)
+						if err != nil {
+							if rerr := tx.Rollback(); rerr != nil {
+								err = fmt.Errorf("%w: %v", err, rerr)
+								return false, err
+							}
+							return false, err
+						}
+
+						eventsToUpdate = append(eventsToUpdate, EventToUpdate{
+							EventName:        event.Name,
+							EventAdminTokens: eventAdminTokens,
+						})
+					}
+				}
+			}
+		}
+	}
+
+	_, err = tx.EventUser.Delete().
+		Where(
+			eventuser.UserID(*userId),
+		).
+		Exec(ctx)
+	if err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			err = fmt.Errorf("%w: %v", err, rerr)
+			return false, err
+		}
+		return false, err
+	}
+
+	follows, err := tx.Follow.Query().
+		Where(
+			follow.Or(
+				follow.FollowerID(*userId),
+				follow.UserID(*userId),
+			),
+		).
+		All(ctx)
+	if err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			err = fmt.Errorf("%w: %v", err, rerr)
+			return false, err
+		}
+		return false, err
+	}
+
+	var meiliFollowIds []string
+	for _, follow := range follows {
+		id := fmt.Sprintf("%s_%s", strconv.Itoa(follow.FollowerID), strconv.Itoa(follow.UserID))
+		meiliFollowIds = append(meiliFollowIds, id)
+	}
+
+	_, err = tx.Follow.Delete().
+		Where(
+			follow.Or(
+				follow.FollowerID(*userId),
+				follow.UserID(*userId),
+			),
+		).
+		Exec(ctx)
+	if err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			err = fmt.Errorf("%w: %v", err, rerr)
+			return false, err
+		}
+		return false, err
+	}
+
+	ok := meilisearchUtils.RemoveFollowsFromMeili(meiliFollowIds)
+	if !ok {
+		if rerr := tx.Rollback(); rerr != nil {
+			err = fmt.Errorf("%w: %v", err, rerr)
+			return false, err
+		}
+		return false, err
+	}
+
+	_, err = tx.Device.Delete().
+		Where(
+			device.UserID(*userId),
+		).
+		Exec(ctx)
+	if err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			err = fmt.Errorf("%w: %v", err, rerr)
+			return false, err
+		}
+		return false, err
+	}
+
+	_, err = tx.User.Delete().
+		Where(
+			user.ID(*userId),
+		).
+		Exec(ctx)
+	if err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			err = fmt.Errorf("%w: %v", err, rerr)
+			return false, err
+		}
+		return false, err
+	}
+
+	ok = meilisearchUtils.RemoveUserFromMeili(*userId)
+	if !ok {
+		if rerr := tx.Rollback(); rerr != nil {
+			err = fmt.Errorf("%w: %v", err, rerr)
+			return false, err
+		}
+		return false, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return false, err
+	}
+
+	for _, eventData := range eventsToCancel {
+		go func(eventID int, eventName string) {
+			newctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			rows, allGuestsErr := r.client.DB().QueryContext(newctx, `
+				SELECT d.token FROM event_users eu
+				JOIN devices d ON eu.user_id = d.user_id
+				WHERE eu.event_id = ? AND eu.confirmed = true;
+			`, eventID)
+			if allGuestsErr != nil {
+				return
+			}
+
+			var tokens []string
+			affectedRows := 0
+
+			for rows.Next() {
+				var token string
+				if err := rows.Scan(&token); err != nil {
+					log.Printf("Error scanning event_user row: %v", err)
+					continue
+				}
+
+				tokens = append(tokens, token)
+				affectedRows++
+			}
+
+			if affectedRows > 0 {
+				notifications.SendPushNotificationsWithDevices(newctx, tokens, "Happ", eventName+" has been canceled.")
+			}
+
+		}(eventData.EventID, eventData.EventName)
+	}
+
+	for _, eventData := range eventsToUpdate {
+		go func(eventName string, eventAdminTokens []string) {
+			newctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			userName, err := r.client.User.Query().
+				Where(
+					user.ID(*userId),
+				).
+				Select(user.FieldName).
+				String(newctx)
+			if err != nil {
+				return
+			}
+
+			notifications.SendPushNotificationsWithDevices(newctx, eventAdminTokens, "Happ", userName+" has leaved "+eventName)
+		}(eventData.EventName, eventData.EventAdminTokens)
 	}
 
 	return true, nil
@@ -365,27 +702,10 @@ func (r *mutationResolver) SignOut(ctx context.Context, token string) (bool, err
 
 // AddOrRemoveUser is the resolver for the addOrRemoveUser field.
 func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int, isFollow bool) (*model.AddResponse, error) {
-	// passing current userId as a header is a bad idea because an attacker can impersonificate a user
-	// use jwt access token and extract user id from token
-	// if it fails then get refresh token and return both access and refresh tokens and retry operations
-	// it will not log user out because since refresh token has a long duration
-	// and tokens are refreshed each time user opens app
-	// then if user is logged in it should stay logged in
 	userId, authErr := utils.IsAuth(ctx)
 	if authErr != nil {
 		return nil, authErr
 	}
-
-	// fmt.Println("aaaaa")
-
-	// userId, _ := utils.GetUserIdFromHeader(ctx)
-
-	// when user follows for first time create a "valid" row
-	// when user follows upsert follow and make it valid (just flip the valid value)
-	// when user unfollows make it invalid
-
-	// current user that is following is always followerId
-	// if follow fails then dont create friendship
 
 	if isFollow {
 		err := r.client.Follow.Create().
@@ -424,15 +744,20 @@ func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int
 		}
 
 		go func() {
+			newctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
 			userName, err := r.client.User.Query().
 				Where(
 					user.ID(*userId),
 				).
 				Select(user.FieldName).
-				String(ctx)
-			if err == nil {
-				notifications.SendPushNotifications(r.client, followUserID, "Happ", userName+" has added you as a friend!")
+				String(newctx)
+			if err != nil {
+				return
 			}
+
+			notifications.SendPushNotifications(r.client, newctx, followUserID, "Happ", userName+" has added you as a friend!")
 		}()
 
 		return &model.AddResponse{
@@ -455,7 +780,7 @@ func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int
 		}, nil
 	}
 
-	res := meilisearchUtils.RemoveFollowToMeili(*userId, followUserID)
+	res := meilisearchUtils.RemoveFollowFromMeili(*userId, followUserID)
 	if !res {
 		_, _ = r.client.Follow.Update().
 			Where(
@@ -630,23 +955,31 @@ func (r *mutationResolver) InviteGuestsAndOrganizers(ctx context.Context, guests
 	}
 
 	go func() {
+
+		newctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
 		userName, err := r.client.User.Query().
 			Where(
 				user.ID(*currentUserID),
 			).
 			Select(user.FieldName).
-			String(ctx)
-		if err == nil {
-			eventName, err := r.client.Event.Query().
-				Where(
-					event.ID(eventID),
-				).
-				Select(event.FieldName).
-				String(ctx)
-			if err == nil {
-				notifications.SendManyPushNotifications(r.client, userIds, "Happ", userName+" has invited you to "+eventName)
-			}
+			String(newctx)
+		if err != nil {
+			return
 		}
+
+		eventName, err := r.client.Event.Query().
+			Where(
+				event.ID(eventID),
+			).
+			Select(event.FieldName).
+			String(newctx)
+		if err != nil {
+			return
+		}
+
+		notifications.SendManyPushNotifications(r.client, newctx, userIds, "Happ", userName+" has invited you to "+eventName)
 	}()
 
 	return true, nil
@@ -753,7 +1086,10 @@ func (r *mutationResolver) AcceptInvitation(ctx context.Context, eventID int) (*
 	}
 
 	go func() {
-		rows, err := utils.Client.DB().QueryContext(ctx, `
+		newctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		rows, err := r.client.DB().QueryContext(newctx, `
 			SELECT d.token FROM event_users eu
 			JOIN devices d ON eu.user_id = d.user_id
 			WHERE eu.event_id = ? AND eu.admin = true AND eu.confirmed = true;
@@ -785,12 +1121,12 @@ func (r *mutationResolver) AcceptInvitation(ctx context.Context, eventID int) (*
 				user.ID(*userId),
 			).
 			Select(user.FieldName).
-			String(ctx)
+			String(newctx)
 		if err != nil {
 			return
 		}
-		notifications.SendPushNotificationsWithDevices(r.client, tokens, "Happ", userName+" has accepted the invitation for "+thisEvent.Name)
 
+		notifications.SendPushNotificationsWithDevices(newctx, tokens, "Happ", userName+" has accepted the invitation for "+thisEvent.Name)
 	}()
 
 	if eventUser.Admin {
@@ -895,7 +1231,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 		return nil, err
 	}
 
-	if !eventUser.Creator {
+	if !eventUser.Admin {
 		errorMessage := &model.ErrorResponse{
 			Field:   "Global",
 			Message: "Operation not allowed",
@@ -1099,7 +1435,10 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 
 	if input.EventDate != nil || input.EventPlace != nil || (input.Latitude != nil && input.Longitude != nil) {
 		go func() {
-			rows, err := utils.Client.DB().QueryContext(ctx, `
+			newctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			rows, err := r.client.DB().QueryContext(newctx, `
 				SELECT d.token FROM event_users eu
 				JOIN devices d ON eu.user_id = d.user_id
 				WHERE eu.event_id = ? AND eu.confirmed = true;
@@ -1128,18 +1467,18 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 			}
 
 			if input.EventDate != nil {
-				notifications.SendPushNotificationsWithDevices(r.client, tokens, "Happ", "The date for "+event.Name+" has been changed.")
+				notifications.SendPushNotificationsWithDevices(newctx, tokens, "Happ", "The date for "+event.Name+" has been changed.")
 			}
 
 			if input.EventPlace != nil && (input.Latitude != nil && input.Longitude != nil) {
-				notifications.SendPushNotificationsWithDevices(r.client, tokens, "Happ", "The location for "+event.Name+". Check it out!")
+				notifications.SendPushNotificationsWithDevices(newctx, tokens, "Happ", "The location for "+event.Name+". Check it out!")
 			} else {
 				if input.EventPlace != nil {
-					notifications.SendPushNotificationsWithDevices(r.client, tokens, "Happ", "The location for "+event.Name+". Check it out!")
+					notifications.SendPushNotificationsWithDevices(newctx, tokens, "Happ", "The location for "+event.Name+". Check it out!")
 				}
 
 				if input.Latitude != nil && input.Longitude != nil {
-					notifications.SendPushNotificationsWithDevices(r.client, tokens, "Happ", "The location for "+event.Name+". Check it out!")
+					notifications.SendPushNotificationsWithDevices(newctx, tokens, "Happ", "The location for "+event.Name+". Check it out!")
 				}
 			}
 
@@ -1183,7 +1522,7 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID int) (*bool,
 	// 	).
 	// 	Select(eventuser.FieldUserID).
 	// 	Ints(ctx)
-	rows, allGuestsErr := utils.Client.DB().QueryContext(ctx, `
+	rows, allGuestsErr := r.client.DB().QueryContext(ctx, `
 		SELECT d.token FROM event_users eu
 		JOIN devices d ON eu.user_id = d.user_id
 		WHERE eu.event_id = ? AND eu.confirmed = true;
@@ -1191,28 +1530,29 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID int) (*bool,
 
 	var tokens []string
 	affectedRows := 0
-
-	for rows.Next() {
-		var token string
-		if err := rows.Scan(&token); err != nil {
-			log.Printf("Error scanning event_user row: %v", err)
-			break
-		}
-
-		tokens = append(tokens, token)
-		affectedRows++
-	}
-
 	var eventName string
 	var eventErr error
 
-	if affectedRows > 0 {
-		eventName, eventErr = r.client.Event.Query().
-			Where(
-				event.ID(eventID),
-			).
-			Select(event.FieldName).
-			String(ctx)
+	if allGuestsErr == nil {
+		for rows.Next() {
+			var token string
+			if err := rows.Scan(&token); err != nil {
+				log.Printf("Error scanning event_user row: %v", err)
+				continue
+			}
+
+			tokens = append(tokens, token)
+			affectedRows++
+		}
+
+		if affectedRows > 0 {
+			eventName, eventErr = r.client.Event.Query().
+				Where(
+					event.ID(eventID),
+				).
+				Select(event.FieldName).
+				String(ctx)
+		}
 	}
 
 	err = r.client.Event.
@@ -1224,7 +1564,12 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID int) (*bool,
 	}
 
 	if allGuestsErr == nil && eventErr == nil && affectedRows > 0 {
-		notifications.SendPushNotificationsWithDevices(r.client, tokens, "Happ", eventName+" has been canceled.")
+		go func() {
+			newctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			notifications.SendPushNotificationsWithDevices(newctx, tokens, "Happ", eventName+" has been canceled.")
+		}()
 	}
 
 	value := true
@@ -1441,15 +1786,16 @@ func (r *mutationResolver) ScanPass(ctx context.Context, eventID int, cypherText
 			),
 		).
 		Only(ctx)
-
 	if err != nil {
-		fmt.Printf("not on guets list: %s", err)
-		value = false
-		return &value, nil
+		if ent.IsNotFound(err) {
+			fmt.Printf("not on guets list: %s", err)
+			value = false
+			return &value, nil
+		}
+		return nil, err
 	}
 
 	value = true
-
 	return &value, nil
 }
 
@@ -1537,7 +1883,10 @@ func (r *mutationResolver) LeaveEvent(ctx context.Context, eventID int) (*bool, 
 
 	if eventUser.Confirmed {
 		go func() {
-			rows, err := utils.Client.DB().QueryContext(ctx, `
+			newctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			rows, err := r.client.DB().QueryContext(newctx, `
 				SELECT d.token FROM event_users eu
 				JOIN devices d ON eu.user_id = d.user_id
 				WHERE eu.event_id = ? AND eu.admin = true AND eu.confirmed = true;
@@ -1568,7 +1917,7 @@ func (r *mutationResolver) LeaveEvent(ctx context.Context, eventID int) (*bool, 
 			userName, err := r.client.User.Query().
 				Where(user.ID(*userId)).
 				Select(user.FieldName).
-				String(ctx)
+				String(newctx)
 			if err != nil {
 				log.Printf("Error getting user name: %v", err)
 				return
@@ -1577,13 +1926,13 @@ func (r *mutationResolver) LeaveEvent(ctx context.Context, eventID int) (*bool, 
 			eventName, err := r.client.Event.Query().
 				Where(event.ID(eventID)).
 				Select(event.FieldName).
-				String(ctx)
+				String(newctx)
 			if err != nil {
 				log.Printf("Error getting event name: %v", err)
 				return
 			}
 
-			notifications.SendPushNotificationsWithDevices(r.client, tokens, "Happ", userName+" has leaved "+eventName)
+			notifications.SendPushNotificationsWithDevices(newctx, tokens, "Happ", userName+" has leaved "+eventName)
 		}()
 	}
 
@@ -1766,8 +2115,9 @@ func (r *queryResolver) GetUserEvents(ctx context.Context, limit int, idsList []
 			
 		limit `+strconv.Itoa(realLimitPlusOne)+`
 	`)
-
-	fmt.Println(err)
+	if err != nil {
+		return nil, err
+	}
 
 	for res.Next() {
 		var id int
@@ -1810,6 +2160,7 @@ func (r *queryResolver) GetUserEvents(ctx context.Context, limit int, idsList []
 			// Check for a scan error.
 			// Query rows will be closed with defer.
 			log.Fatal(err)
+			return nil, err
 		}
 
 		var eventPics []string
@@ -1849,6 +2200,8 @@ func (r *queryResolver) GetUserEvents(ctx context.Context, limit int, idsList []
 		eventInvitesRes = append(eventInvitesRes, &eventInviteRes)
 	}
 
+	res.Close()
+
 	if len(eventInvitesRes) < realLimit {
 		realLimit = len(eventInvitesRes)
 	}
@@ -1869,6 +2222,8 @@ func (r *queryResolver) GetUserEventsFromFriends(ctx context.Context, limit int,
 	if authErr != nil {
 		return nil, authErr
 	}
+
+	fmt.Printf("userId: %s", strconv.Itoa(*userId))
 
 	realLimit := 8
 
@@ -1891,7 +2246,7 @@ func (r *queryResolver) GetUserEventsFromFriends(ctx context.Context, limit int,
 		idsListForSQL = `where e.id not in (` + strings.Join(stringIdsList[:], ",") + `)`
 	}
 
-	res, _ := r.client.QueryContext(ctx, `
+	res, err := r.client.QueryContext(ctx, `
 		select e.*, eu.invited_by, eu.admin, eu.creator from events e
 
 		inner join event_users eu
@@ -1911,6 +2266,12 @@ func (r *queryResolver) GetUserEventsFromFriends(ctx context.Context, limit int,
 
 	  limit `+strconv.Itoa(realLimitPlusOne)+`
 	`)
+	if err != nil {
+		return &model.PaginatedEventResults{
+			Events:  eventInvitesRes,
+			HasMore: len(eventInvitesRes) == realLimitPlusOne,
+		}, nil
+	}
 	// fmt.Println(err)
 
 	for res.Next() {
@@ -1952,8 +2313,8 @@ func (r *queryResolver) GetUserEventsFromFriends(ctx context.Context, limit int,
 			&creator,
 		); err != nil {
 			// Check for a scan error.
-			// Query rows will be closed with defer.
-			log.Fatal(err)
+			log.Println(err)
+			return nil, err
 		}
 
 		var eventPics []string
@@ -1994,6 +2355,8 @@ func (r *queryResolver) GetUserEventsFromFriends(ctx context.Context, limit int,
 		// events = append(events, &event)
 		eventInvitesRes = append(eventInvitesRes, &eventInviteRes)
 	}
+
+	res.Close()
 
 	if len(eventInvitesRes) < realLimit {
 		realLimit = len(eventInvitesRes)
@@ -2035,7 +2398,7 @@ func (r *queryResolver) GetUserOtherEvents(ctx context.Context, limit int, idsLi
 		idsListForSQL = `and e.id not in (` + strings.Join(stringIdsList[:], ",") + `)`
 	}
 
-	res, _ := r.client.QueryContext(ctx, `
+	res, err := r.client.QueryContext(ctx, `
 		select e.*, eu.invited_by, eu.admin, eu.creator from events e
 
 		inner join event_users eu
@@ -2056,6 +2419,9 @@ func (r *queryResolver) GetUserOtherEvents(ctx context.Context, limit int, idsLi
 		limit `+strconv.Itoa(realLimitPlusOne)+`
 
 	`)
+	if err != nil {
+		return nil, err
+	}
 
 	// fmt.Println(err)
 
@@ -2098,8 +2464,8 @@ func (r *queryResolver) GetUserOtherEvents(ctx context.Context, limit int, idsLi
 			&creator,
 		); err != nil {
 			// Check for a scan error.
-			// Query rows will be closed with defer.
 			log.Fatal(err)
+			return nil, err
 		}
 
 		var eventPics []string
@@ -2141,6 +2507,8 @@ func (r *queryResolver) GetUserOtherEvents(ctx context.Context, limit int, idsLi
 		eventInvitesRes = append(eventInvitesRes, &eventInviteRes)
 	}
 
+	res.Close()
+
 	if len(eventInvitesRes) < realLimit {
 		realLimit = len(eventInvitesRes)
 	}
@@ -2162,7 +2530,6 @@ func (r *queryResolver) SeePass(ctx context.Context, eventID int) (*string, erro
 
 	eventUser, err := r.client.EventUser.Query().
 		Where(
-
 			eventuser.And(
 				eventuser.EventID(eventID),
 				eventuser.UserID(*userId),
@@ -2284,7 +2651,7 @@ func (r *queryResolver) GetEventGuests(ctx context.Context, eventID int, limit i
 		idsListForSQL = `AND u.id NOT IN (` + strings.Join(stringIdsList[:], ",") + `)`
 	}
 
-	res, _ := r.client.QueryContext(ctx, `
+	res, err := r.client.QueryContext(ctx, `
 		SELECT u.*, f.user_id FROM users u
 
 		INNER JOIN event_users eu ON eu.user_id = u.id AND eu.event_id = `+strconv.Itoa(eventID)+` AND eu.confirmed = true AND eu.admin = false
@@ -2297,8 +2664,9 @@ func (r *queryResolver) GetEventGuests(ctx context.Context, eventID int, limit i
 
 		LIMIT `+strconv.Itoa(realLimitPlusOne)+`;
 	`)
-
-	// fmt.Println(err)
+	if err != nil {
+		return nil, err
+	}
 
 	for res.Next() {
 		var id int
@@ -2327,8 +2695,8 @@ func (r *queryResolver) GetEventGuests(ctx context.Context, eventID int, limit i
 			&user_id,
 		); err != nil {
 			// Check for a scan error.
-			// Query rows will be closed with defer.
 			log.Fatal(err)
+			return nil, err
 		}
 
 		event := ent.User{
@@ -2346,6 +2714,8 @@ func (r *queryResolver) GetEventGuests(ctx context.Context, eventID int, limit i
 
 		users = append(users, &event)
 	}
+
+	res.Close()
 
 	if len(users) < realLimit {
 		realLimit = len(users)
@@ -2388,7 +2758,7 @@ func (r *queryResolver) GetEventHosts(ctx context.Context, eventID int, limit in
 		idsListForSQL = `AND u.id NOT IN (` + strings.Join(stringIdsList[:], ",") + `)`
 	}
 
-	res, _ := r.client.QueryContext(ctx, `
+	res, err := r.client.QueryContext(ctx, `
 		SELECT u.*, f.user_id FROM users u
 
 		INNER JOIN event_users eu ON eu.user_id = u.id AND eu.event_id = `+strconv.Itoa(eventID)+` AND eu.confirmed = true AND eu.admin = true
@@ -2401,6 +2771,9 @@ func (r *queryResolver) GetEventHosts(ctx context.Context, eventID int, limit in
 
 		LIMIT `+strconv.Itoa(realLimit)+`;
 	`)
+	if err != nil {
+		return nil, err
+	}
 
 	// fmt.Println(err)
 
@@ -2431,8 +2804,8 @@ func (r *queryResolver) GetEventHosts(ctx context.Context, eventID int, limit in
 			&user_id,
 		); err != nil {
 			// Check for a scan error.
-			// Query rows will be closed with defer.
 			log.Fatal(err)
+			return nil, err
 		}
 
 		event := ent.User{
@@ -2450,6 +2823,8 @@ func (r *queryResolver) GetEventHosts(ctx context.Context, eventID int, limit in
 
 		users = append(users, &event)
 	}
+
+	res.Close()
 
 	if len(users) < realLimit {
 		realLimit = len(users)

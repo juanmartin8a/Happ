@@ -36,9 +36,13 @@ class _NewEventState extends ConsumerState<NewEvent> {
 
   late String uuidKey;
 
+  late double bottomPadding;
+
   @override
   void initState() {
     super.initState();
+    // bottomPadding = ref.read(deviceBottomPaddingProvider)!;
+    // bottomPadding = MediaQuery.of(context).padding.bottom;
     uuidKey = const Uuid().v4();
     userLocationPermission();
   }
@@ -54,24 +58,31 @@ class _NewEventState extends ConsumerState<NewEvent> {
       ref.invalidate(locationDetailsProvider);
       refresh = false;
     }
+
+    double pageViewHeight = MediaQuery.of(context).size.height;
     
     return Material(
       // color: Colors.red,
       // resizeToAvoidBottomInset: true,
-      child: //NPDScreen()
-      Stack(
+      color: Colors.white,
+      child: Stack(
         children: [
           PageView(
 
             controller: pageController,
             scrollDirection: Axis.vertical,
+            
             // new event form will be divided into 3 screens:
             // 1.- for choosing a name, pictures and a description
             // 2.- for picking a place and location
             // 3.- for inviting people and adding organizers (admins)
             children: [
-              NPDScreen(key: Key("NPD_$uuidKey")),
-              DLScreen(latitude: latitude, longitude: longitude, key: Key("DL_$uuidKey")),
+              NPDScreen(key: Key("NPD_$uuidKey"), height: pageViewHeight),
+              Builder(
+                builder: (BuildContext context) {
+                  return DLScreen(latitude: latitude, longitude: longitude, height: pageViewHeight, context: context, key: Key("DL_$uuidKey"));
+                },
+              ),
               IScreen(eventId: eventId, key: Key("I_$uuidKey"))
             ],
             onPageChanged: (page) {

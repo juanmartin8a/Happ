@@ -1,0 +1,6 @@
+mutation ScanPass($eventId: Int!, $cypherText: String!) {
+  scanPass(
+    eventId: $eventId,
+    cypherText: $cypherText
+  )
+}

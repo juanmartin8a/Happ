@@ -60,7 +60,15 @@ func GetMeiliFollowIndex() (*meilisearch.Index, bool) {
 	// if !isHealthy {
 	// 	return nil, isHealthy
 	// }
+	// filterableAttributes := []string{
+	// 	"id",
+	// 	"userID1",
+	// 	"userID2",
+	// }
 	index := MeiliClient.Index("follows")
+	// fmt.Println(index.GetFilterableAttributes())
+	// index.UpdateFilterableAttributes(&filterableAttributes)
+	// fmt.Println(index.GetFilterableAttributes())
 	isHealthy := MeiliClient.IsHealthy()
 	return index, isHealthy
 }

@@ -1,21 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:happ_client/src/client/customLink.dart';
-import 'package:happ_client/src/screens/auth/signIn.dart';
-import 'package:happ_client/src/screens/auth/signUp.dart';
 import 'package:happ_client/src/screens/events/class/eventAndInviteParams.dart';
 import 'package:happ_client/src/screens/events/event.dart';
 import 'package:happ_client/src/screens/events/invitation/eventInvitation.dart';
 import 'package:happ_client/src/screens/events/guestList/guestList.dart';
 import 'package:happ_client/src/screens/events/guestList/inviteGuestsScreen.dart';
 import 'package:happ_client/src/screens/events/scan/scanScreen.dart';
-import 'package:happ_client/src/screens/profile/profile.dart';
 import 'package:happ_client/src/screens/search/class/SearchUserInviteResParams.dart';
 import 'package:happ_client/src/screens/events/updateEvent/updateEvent.dart';
 import 'package:happ_client/src/utils/getUserIdFromFBIDToken.dart';
-import 'package:happ_client/src/utils/jwt.dart';
-import 'package:happ_client/src/utils/user/userTypesConverter.dart';
 import 'package:happ_client/src/wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -23,8 +16,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:uuid/uuid.dart';
 import 'src/client/client.dart';
 import 'src/screens/events/newEvent/IScreen/newEventGuestList.dart';
 
@@ -131,7 +122,7 @@ class MyApp extends ConsumerWidget {
           //   ),
           // )
         ),
-        title: 'Clivy',
+        title: 'Happ',
       ),
     );
   }
