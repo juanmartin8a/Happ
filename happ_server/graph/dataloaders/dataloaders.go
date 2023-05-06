@@ -25,10 +25,13 @@ const (
 func GetUsers(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	// read all requested users in a single query
 	client := utils.Client
-	userIDs := make([]int, len(keys))
-	for i, key := range keys {
+	userIDs := make([]int, 0, len(keys))
+	for _, key := range keys {
 		keyToInt, _ := strconv.Atoi(key.String())
-		userIDs[i] = keyToInt
+		if keyToInt != -1 {
+			userIDs = append(userIDs, keyToInt)
+		}
+		// userIDs[i] = keyToInt
 	}
 
 	res, _ := client.User.Query().Where(
@@ -42,16 +45,40 @@ func GetUsers(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 		user := entUser
 		userById[strconv.Itoa(user.ID)] = user
 	}
+
+	deletedUser := &ent.User{
+		Name:       "Deleted user",
+		ID:         -1,
+		FUID:       "-1",
+		Username:   "Username",
+		Email:      "deleted.user@email.com",
+		ProfilePic: "https://d3pvchlba3rmqp.cloudfront.net/userProfilePics/blueLobster.jpg",
+		// CreatedAt: time.Now(),
+		// UpdatedAt: time.Now(),
+	}
+
 	// return users in the same order requested
 	output := make([]*dataloader.Result, len(keys))
 	for index, userKey := range keys {
-		user, ok := userById[userKey.String()]
-		if ok {
-			output[index] = &dataloader.Result{Data: user, Error: nil}
+		// user, ok := userById[userKey.String()]
+		keyToInt, _ := strconv.Atoi(userKey.String())
+		if keyToInt == -1 {
+			output[index] = &dataloader.Result{Data: deletedUser, Error: nil}
 		} else {
-			err := fmt.Errorf("user not found %s", userKey.String())
-			output[index] = &dataloader.Result{Data: nil, Error: err}
+			user, ok := userById[userKey.String()]
+			if ok {
+				output[index] = &dataloader.Result{Data: user, Error: nil}
+			} else {
+				err := fmt.Errorf("user not found %s", userKey.String())
+				output[index] = &dataloader.Result{Data: nil, Error: err}
+			}
 		}
+		// if ok {
+		// 	output[index] = &dataloader.Result{Data: user, Error: nil}
+		// } else {
+		// 	err := fmt.Errorf("user not found %s", userKey.String())
+		// 	output[index] = &dataloader.Result{Data: nil, Error: err}
+		// }
 	}
 	return output
 }

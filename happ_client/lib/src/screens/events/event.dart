@@ -19,9 +19,7 @@ import 'package:happ_client/src/riverpod/updateEvent/updateEvent.dart';
 import 'package:happ_client/src/riverpod/updateEvent/updateEventState.dart';
 import 'package:happ_client/src/screens/events/widgets/acceptButton.dart';
 import 'package:happ_client/src/screens/events/widgets/eventMap.dart';
-import 'package:happ_client/src/screens/events/widgets/leaveEventDialog.dart';
 import 'package:happ_client/src/screens/events/widgets/updateOrDeleteEventDialog.dart';
-import 'package:happ_client/src/utils/event/eventTypesConverter.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
 import 'package:happ_client/src/utils/widgets/loader.dart';
 import 'package:intl/intl.dart';
@@ -240,29 +238,18 @@ class _EventState extends ConsumerState<Event> {
                       const Spacer(),
                       GestureDetector(
                         onTap: () {
-                          if (userInfo.isCreator) {
-                            final newInviteRes = widget.inviteRes;
-                            newInviteRes.event = event;
-                            final inviteRes = EventTypesConverter().convertOtherInviteResToFriendsInviteRes(newInviteRes);
-    
-                            showGeneralDialog(
-                              context: context,
-                              barrierColor: Colors.transparent,
-                              transitionDuration: const Duration(milliseconds: 200),
-                              pageBuilder: (context, anim1, anim2) {
-                                return UpdateOrDeleteEventDialog(inviteRes: inviteRes);
-                              }
-                            );
-                          } else {
-                            showGeneralDialog(
-                              context: context,
-                              barrierColor: Colors.transparent,
-                              transitionDuration: const Duration(milliseconds: 200),
-                              pageBuilder: (context, anim1, anim2) {
-                                return LeaveEventDialog(eventID: event.id, isConfirmed: userInfo.isConfirmed,);
-                              }
-                            );
-                          }
+                          final newInviteRes = widget.inviteRes;
+                          newInviteRes.event = event;
+                          newInviteRes.invitedUserInfo = userInfo;
+  
+                          showGeneralDialog(
+                            context: context,
+                            barrierColor: Colors.transparent,
+                            transitionDuration: const Duration(milliseconds: 200),
+                            pageBuilder: (context, anim1, anim2) {
+                              return UpdateOrDeleteEventDialog(inviteRes: newInviteRes);
+                            }
+                          );
                         },
                         child: FloatingActions(
                           icon: FluentIcons.more_vertical_16_regular,

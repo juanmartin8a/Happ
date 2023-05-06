@@ -10,6 +10,7 @@ import 'package:happ_client/src/riverpod/locationSearch/locationSearch.dart';
 import 'package:happ_client/src/riverpod/locationSearch/reverseLocationDetails.dart';
 import 'package:happ_client/src/riverpod/pickDateAndTime/pickDateAndTime.dart';
 import 'package:happ_client/src/riverpod/updateEvent/updateEvent.dart';
+import 'package:happ_client/src/riverpod/updateEvent/updateEventState.dart';
 import 'package:happ_client/src/riverpod/updatePictures/updatePictures.dart';
 import 'package:happ_client/src/screens/events/newEvent/DLScreen/DLScreenSearchBar.dart';
 import 'package:happ_client/src/screens/events/newEvent/DLScreen/editAddressName.dart';
@@ -89,8 +90,10 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                       left: 0,
                       child: GestureDetector(
                         onTap: () {
-                          invalidateProviders();
-                          Navigator.pop(context);
+                          if (ref.read(updateEventProvider) is !UpdateEventLoadingState) {
+                            invalidateProviders();
+                            Navigator.pop(context);
+                          }
                         },
                         child: FloatingActions(
                           icon: EvaIcons.arrowBackOutline,
@@ -108,7 +111,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                         "Update Event",
                         style: TextStyle(
                           color: Colors.grey[800],
-                          fontSize: 20,
+                          fontSize: 19,
                           // letterSpacing: 0.5,
                           // fontStyle: FontStyle.normal,
                           fontWeight: FontWeight.w700,
@@ -151,7 +154,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                             keyboardAppearance: Brightness.dark,
                             style: TextStyle(
                               color: Colors.grey[800]!,
-                              fontSize: 20,
+                              fontSize: 19,
                               fontWeight: FontWeight.w700,
                               height: 1.25
                             ),
@@ -163,7 +166,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                               hintText: 'Event Name',
                               hintStyle: TextStyle(
                                 color: Colors.grey[600]!,
-                                fontSize: 20,
+                                fontSize: 19,
                                 fontWeight: FontWeight.w700,
                                 height: 1.25
                               ),
@@ -259,7 +262,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                             textAlignVertical: TextAlignVertical.center,
                             keyboardAppearance: Brightness.dark,
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: Colors.grey[800],
                               height: 1.25
@@ -272,7 +275,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                               hintText: 'Description',
                               hintStyle: TextStyle(
                                 color: Colors.grey[600],
-                                fontSize: 15,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 height: 1.25
                               ),
@@ -318,7 +321,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                             Text(
                               "Date and Time",
                               style: TextStyle(
-                                fontSize: 19,
+                                fontSize: 17,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.grey[800],
                                 height: 1
@@ -355,7 +358,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                             Text(
                               "Location",
                               style: TextStyle(
-                                fontSize: 19,
+                                fontSize: 17,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.grey[800],
                                 height: 1

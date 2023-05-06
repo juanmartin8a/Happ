@@ -106,23 +106,20 @@ class _LeaveEventConfirmDialogState extends ConsumerState<LeaveEventConfirmDialo
                             child: Padding(
                               padding: const EdgeInsets.only(bottom: 12),
                               child: 
-                              !loading ? SizedBox(
-                                height: 26,
-                                child: Text(
-                                  widget.isConfirmed ? 'Leave' : 'Decline',
-                                  style: const TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1
-                                  ),
+                              !loading ? Text(
+                                widget.isConfirmed ? 'Leave' : 'Decline',
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1
                                 ),
                               )
                               : const SizedBox(
                                 height: 26,
                                 width: 26,
                                 child: CircularProgressIndicator(
-                                  color: Colors.red,
+                                  color: Colors.white,
                                   strokeWidth: 3.5,
                                 )
                               ),

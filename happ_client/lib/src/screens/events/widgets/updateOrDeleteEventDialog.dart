@@ -1,3 +1,4 @@
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/deleteEvent/deleteEvent.dart';
 import 'package:happ_client/src/screens/events/class/eventAndInviteParams.dart';
 import 'package:happ_client/src/screens/events/updateEvent/deleteEventDialog.dart';
+import 'package:happ_client/src/screens/events/widgets/leaveEventConfirmDialog.dart';
 
 class UpdateOrDeleteEventDialog extends ConsumerWidget {
   final GetUserEventsFromFriends$Query$PaginatedEventResults$EventInviteRes inviteRes;
@@ -40,6 +42,7 @@ class UpdateOrDeleteEventDialog extends ConsumerWidget {
                       // crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (inviteRes.invitedUserInfo.isHost && inviteRes.invitedUserInfo.isConfirmed)
                         GestureDetector(
                           onTap: () {
                             // final inviteRes = EventTypesConverter().convertOtherInviteResToFriendsInviteRes(widget.inviteRes);
@@ -81,6 +84,61 @@ class UpdateOrDeleteEventDialog extends ConsumerWidget {
                             ),
                           ),
                         ),
+                        if (!inviteRes.invitedUserInfo.isCreator)
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                            showGeneralDialog(
+                              context: context,
+                              barrierColor: Colors.transparent,
+                              transitionDuration: const Duration(milliseconds: 200),
+                              pageBuilder: (context, anim1, anim2) {
+                                return LeaveEventConfirmDialog(eventId: inviteRes.event.id, isConfirmed: inviteRes.invitedUserInfo.isConfirmed);
+                              }
+                            );
+                          },
+                          child: Container(
+                            height: 45,
+                            // width: 60,
+                            color: Colors.transparent,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (inviteRes.invitedUserInfo.isConfirmed)
+                                  const RotatedBox(
+                                    quarterTurns: 2,
+                                    child: Icon(
+                                      EvaIcons.logOutOutline,
+                                      size: 26,
+                                      color: Colors.red
+                                    ),
+                                  ),
+                                  if (inviteRes.invitedUserInfo.isConfirmed)
+                                  const SizedBox(width: 8),
+                                  if (!inviteRes.invitedUserInfo.isConfirmed)
+                                  const Icon(
+                                    EvaIcons.close,
+                                    size: 30,
+                                    color: Colors.red
+                                  ),
+                                  if (!inviteRes.invitedUserInfo.isConfirmed)
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    inviteRes.invitedUserInfo.isConfirmed ? "Can't make it" : "Can't join",
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ),
+                          ),
+                        ),
+                        if (inviteRes.invitedUserInfo.isCreator && inviteRes.invitedUserInfo.isConfirmed)
                         GestureDetector(
                           onTap: () {
                             // ref.read(deleteEventProvider.notifier).deleteEvent(inviteRes.event.id);
@@ -127,33 +185,33 @@ class UpdateOrDeleteEventDialog extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 8,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * 0.6,
-                    height: 45,
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(30)
-                    ),
-                    child: const Center(
-                      child: Text(
-                        "Cancel",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          height: 1
-                        )
-                      ),
-                    ),
-                  ),
-                ),
+                // const SizedBox(
+                //   height: 8,
+                // ),
+                // GestureDetector(
+                //   onTap: () {
+                //     Navigator.pop(context);
+                //   },
+                //   child: Container(
+                //     width: MediaQuery.of(context).size.width * 0.6,
+                //     height: 45,
+                //     decoration: BoxDecoration(
+                //       color: Colors.black,
+                //       borderRadius: BorderRadius.circular(30)
+                //     ),
+                //     child: const Center(
+                //       child: Text(
+                //         "Cancel",
+                //         style: TextStyle(
+                //           color: Colors.white,
+                //           fontSize: 15,
+                //           fontWeight: FontWeight.w600,
+                //           height: 1
+                //         )
+                //       ),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),

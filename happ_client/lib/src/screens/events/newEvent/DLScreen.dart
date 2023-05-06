@@ -83,7 +83,7 @@ class _DLScreenState extends ConsumerState<DLScreen> with AutomaticKeepAliveClie
                       Text(
                         "Date and Time",
                         style: TextStyle(
-                          fontSize: 19,
+                          fontSize: 17,
                           fontWeight: FontWeight.w700,
                           color: Colors.grey[800],
                           height: 1
@@ -117,7 +117,7 @@ class _DLScreenState extends ConsumerState<DLScreen> with AutomaticKeepAliveClie
                       Text(
                         "Location",
                         style: TextStyle(
-                          fontSize: 19,
+                          fontSize: 17,
                           fontWeight: FontWeight.w700,
                           color: Colors.grey[800],
                           height: 1

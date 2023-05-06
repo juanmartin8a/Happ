@@ -96,12 +96,12 @@ class _DeleteEventDialogState extends ConsumerState<DeleteEventDialog> {
                       child: Column(
                         // mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Center(
                               child: Text(
-                                "Delete Event?",
+                                !loading ? "Delete Event?" : "Deleting Event...",
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 19,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white,
@@ -120,34 +120,20 @@ class _DeleteEventDialogState extends ConsumerState<DeleteEventDialog> {
                             child: Padding(
                               padding: const EdgeInsets.only(bottom: 12),
                               child: 
-                              !loading ? SizedBox(
-                                height: 26,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    // Icon(
-                                    //   FluentIcons.delete_16_regular,
-                                    //   size: 26,
-                                    //   color: Colors.red
-                                    // ),
-                                    // SizedBox(width: 8),
-                                    Text(
-                                      'Delete',
-                                      style: TextStyle(
-                                        color: Colors.red,
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w600,
-                                        height: 1
-                                      ),
-                                    ),
-                                  ],
+                              !loading ? const Text(
+                                'Delete',
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1
                                 ),
                               )
                               : const SizedBox(
                                 height: 26,
                                 width: 26,
                                 child: CircularProgressIndicator(
-                                  color: Colors.red,
+                                  color: Colors.white,
                                   strokeWidth: 3.5,
                                 )
                               ),
@@ -190,7 +176,7 @@ class _DeleteEventDialogState extends ConsumerState<DeleteEventDialog> {
                                 'Done',
                                 style: TextStyle(
                                   color: Colors.black,
-                                  fontSize: 17,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w600,
                                   height: 1
                                 ),

@@ -161,7 +161,6 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
           } else if (isConfirmed == false) {
             ref.read(acceptInvitationProvider.notifier).acceptInvitation(event.id);
           } else if (isConfirmed && isHost) {
-            print("hey");
             // final inviteRes = EventTypesConverter().convertOtherInviteResToFriendsInviteRes(invite);
             // final event = EventTypesConverter().convertEventToFriendsEvent(invite.event);
             // final invitedBy = EventTypesConverter().convertOtherInvitedByToFriendsinvitedBy(invite.invitedBy);
