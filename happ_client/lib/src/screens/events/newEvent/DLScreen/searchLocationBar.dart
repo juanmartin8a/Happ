@@ -70,7 +70,7 @@ class _SearchLocationBarState extends ConsumerState<SearchLocationBar> with Auto
                       keyboardAppearance: Brightness.dark,
                       style: TextStyle(
                         color: Colors.grey[800]!,
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         height: 1.25
                       ),
@@ -82,7 +82,7 @@ class _SearchLocationBarState extends ConsumerState<SearchLocationBar> with Auto
                         hintText: 'Search',
                         hintStyle: TextStyle(
                           color: Colors.grey[500],
-                          fontSize: 15,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           height: 1.25
                           // height: 2

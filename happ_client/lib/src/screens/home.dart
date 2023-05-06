@@ -83,8 +83,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   viewportFraction: 1.03,
                   // isScrollable: true,
                   // labelPadding: const EdgeInsets.symmetric(horizontal: 0),
-                  children: [
-                    const FractionallySizedBox(
+                  children: const [
+                    FractionallySizedBox(
                       widthFactor: 1 / 1.03,
                       child: ScreenTabWrapper(
                         key: Key("homeTab"),
@@ -95,18 +95,18 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     FractionallySizedBox(
                       widthFactor: 1 / 1.03,
                       child: ScreenTabWrapper(
-                        key: const Key("searchTab"),
-                        child: Search(key: Key(const Uuid().v4())),
+                        key: Key("searchTab"),
+                        child: Search(key: Key("search")),
                       )
                     ),
-                    const FractionallySizedBox(
+                    FractionallySizedBox(
                       widthFactor: 1 / 1.03,                                                                      
                       child: ScreenTabWrapper(
                         key: Key("newEventTab"),
                         child: NewEvent(),
                       )
                     ),
-                    const FractionallySizedBox(
+                    FractionallySizedBox(
                       widthFactor: 1 / 1.03,
                       child: ScreenTabWrapper(
                         key: Key("settings Tab"),

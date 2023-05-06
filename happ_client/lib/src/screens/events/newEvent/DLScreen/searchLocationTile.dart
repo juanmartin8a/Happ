@@ -25,7 +25,7 @@ class SearchLocationTile extends ConsumerWidget {
             child: Icon(
               FluentIcons.location_16_filled,
               size: 26,
-              color: Colors.grey[900]
+              color: Colors.grey[850]
             )
           )
         ),
@@ -39,8 +39,8 @@ class SearchLocationTile extends ConsumerWidget {
                 Text(
                   tile["description"],
                   style: TextStyle(
-                    color: Colors.grey[900],
-                    fontSize: 15,
+                    color: Colors.grey[800],
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                   // color: Colors.white,
@@ -61,7 +61,11 @@ class SearchLocationTile extends ConsumerWidget {
         Navigator.pop(context);
       },
       key: Key("place_id_${tile["place_id"]}"),
-      child: widget
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8),
+        // padding: EdgeInsets.zero,
+        child: widget,
+      )
     );
   }
 }

@@ -76,7 +76,7 @@ class _MainScreenState extends ConsumerState<MainScreen> with SingleTickerProvid
                             // fontStyle: FontStyle.,
                             color: ColorTween(begin: Colors.white, end: Colors.black).animate(_tabController.animation!).value,
                             fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             // height: 1
                           )
                         )
@@ -99,7 +99,7 @@ class _MainScreenState extends ConsumerState<MainScreen> with SingleTickerProvid
                             // fontStyle: FontStyle.,
                             color: ColorTween(begin: Colors.black, end: Colors.white).animate(_tabController.animation!).value,
                             fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             // height: 1
                           )
                         )

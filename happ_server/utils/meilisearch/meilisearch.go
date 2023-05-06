@@ -29,12 +29,14 @@ func AddUserToMeili(user *ent.User) bool {
 }
 
 func RemoveUserFromMeili(userId int) bool {
-	index, isHealthy := GetMeiliFollowIndex()
+	index, isHealthy := GetMeiliUsersIndex()
 	if !isHealthy {
 		return false
 	}
 
-	_, err := index.DeleteDocument(strconv.Itoa(userId))
+	res, err := index.DeleteDocument(strconv.Itoa(userId))
+	fmt.Println("res")
+	fmt.Println(res)
 
 	return err == nil
 }
@@ -130,7 +132,10 @@ func RemoveFollowsFromMeili(ids []string) bool {
 		return false
 	}
 
+	fmt.Println(ids)
+
 	_, err := index.DeleteDocuments(ids)
+	fmt.Println(err)
 	return err == nil
 }
 

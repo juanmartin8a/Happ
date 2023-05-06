@@ -32,7 +32,7 @@ class _SettingsState extends ConsumerState<Settings> {
               child: Text(
                 "More",
                 style: TextStyle(
-                  color: Colors.grey[850],
+                  color: Colors.grey[800],
                   fontSize: 19,
                   fontWeight: FontWeight.w700
                 )
@@ -53,8 +53,8 @@ class _SettingsState extends ConsumerState<Settings> {
                     name: "Sign Out",
                     icon: Icon(
                       EvaIcons.logOutOutline,
-                      size: 26,
-                      color: Colors.grey[850]
+                      // size: 26,
+                      color: Colors.grey[800]
                     ),
                     // textColor: Colors.red,
                     key: const Key("log_out")
@@ -76,7 +76,7 @@ class _SettingsState extends ConsumerState<Settings> {
                             fontFamily: "Inter",
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
-                            color: Colors.grey[850]!
+                            color: Colors.grey[800]!
                           ),
                           children: const <TextSpan>[
                             TextSpan(text: '⬇️ ', style: TextStyle(fontSize: 20)),
@@ -90,7 +90,7 @@ class _SettingsState extends ConsumerState<Settings> {
                       //   style: TextStyle(
                       //     fontSize: 17,
                       //     fontWeight: FontWeight.w700,
-                      //     color: Colors.grey[850]!
+                      //     color: Colors.grey[800]!
                       //   )
                       // ),
                     ),
@@ -111,7 +111,7 @@ class _SettingsState extends ConsumerState<Settings> {
                         name: "Delete Account",
                         icon: Icon(
                           FluentIcons.delete_16_regular,
-                          size: 26,
+                          // size: 26,
                           color: Colors.red
                         ),
                         textColor: Colors.red,

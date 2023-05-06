@@ -52,14 +52,15 @@ class _SearchUserInviteResultsState extends ConsumerState<SearchUserInviteResult
               child: RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                  text: "Sorry, could not find any users ;(\n",
+                  text: "Sorry, we could not find any users ;(\n",
                   style: TextStyle(
+                    fontFamily: "Inter",
                     color: Colors.grey[800],
-                    fontSize: 15,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600
                   ),
                   children: const <TextSpan>[
-                    TextSpan(text: '😰🦤', style: TextStyle(fontSize: 22))
+                    TextSpan(text: '🫣🦖', style: TextStyle(fontSize: 22))
                   ]
                 )
               )

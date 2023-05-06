@@ -112,7 +112,7 @@ class _IScreenState extends ConsumerState<IScreen> {
             child: Text(
               "Invite Friends!",
               style: TextStyle(
-                fontSize: 19,
+                fontSize: 17,
                 fontWeight: FontWeight.w700,
                 color: Colors.grey[800],
                 height: 1
@@ -161,7 +161,7 @@ class _IScreenState extends ConsumerState<IScreen> {
                               keyboardAppearance: Brightness.dark,
                               style: TextStyle(
                                 color: Colors.grey[800]!,
-                                fontSize: 15,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 height: 1.25
                               ),
@@ -174,7 +174,7 @@ class _IScreenState extends ConsumerState<IScreen> {
                                 hintText: 'Search',
                                 hintStyle: TextStyle(
                                   color: Colors.grey[500],
-                                  fontSize: 15,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   height: 1.25
                                   // height: 2

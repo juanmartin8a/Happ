@@ -85,7 +85,7 @@ class LeaveEventDialog extends StatelessWidget {
                                       color: Colors.red,
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
-                                      height: 1
+                                      // height: 1
                                     ),
                                   ),
                                 ],

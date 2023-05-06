@@ -178,7 +178,7 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
       }
     });
 
-    if (eventInvites.isEmpty) {
+    if (eventInvites.isEmpty && isLoading) {
       return Container(
         padding: const EdgeInsets.only(
           top: 150,
@@ -186,28 +186,13 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
           right: 12,
         ),
         // height: 300,
-        child: isLoading
-        ? const Align(
+        child: const Align(
           alignment: Alignment.topCenter,
           child: SizedBox(
             // color: Colors.red,
             height: 20,
             child: Loader(radius: 8)
           ),
-        )
-        : RichText(
-          textAlign: TextAlign.center,
-          text: TextSpan(
-            text: "You have no upcoming events :|\n",
-            style: TextStyle(
-              color: Colors.grey[800],
-              fontSize: 15,
-              fontWeight: FontWeight.w600
-            ),
-            children: const <TextSpan>[
-              TextSpan(text: '🙃', style: TextStyle(fontSize: 22))
-            ]
-          )
         )
       );
     }
@@ -300,6 +285,34 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
         controller: scrollController,
         children: [
           // SizedBox(height: 450),
+          if (eventInvites.isEmpty)
+          Container(
+            padding: const EdgeInsets.only(
+              top: 150,
+              left: 12,
+              right: 12,
+            ),
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                text: "Event-less?",
+                style: TextStyle(
+                  color: Colors.grey[800],
+                  fontFamily: "Inter",
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  height: 1.25,
+                ),
+                children: const <TextSpan>[
+                  TextSpan(text: ' 😮\n', style: TextStyle(fontSize: 18)),
+                  TextSpan(text: 'Stay tuned for invitations! '),
+                  TextSpan(text: '📨🎉', style: TextStyle(fontSize: 18))
+                ]
+              )
+            )
+          ),
+
+          if (eventInvites.isNotEmpty)
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
             // color: Colors.red,
@@ -308,12 +321,13 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
               "Soonest first :)",
               style: TextStyle(
                 color: Colors.grey[800],
-                fontSize: 15,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
                 height: 1
               ),
             ),
           ),
+          if (eventInvites.isNotEmpty)
           ...eventInvites.map((invite) {
             return GestureDetector(
               onTap: () {
@@ -407,7 +421,7 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
                         return Text(
                           date,
                           style: TextStyle(
-                            fontSize: 13.5,
+                            fontSize: 13,
                             fontWeight: FontWeight.w500,
                             color: Colors.grey[600],
                             height: 1
@@ -505,7 +519,7 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
               ),
             );
           }).toList(),
-          if (isLoading)
+          if (isLoading && eventInvites.isNotEmpty)
           const SizedBox(
             height: 20,
             child: Loader(radius: 8)

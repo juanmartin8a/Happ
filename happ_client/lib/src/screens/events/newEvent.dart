@@ -71,7 +71,7 @@ class _NewEventState extends ConsumerState<NewEvent> {
 
             controller: pageController,
             scrollDirection: Axis.vertical,
-            
+            // padding: EdgeInsets.only(top: 0),
             // new event form will be divided into 3 screens:
             // 1.- for choosing a name, pictures and a description
             // 2.- for picking a place and location
@@ -94,22 +94,27 @@ class _NewEventState extends ConsumerState<NewEvent> {
           Align(
             alignment: Alignment.topCenter,
             child: Container(
-              height: 45,
+              height: 45 + MediaQuery.of(context).padding.top,
               width: MediaQuery.of(context).size.width,
-              // width: Medua,
-              // color: Color(0xff00ff03),
-              padding: const EdgeInsets.only(
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top,
                 right: 8,
                 left: 8,
-                // bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
-              margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.white.withOpacity(0), Colors.white],
+                  stops: [0, 45 / (45 + MediaQuery.of(context).padding.top)],
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter
+                )
+              ),
               child: Center(
                 child: Text(
                   "New Event",
                   style: TextStyle(
                     color: Colors.grey[800],
-                    fontSize: 20,
+                    fontSize: 19,
                     // letterSpacing: 0.5,
                     // fontStyle: FontStyle.normal,
                     fontWeight: FontWeight.w700,

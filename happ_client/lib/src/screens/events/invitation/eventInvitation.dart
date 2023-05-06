@@ -200,8 +200,8 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 48.0),
                     child: Text(
-                      // widget.event.name,
-                      "Testing 1 testing 1 testing 1!",
+                      widget.event.name,
+                      // "Testing 1 testing 1 testing 1!",
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 30,

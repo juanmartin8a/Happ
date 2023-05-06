@@ -134,7 +134,7 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
                         "Add Guests",
                         style: TextStyle(
                           color: Colors.grey[800],
-                          fontSize: 20,
+                          fontSize: 19,
                           // letterSpacing: 0.5,
                           // fontStyle: FontStyle.normal,
                           fontWeight: FontWeight.w700,
@@ -155,7 +155,7 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
                 child: Text(
                   "Invite Friends!",
                   style: TextStyle(
-                    fontSize: 19,
+                    fontSize: 17,
                     fontWeight: FontWeight.w700,
                     color: Colors.grey[800],
                     height: 1
@@ -254,7 +254,7 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
                 child:SizedBox(
                   width: MediaQuery.of(context).size.width,
                   // color: Colors.red,
-                  child: SearchInviteGuestsResults(selectedUsers: [], isEmpty: isEmpty)
+                  child: SearchInviteGuestsResults(isEmpty: isEmpty)
                 )
               )
             ],

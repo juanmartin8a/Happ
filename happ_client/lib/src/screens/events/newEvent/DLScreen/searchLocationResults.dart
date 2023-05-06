@@ -30,8 +30,8 @@ class SearchLocationResults extends ConsumerWidget {
               child: Text(
                 "Results ;)",
                 style: TextStyle(
-                  color: Colors.grey[900],
-                  fontSize: 15,
+                  color: Colors.grey[800],
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                   height: 1
                 ),
@@ -44,14 +44,15 @@ class SearchLocationResults extends ConsumerWidget {
               child: RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                  text: "Sorry, could not find any locations ;(\n",
+                  text: "Sorry, could not find any locations :c\n",
                   style: TextStyle(
+                    fontFamily: "Inter",
                     color: Colors.grey[800],
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600
                   ),
                   children: const <TextSpan>[
-                    TextSpan(text: '🤥💀', style: TextStyle(fontSize: 28))
+                    TextSpan(text: '🤥💀', style: TextStyle(fontSize: 20))
                   ]
                 )
               )

@@ -82,7 +82,7 @@ class _NewEventGuestListState extends ConsumerState<NewEventGuestList> {
                       "Guest List",
                       style: TextStyle(
                         color: Colors.grey[800],
-                        fontSize: 20,
+                        fontSize: 19,
                         // letterSpacing: 0.5,
                         // fontStyle: FontStyle.normal,
                         fontWeight: FontWeight.w700,
@@ -126,7 +126,7 @@ class _NewEventGuestListState extends ConsumerState<NewEventGuestList> {
                       child: Text(
                         "Hosts",
                         style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: Colors.grey[800],
                         height: 1
@@ -173,7 +173,7 @@ class _NewEventGuestListState extends ConsumerState<NewEventGuestList> {
                       child: Text(
                         "Guests",
                         style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: Colors.grey[800],
                         height: 1

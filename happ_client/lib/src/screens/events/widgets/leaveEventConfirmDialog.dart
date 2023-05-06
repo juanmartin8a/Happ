@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:happ_client/src/riverpod/deleteEvent/deleteEvent.dart';
-import 'package:happ_client/src/riverpod/deleteEvent/deleteEventState.dart';
 import 'package:happ_client/src/riverpod/leaveEvent/leaveEvent.dart';
 import 'package:happ_client/src/riverpod/leaveEvent/leaveEventState.dart';
 import 'package:uuid/uuid.dart';
@@ -114,7 +112,7 @@ class _LeaveEventConfirmDialogState extends ConsumerState<LeaveEventConfirmDialo
                                   widget.isConfirmed ? 'Leave' : 'Decline',
                                   style: const TextStyle(
                                     color: Colors.red,
-                                    fontSize: 17,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.w600,
                                     height: 1
                                   ),

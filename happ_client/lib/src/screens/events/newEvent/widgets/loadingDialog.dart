@@ -129,9 +129,9 @@ class LoadingDialog extends ConsumerWidget {
                               padding: const EdgeInsets.only(bottom: 12),
                               child: Text(
                                 widgetColor == Colors.red  ? "Done" : "Next",
-                                style: TextStyle(
-                                  color: Colors.grey[800],
-                                  fontSize: 17,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w600,
                                   height: 1
                                 )

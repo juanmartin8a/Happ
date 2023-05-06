@@ -155,13 +155,13 @@ class InviteLoadingDialog extends ConsumerWidget {
                               }
                               // }
                             },
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
+                            child: const Padding(
+                              padding: EdgeInsets.only(bottom: 12),
                               child: Text(
                                 "Done",
                                 style: TextStyle(
-                                  color: Colors.grey[800],
-                                  fontSize: 17,
+                                  color: Colors.black,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w600,
                                   height: 1
                                 )

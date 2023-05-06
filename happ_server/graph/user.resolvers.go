@@ -359,10 +359,13 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 // DeleteUser is the resolver for the deleteUser field.
 func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 
-	userId, authErr := utils.IsAuth(ctx)
+	userIdAndFUID, authErr := utils.IsAuthWithFUID(ctx)
 	if authErr != nil {
 		return false, authErr
 	}
+
+	userId := userIdAndFUID.UserId
+	firebaseUID := userIdAndFUID.FirebaseUID
 
 	type EventToCancel struct {
 		EventID   int
@@ -459,7 +462,7 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 			rand.Seed(time.Now().Unix())
 
 			for _, event := range events {
-				if event.ConfirmedHosts <= 1 {
+				if event.ConfirmedHosts <= 0 {
 					// delete event
 					err = tx.Event.DeleteOne(event).Exec(ctx)
 					if err != nil {
@@ -476,7 +479,7 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 						EventName: event.Name,
 					})
 
-				} else if event.ConfirmedHosts > 1 {
+				} else if event.ConfirmedHosts >= 1 {
 
 					rows, allGuestsErr := tx.QueryContext(ctx, `
 						SELECT d.token, eu.user_id FROM event_users eu
@@ -544,6 +547,20 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 		}
 	}
 
+	err = tx.EventUser.Update().
+		Where(
+			eventuser.InvitedBy(*userId),
+		).
+		SetInvitedBy(-1).
+		Exec(ctx)
+	if err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			err = fmt.Errorf("%w: %v", err, rerr)
+			return false, err
+		}
+		return false, err
+	}
+
 	_, err = tx.EventUser.Delete().
 		Where(
 			eventuser.UserID(*userId),
@@ -573,40 +590,41 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 		return false, err
 	}
 
-	var meiliFollowIds []string
-	for _, follow := range follows {
-		id := fmt.Sprintf("%s_%s", strconv.Itoa(follow.FollowerID), strconv.Itoa(follow.UserID))
-		meiliFollowIds = append(meiliFollowIds, id)
-	}
-
-	_, err = tx.Follow.Delete().
-		Where(
-			follow.Or(
-				follow.FollowerID(*userId),
-				follow.UserID(*userId),
-			),
-		).
-		Exec(ctx)
-	if err != nil {
-		if rerr := tx.Rollback(); rerr != nil {
-			err = fmt.Errorf("%w: %v", err, rerr)
+	if len(follows) > 0 {
+		var meiliFollowIds []string
+		for _, follow := range follows {
+			id := fmt.Sprintf("%s_%s", strconv.Itoa(follow.FollowerID), strconv.Itoa(follow.UserID))
+			meiliFollowIds = append(meiliFollowIds, id)
+		}
+		_, err = tx.Follow.Delete().
+			Where(
+				follow.Or(
+					follow.FollowerID(*userId),
+					follow.UserID(*userId),
+				),
+			).
+			Exec(ctx)
+		if err != nil {
+			if rerr := tx.Rollback(); rerr != nil {
+				err = fmt.Errorf("%w: %v", err, rerr)
+				return false, err
+			}
 			return false, err
 		}
-		return false, err
-	}
 
-	ok := meilisearchUtils.RemoveFollowsFromMeili(meiliFollowIds)
-	if !ok {
-		if rerr := tx.Rollback(); rerr != nil {
-			err = fmt.Errorf("%w: %v", err, rerr)
+		ok := meilisearchUtils.RemoveFollowsFromMeili(meiliFollowIds)
+		if !ok {
+			if rerr := tx.Rollback(); rerr != nil {
+				err = fmt.Errorf("%w: %v", err, rerr)
+				return false, err
+			}
 			return false, err
 		}
-		return false, err
 	}
 
 	_, err = tx.Device.Delete().
 		Where(
-			device.UserID(*userId),
+			device.UserID(0),
 		).
 		Exec(ctx)
 	if err != nil {
@@ -630,7 +648,7 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 		return false, err
 	}
 
-	ok = meilisearchUtils.RemoveUserFromMeili(*userId)
+	ok := meilisearchUtils.RemoveUserFromMeili(*userId)
 	if !ok {
 		if rerr := tx.Rollback(); rerr != nil {
 			err = fmt.Errorf("%w: %v", err, rerr)
@@ -641,6 +659,11 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 
 	if err := tx.Commit(); err != nil {
 		return false, err
+	}
+
+	err = firebaseUtils.AuthClient.DeleteUser(ctx, *firebaseUID)
+	if err != nil {
+		log.Printf("Error while deleting user from firebase: %s", err)
 	}
 
 	for _, eventData := range eventsToCancel {
@@ -2222,8 +2245,6 @@ func (r *queryResolver) GetUserEventsFromFriends(ctx context.Context, limit int,
 	if authErr != nil {
 		return nil, authErr
 	}
-
-	fmt.Printf("userId: %s", strconv.Itoa(*userId))
 
 	realLimit := 8
 

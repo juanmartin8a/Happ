@@ -24,7 +24,7 @@ class SearchBar extends ConsumerStatefulWidget {
   ConsumerState<SearchBar> createState() => _SearchBarState();
 }
 
-class _SearchBarState extends ConsumerState<SearchBar> {
+class _SearchBarState extends ConsumerState<SearchBar> with AutomaticKeepAliveClientMixin {
   final TextEditingController _textEditingController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
@@ -45,6 +45,8 @@ class _SearchBarState extends ConsumerState<SearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+    print("called");
     return SizedBox(
       height: 45,
       child: Center(
@@ -70,9 +72,9 @@ class _SearchBarState extends ConsumerState<SearchBar> {
                 child: ClipRRect(
                   child: TextField(
                     textInputAction: TextInputAction.done,
-                    focusNode:  _focusNode,
+                    // focusNode:  _focusNode,
                     controller: _textEditingController,
-                    // autofocus: false,
+                    // autofocus: true,
                     // cursorColor: Colors.black,
                     textAlignVertical: TextAlignVertical.center,
                     keyboardAppearance: Brightness.dark,
@@ -80,19 +82,20 @@ class _SearchBarState extends ConsumerState<SearchBar> {
                     maxLines: 1,
                     style: TextStyle(
                       color: Colors.grey[800]!,
-                      fontSize: 15,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       height: 1.25
                     ),
                     decoration: InputDecoration(
-                      isCollapsed: true,
+                      // isCollapsed: true,
+                      isDense: true,
                       border: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       contentPadding: const EdgeInsets.only(right: 8, left: 1),
                       hintText: 'Search for users',
                       hintStyle: TextStyle(
                         color: Colors.grey[500],
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         height: 1.25
                         // height: 2
@@ -110,4 +113,7 @@ class _SearchBarState extends ConsumerState<SearchBar> {
       )
     ); 
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }

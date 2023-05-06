@@ -163,7 +163,7 @@ class _EventMapWidgetState extends ConsumerState<EventMapWidget> with AutomaticK
             // maxLines: 1,
             style:  TextStyle(
               color: Colors.grey[800]!,
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: FontWeight.w500,
               height: 1
             )

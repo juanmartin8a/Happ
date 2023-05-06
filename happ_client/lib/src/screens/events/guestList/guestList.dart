@@ -88,7 +88,7 @@ class _GuestListState extends ConsumerState<GuestList> with SingleTickerProvider
                             "Guest list",
                             style: TextStyle(
                               color: Colors.grey[800],
-                              fontSize: 20,
+                              fontSize: 19,
                               // letterSpacing: 0.5,
                               // fontStyle: FontStyle.normal,
                               fontWeight: FontWeight.w700,

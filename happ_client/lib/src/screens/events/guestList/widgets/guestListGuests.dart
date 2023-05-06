@@ -132,8 +132,9 @@ class _GuestListGuestsState extends ConsumerState<GuestListGuests> with Automati
                 // text: r"No guests yet ¯\_(ツ)_/¯",
                 text: "They'll be RSVP'ing soon!\n",
                 style: TextStyle(
+                  fontFamily: "Inter",
                   color: Colors.grey[800],
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600
                 ),
                 children: const <TextSpan>[

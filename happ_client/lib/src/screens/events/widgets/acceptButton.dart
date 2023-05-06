@@ -156,11 +156,12 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
     return GestureDetector(
       onTap: () {
         if (!isLoading) {
-          if (isConfirmed && isCreator == false) {
+          if (isConfirmed && isHost == false) {
             ref.read(seePassProvider.notifier).seePass(event.id);
           } else if (isConfirmed == false) {
             ref.read(acceptInvitationProvider.notifier).acceptInvitation(event.id);
           } else if (isConfirmed && isHost) {
+            print("hey");
             // final inviteRes = EventTypesConverter().convertOtherInviteResToFriendsInviteRes(invite);
             // final event = EventTypesConverter().convertEventToFriendsEvent(invite.event);
             // final invitedBy = EventTypesConverter().convertOtherInvitedByToFriendsinvitedBy(invite.invitedBy);

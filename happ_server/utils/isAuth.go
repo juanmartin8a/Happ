@@ -29,6 +29,26 @@ func IsAuth(ctx context.Context) (*int, error) {
 	return userId, nil
 }
 
+func IsAuthWithFUID(ctx context.Context) (*UserIdAndFUID, error) {
+	ec, err := customMiddleware.EchoContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userIdAndFUID, err := GetUserIdAndFUIDFromFirebaseIDToken(ctx, ec.Request().Header.Get("Authorization"))
+	if err != nil {
+		return nil, err
+	}
+
+	userId := *userIdAndFUID.UserId
+
+	userIdToString := strconv.Itoa(userId)
+
+	ec.Request().Header.Set("UserID", userIdToString)
+
+	return userIdAndFUID, nil
+}
+
 func GetUserIdFromHeader(ctx context.Context) (*int, error) {
 	ec, err := customMiddleware.EchoContextFromContext(ctx)
 	if err != nil {

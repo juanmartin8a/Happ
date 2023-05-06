@@ -1,0 +1,17 @@
+"filename", "language", "Dart", "Go", "comment", "blank", "total"
+"/Users/juanma/development/golang/happ/happ_client/lib/src/screens/auth/auth.dart", "Dart", 0, 0, 0, 1, 1
+"/Users/juanma/development/golang/happ/happ_client/lib/src/screens/events/newEvent/DLScreen/searchLocationBar.dart", "Dart", -4, 0, 4, 0, 0
+"/Users/juanma/development/golang/happ/happ_client/lib/src/screens/events/newEvent/DLScreen/searchLocationTile.dart", "Dart", -9, 0, 0, 0, -9
+"/Users/juanma/development/golang/happ/happ_client/lib/src/screens/home.dart", "Dart", -1, 0, 3, 0, 2
+"/Users/juanma/development/golang/happ/happ_client/lib/src/screens/profile/widgets/addRemoveButton.dart", "Dart", -73, 0, 73, 0, 0
+"/Users/juanma/development/golang/happ/happ_client/lib/src/screens/settings/settings.dart", "Dart", 114, 0, 12, 4, 130
+"/Users/juanma/development/golang/happ/happ_client/lib/src/screens/settings/widgets/loadingDialog.dart", "Dart", 158, 0, 2, 4, 164
+"/Users/juanma/development/golang/happ/happ_client/lib/src/screens/settings/widgets/settingsTile.dart", "Dart", 36, 0, 0, 2, 38
+"/Users/juanma/development/golang/happ/happ_client/lib/src/utils/buttons/changeOnTap.dart", "Dart", -56, 0, 0, -6, -62
+"/Users/juanma/development/golang/happ/happ_client/lib/src/utils/buttons/customGestureDetector.dart", "Dart", 118, 0, 0, 12, 130
+"/Users/juanma/development/golang/happ/happ_client/lib/src/wrapper.dart", "Dart", 0, 0, 1, -2, -1
+"/Users/juanma/development/golang/happ/happ_server/graph/user.resolvers.go", "Go", 0, 12, 0, 1, 13
+"/Users/juanma/development/golang/happ/happ_server/utils/getUserID.go", "Go", 0, 21, -9, 4, 16
+"/Users/juanma/development/golang/happ/happ_server/utils/isAuth.go", "Go", 0, 14, 0, 6, 20
+"/Users/juanma/development/golang/happ/happ_server/utils/meilisearch/meilisearch.go", "Go", 0, 2, 0, 1, 3
+"Total", "-", 283, 49, 86, 27, 445

@@ -1,10 +1,15 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:happ_client/src/riverpod/scanPass/scanPass.dart';
+import 'package:happ_client/src/riverpod/scanPass/scanPassState.dart';
+import 'package:happ_client/src/screens/events/scan/widgets/processPassDialog.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:uuid/uuid.dart';
 
-class ScanScreen extends StatefulWidget {
+class ScanScreen extends ConsumerStatefulWidget {
   final int eventId;
   const ScanScreen({
     required this.eventId,
@@ -12,10 +17,19 @@ class ScanScreen extends StatefulWidget {
   });
 
   @override
-  State<ScanScreen> createState() => _ScanScreenState();
+  _ScanScreenState createState() => _ScanScreenState();
 }
 
-class _ScanScreenState extends State<ScanScreen> {
+class _ScanScreenState extends ConsumerState<ScanScreen> {
+
+  final MobileScannerController controller = MobileScannerController();
+
+  @override
+  void initState() {
+    controller.stop();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -24,12 +38,25 @@ class _ScanScreenState extends State<ScanScreen> {
         child: Stack(
           children: [
             MobileScanner(
+              controller: controller,
               onDetect: (capture) {
                 final List<Barcode> barcodes = capture.barcodes;
-                for (final barcode in barcodes) {
-                  debugPrint('Barcode found! ${barcode.rawValue}');
+
+                if (barcodes.isNotEmpty) {
+                  if (ref.read(scanPassProvider) is ScanPassInitState) {
+                    ref.read(scanPassProvider.notifier).scanPass(widget.eventId, barcodes[0].rawValue!);
+                    showGeneralDialog(
+                      context: context,
+                      barrierColor: Colors.transparent,
+                      transitionDuration: const Duration(milliseconds: 200),
+                      pageBuilder: (context, anim1, anim2) {
+                        return const ProcessPass();
+                      }
+                    );
+                  }
                 }
               },
+              // key: Key(const Uuid().v4())
             ),
             Container(
               height: 45 + MediaQuery.of(context).padding.top,
@@ -38,7 +65,7 @@ class _ScanScreenState extends State<ScanScreen> {
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Colors.transparent, Colors.black26],
-                  stops: [0, 0.75],
+                  // stops: [-10, 1],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter
                 )

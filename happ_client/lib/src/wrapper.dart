@@ -51,7 +51,6 @@ class WrapperState extends ConsumerState<Wrapper> {
     return StreamBuilder<User?>(
       stream: authStateChanges,
       builder: (context, snapshot) {
-        print("toromax");
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
         } else {
@@ -60,9 +59,9 @@ class WrapperState extends ConsumerState<Wrapper> {
             isAuth = true;
             return const Auth();
           } else {
-            if (isAuth) {
-              return const Home(key: Key("Home"));
-            }
+            // if (isAuth) {
+            //   return const Home(key: Key("Home"));
+            // }
 
             return FutureBuilder(
               future: saveCurrentUser(ref.read(firebaseAuthProvider)),
@@ -90,7 +89,8 @@ class WrapperState extends ConsumerState<Wrapper> {
     }
     int userId = claims["id"];
 
-    print("userId: $userId");
+    // print(userId);
+    // print(claims[]);
 
     Map<String, dynamic> userJson = {
       "id": userId,

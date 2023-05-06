@@ -36,7 +36,7 @@ void main() async {
   final AuthLink authLink = AuthLink(
     getToken: () async {
       String? token = await getUserIDToken(firebaseAuth);
-
+      print("token: $token");
       return token != null ? "Bearer $token" : null;
     },
   );

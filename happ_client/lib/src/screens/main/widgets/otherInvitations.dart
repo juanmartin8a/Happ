@@ -140,9 +140,9 @@ class _OtherInvitationsState extends ConsumerState<OtherInvitations> {
           child: Text(
             "Other invitations",
             style: TextStyle(
-              fontSize: 19,
+              fontSize: 17,
               fontWeight: FontWeight.w700,
-              color: Colors.grey[850],
+              color: Colors.grey[800],
               height: 1
             )
           ),
@@ -172,15 +172,25 @@ class _OtherInvitationsState extends ConsumerState<OtherInvitations> {
                 borderRadius: BorderRadius.circular(50),
               ),
               // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Text(
-                "No invitations :/",
-                style: TextStyle(
-                fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[900],
-                  height: 1
-                ),
-              ),
+              child: 
+              RichText(
+                textAlign: TextAlign.center,
+                
+                text: TextSpan(
+                  text: "No invites?",
+                  style: TextStyle(
+                    fontFamily: "Inter",
+                    color: Colors.grey[800],
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  children: const <TextSpan>[
+                    TextSpan(text: ' 🤔 ', style: TextStyle(fontSize: 18)),
+                    TextSpan(text: 'Be the host!'),
+                    TextSpan(text: '🎊😄', style: TextStyle(fontSize: 18))
+                  ]
+                )
+              )
             ),
           ),
         )

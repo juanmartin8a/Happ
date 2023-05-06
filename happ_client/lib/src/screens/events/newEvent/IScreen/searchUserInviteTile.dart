@@ -88,7 +88,7 @@ class _SearchUserInviteTileState extends ConsumerState<SearchUserInviteTile> {
                     Text(
                       widget.user.name,
                       style: TextStyle(
-                        color: Colors.grey[850],
+                        color: Colors.grey[800],
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         height: 1

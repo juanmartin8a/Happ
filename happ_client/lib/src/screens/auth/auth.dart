@@ -44,11 +44,12 @@ class _AuthState extends ConsumerState<Auth> {
         setState(() {
           isLoading = false;
         });
-        ref.read(authFlowNotifierProvider.notifier).setDone();
-
         final user = UserFromId$Query$User.fromJson(next.signInRes.user!.toJson());
 
         ref.read(currentUserProvider.notifier).setCurrentUser(user);
+        
+        ref.read(authFlowNotifierProvider.notifier).setDone();
+
       } else if (next is SignInErrorState) {
         setState(() {
           isLoading = false;

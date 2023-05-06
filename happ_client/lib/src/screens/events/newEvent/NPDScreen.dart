@@ -102,7 +102,7 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
                             autofocus: false,
                             style: TextStyle(
                               color: Colors.grey[800]!,
-                              fontSize: 20,
+                              fontSize: 19,
                               fontWeight: FontWeight.w700,
                               height: 1.25
                             ),
@@ -114,7 +114,7 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
                               hintText: 'Event Name',
                               hintStyle: TextStyle(
                                 color: Colors.grey[600]!,
-                                fontSize: 20,
+                                fontSize: 19,
                                 fontWeight: FontWeight.w700,
                                 height: 1.25
                               ),
@@ -149,7 +149,7 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
                             keyboardAppearance: Brightness.dark,
                             autofocus: false,
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: Colors.grey[800],
                               height: 1.25
@@ -162,7 +162,7 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
                               hintText: 'Description',
                               hintStyle: TextStyle(
                                 color: Colors.grey[600],
-                                fontSize: 15,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 height: 1.25
                               ),

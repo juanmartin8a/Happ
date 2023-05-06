@@ -25,7 +25,7 @@ class SettingsTile extends StatelessWidget {
           Text(
             name,
             style: TextStyle(
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
               color: textColor ?? Colors.grey[850],
               height: 1

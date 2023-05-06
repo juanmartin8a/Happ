@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addRemove/addRemove.dart';
@@ -52,9 +50,9 @@ class SearchUserAddButton extends ConsumerWidget {
             isFollow ? "Added" : "Add",
             style: TextStyle(
               color: isFollow ? Colors.grey[900] : Colors.white,
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
-              height: 1
+              // height: 1
             )
           ),
         )

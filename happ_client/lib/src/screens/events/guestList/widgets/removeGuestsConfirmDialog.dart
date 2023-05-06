@@ -166,7 +166,7 @@ class _RemoveGuestsConfirmDialogState extends ConsumerState<RemoveGuestsConfirmD
                                   'Remove',
                                   style: TextStyle(
                                     color: Colors.red,
-                                    fontSize: 17,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.w600,
                                     height: 1
                                   ),
@@ -218,7 +218,7 @@ class _RemoveGuestsConfirmDialogState extends ConsumerState<RemoveGuestsConfirmD
                                 'Done',
                                 style: TextStyle(
                                   color: Colors.black,
-                                  fontSize: 17,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w600,
                                   height: 1
                                 ),

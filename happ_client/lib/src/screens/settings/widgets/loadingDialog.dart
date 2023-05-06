@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:happ_client/src/riverpod/deleteUser/deleteUser.dart";
 import "package:happ_client/src/riverpod/deleteUser/deleteUserState.dart";
+import "package:happ_client/src/riverpod/firebaseAuthProvider/firebaseAuthProvider.dart";
 import "package:uuid/uuid.dart";
 
 class LoadingDialog extends ConsumerWidget {
@@ -28,6 +29,7 @@ class LoadingDialog extends ConsumerWidget {
         widgetColor = Colors.greenAccent[700]!;
         textMessage = "Your account has been removed :'(";
         loading = false;
+        ref.read(firebaseAuthProvider).signOut();
       }
     } else if (state is DeleteUserErrorState) {
       isDefault = false;
@@ -127,7 +129,11 @@ class LoadingDialog extends ConsumerWidget {
                           ),
                           GestureDetector(
                             onTap: () {
-                              Navigator.pop(context);
+                              if (isDefault == true) {
+                                ref.read(deleteUserProvider.notifier).deleteUser();
+                              } else {
+                                Navigator.pop(context);
+                              }
                             },
                             child: Padding(
                               padding: const EdgeInsets.only(bottom: 12),
