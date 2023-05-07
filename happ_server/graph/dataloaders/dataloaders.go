@@ -47,11 +47,9 @@ func GetUsers(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	}
 
 	deletedUser := &ent.User{
-		Name:       "Deleted user",
+		Name:       "Deleted User",
 		ID:         -1,
-		FUID:       "-1",
-		Username:   "Username",
-		Email:      "deleted.user@email.com",
+		Username:   "deleted_user",
 		ProfilePic: "https://d3pvchlba3rmqp.cloudfront.net/userProfilePics/blueLobster.jpg",
 		// CreatedAt: time.Now(),
 		// UpdatedAt: time.Now(),

@@ -40,6 +40,10 @@ class SearchController extends StateNotifier<SearchState> {
 
     state = SearchLoadedState(searchUsersRes: searchRes);
   }
+  
+  void backToInit() {
+    state = SearchInitState();
+  }
 }
 
 // final searchProvider =

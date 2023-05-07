@@ -21,7 +21,7 @@ class LoadingDialog extends ConsumerWidget {
     if (state is NewEventDoneState) {
       isDefault = false;
       if (state.newEventRes.errors == null) {
-        widgetColor = Colors.greenAccent[700]!;
+        widgetColor = const Color.fromARGB(255, 1, 228, 96);
         eventId = state.newEventRes.event!.id;
       } else {
         widgetColor = Colors.red;
@@ -118,7 +118,7 @@ class LoadingDialog extends ConsumerWidget {
                           ),
                           GestureDetector(
                             onTap: () {
-                              if (widgetColor == Colors.greenAccent[700]) {
+                              if (widgetColor == const Color.fromARGB(255, 1, 228, 96)) {
                                 func(2, newEventId: eventId);
                               } else {
                                 func(0);

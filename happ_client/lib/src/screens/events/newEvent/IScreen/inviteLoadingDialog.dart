@@ -27,7 +27,7 @@ class InviteLoadingDialog extends ConsumerWidget {
       if (state is InviteGuestsAndOrganizersDoneState) {
         if (state.res == true) {
           isDefault = false;
-          widgetColor = Colors.greenAccent[700]!;
+          widgetColor = const Color.fromARGB(255, 1, 228, 96);
         } else {
           isDefault = false;
           widgetColor = Colors.red;
@@ -41,7 +41,7 @@ class InviteLoadingDialog extends ConsumerWidget {
       if (state is AddGuestsDoneState) {
         if (state.res == true) {
           isDefault = false;
-          widgetColor = Colors.greenAccent[700]!;
+          widgetColor = const Color.fromARGB(255, 1, 228, 96);
 
           ref.invalidate(addNewGuestsSelectProvider);
         } else {

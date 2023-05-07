@@ -20,24 +20,9 @@ class RemoveGuestsConfirmDialog extends ConsumerStatefulWidget {
 }
 
 class _RemoveGuestsConfirmDialogState extends ConsumerState<RemoveGuestsConfirmDialog> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return const Placeholder();
-//   }
-// }
-
-// class RemoveGuestsConfirmDialog extends ConsumerWidget {
-  // final List<int> userIds;
-  // final int eventId;
-  // const RemoveGuestsConfirmDialog({
-  //   required this.userIds,
-  //   required this.eventId,
-  //   super.key
-  // });
 
   bool error = false;
   bool loading = false;
-  bool success = false;
 
   Color backgroundColor = Colors.black;
 
@@ -48,24 +33,17 @@ class _RemoveGuestsConfirmDialogState extends ConsumerState<RemoveGuestsConfirmD
         case RemoveGuestsDoneState:
           ref.read(eventGuestsProvider.notifier).removeGuests(widget.userIds);
           ref.read(guestListActionProvider.notifier).isAdd(null);
-          // Navigator.pop(context);
-          setState(() {
-            success = true;
-            error = false;
-            loading = false;
-          });
+          Navigator.pop(context);
           break;
         case RemoveGuestsLoadingState:
           setState(() {
             error = false;
-            success = false;
             loading = true;
           });
           break;
         case RemoveGuestsErrorState:
           setState(() {
             error = true;
-            success = false;
             loading = false;
           });
           break;
@@ -96,10 +74,10 @@ class _RemoveGuestsConfirmDialogState extends ConsumerState<RemoveGuestsConfirmD
                   child: Container(
                     height: 150,
                     width: 250,
-                    color: !error && !success ? Colors.black : success ? Colors.greenAccent[700] : Colors.red,
+                    color: !error ? Colors.black : Colors.red,
                     key: Key(const Uuid().v4()),
                     // padding: const EdgeInsets.all(12),
-                    child: 
+                    child:
                     loading
                     ? Padding(
                       padding: const EdgeInsets.all(12),
@@ -127,7 +105,7 @@ class _RemoveGuestsConfirmDialogState extends ConsumerState<RemoveGuestsConfirmD
                         ],
                       ),
                     )
-                    : !error && !success
+                    : !error
                     ? Padding(
                       padding: const EdgeInsets.only(
                         top: 12,
@@ -185,26 +163,17 @@ class _RemoveGuestsConfirmDialogState extends ConsumerState<RemoveGuestsConfirmD
                       ),
                       child: Column(
                         children: [
-                          Expanded(
+                          const Expanded(
                             child: Center(
-                              child: RichText(
+                              child: Text(
+                                "Error while removing guests :'/",
                                 textAlign: TextAlign.center,
-                                text: TextSpan(
-                                  text: success ? "" : "Error while removing guests :'/",
-                                  style: const TextStyle(
-                                    fontSize: 19,
-                                    fontFamily: "Inter",
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
-                                  children: <TextSpan>[
-                                    if (success)
-                                    const TextSpan(text: '👋 ', style: TextStyle(fontSize: 22)),
-                                    if (success)
-                                    const TextSpan(text: 'Guests succefully removed!')
-                                  ]
+                                style: TextStyle(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
                                 )
-                              )
+                              ),
                             ),
                           ),
                           GestureDetector(

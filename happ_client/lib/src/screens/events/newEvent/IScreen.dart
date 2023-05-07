@@ -185,14 +185,15 @@ class _IScreenState extends ConsumerState<IScreen> {
                                   setState(() {
                                     isEmpty = true;
                                   });
+                                  ref.read(searchProvider.notifier).backToInit();
                                 } else {
                                   if (isEmpty != false) {
                                     setState(() {
                                       isEmpty = false;
                                     });
                                   }
+                                  ref.read(searchProvider.notifier).searchUsers(values);
                                 }
-                                ref.read(searchProvider.notifier).searchUsers(values);
                               },
                             ),
                           ),
@@ -252,7 +253,7 @@ class _IScreenState extends ConsumerState<IScreen> {
             child:SizedBox(
               width: MediaQuery.of(context).size.width,
               // color: Colors.red,
-              child: const SearchUserInviteResults()
+              child: SearchUserInviteResults(isEmpty: isEmpty)
             )
           )
         ],

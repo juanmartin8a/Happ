@@ -502,7 +502,7 @@ class _EventState extends ConsumerState<Event> {
                             if (!isGuestsLoading && !isHostsLoading) {
                               EventGuestListParams params = EventGuestListParams(
                                 eventId: event.id,
-                                isHost: userInfo.isHost,
+                                isHost: userInfo.isHost && userInfo.isConfirmed,
                                 isCreator: userInfo.isCreator,
                                 paginatedHostsRes: paginatedHostsRes,
                                 paginatedGuestsRes: paginatedGuestsRes,

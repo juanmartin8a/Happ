@@ -28,14 +28,6 @@ class _SearchBarState extends ConsumerState<SearchBar> with AutomaticKeepAliveCl
   final TextEditingController _textEditingController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-  //     FocusScope.of(context).requestFocus(_focusNode);
-  //   });
-  // }
-
   @override
   void dispose() {
     super.dispose();
@@ -101,8 +93,12 @@ class _SearchBarState extends ConsumerState<SearchBar> with AutomaticKeepAliveCl
                         // height: 2
                       ),
                     ),
-                    onChanged: (values) { 
-                      ref.read(searchProvider.notifier).searchUsers(values);
+                    onChanged: (values) {
+                      if (values.isEmpty) {
+                        ref.read(searchProvider.notifier).backToInit();
+                      } else {
+                        ref.read(searchProvider.notifier).searchUsers(values);
+                      }
                     },
                   ),
                 ),

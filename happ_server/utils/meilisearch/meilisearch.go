@@ -70,74 +70,74 @@ func GetUsersFromMeili(search string, filterNotIn []int) ([]interface{}, error) 
 	return searchRes.Hits, nil
 }
 
-func AddFollowToMeili(userID1 int, userID2 int) bool {
-	index, isHealthy := GetMeiliFollowIndex()
-	if !isHealthy {
-		return false
-	}
+// func AddFollowToMeili(userID1 int, userID2 int) bool {
+// 	index, isHealthy := GetMeiliFollowIndex()
+// 	if !isHealthy {
+// 		return false
+// 	}
 
-	// lowestNumberUserId := math.Min(float64(userId1), float64(userId2))
-	// highestNumberUserId := math.Max(float64(userId1), float64(userId2))
+// 	// lowestNumberUserId := math.Min(float64(userId1), float64(userId2))
+// 	// highestNumberUserId := math.Max(float64(userId1), float64(userId2))
 
-	documents := []map[string]interface{}{
-		{
-			"id":      fmt.Sprintf("%s_%s", strconv.Itoa(userID1), strconv.Itoa(userID2)),
-			"userID1": userID1,
-			"userID2": userID2,
-		},
-	}
+// 	documents := []map[string]interface{}{
+// 		{
+// 			"id":      fmt.Sprintf("%s_%s", strconv.Itoa(userID1), strconv.Itoa(userID2)),
+// 			"userID1": userID1,
+// 			"userID2": userID2,
+// 		},
+// 	}
 
-	_, err := index.AddDocuments(documents, "id")
+// 	_, err := index.AddDocuments(documents, "id")
 
-	return err == nil
-}
+// 	return err == nil
+// }
 
-func GetFollowFromMeili(id string) (interface{}, error) {
-	index, isHealthy := GetMeiliFollowIndex()
+// func GetFollowFromMeili(id string) (interface{}, error) {
+// 	index, isHealthy := GetMeiliFollowIndex()
 
-	if !isHealthy {
-		return nil, fmt.Errorf("error: meilisearch client not healthy")
-	}
+// 	if !isHealthy {
+// 		return nil, fmt.Errorf("error: meilisearch client not healthy")
+// 	}
 
-	var a interface{}
-	err := index.GetDocument(
-		id,
-		&meilisearch.DocumentQuery{Fields: []string{"id"}},
-		&a,
-	)
+// 	var a interface{}
+// 	err := index.GetDocument(
+// 		id,
+// 		&meilisearch.DocumentQuery{Fields: []string{"id"}},
+// 		&a,
+// 	)
 
-	if err != nil {
-		return nil, err
-	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return a, nil
-}
+// 	return a, nil
+// }
 
-func RemoveFollowFromMeili(userID1 int, userID2 int) bool {
-	index, isHealthy := GetMeiliFollowIndex()
-	if !isHealthy {
-		return false
-	}
+// func RemoveFollowFromMeili(userID1 int, userID2 int) bool {
+// 	index, isHealthy := GetMeiliFollowIndex()
+// 	if !isHealthy {
+// 		return false
+// 	}
 
-	id := fmt.Sprintf("%s_%s", strconv.Itoa(userID1), strconv.Itoa(userID2))
+// 	id := fmt.Sprintf("%s_%s", strconv.Itoa(userID1), strconv.Itoa(userID2))
 
-	_, err := index.DeleteDocument(id)
+// 	_, err := index.DeleteDocument(id)
 
-	return err == nil
-}
+// 	return err == nil
+// }
 
-func RemoveFollowsFromMeili(ids []string) bool {
-	index, isHealthy := GetMeiliFollowIndex()
-	if !isHealthy {
-		return false
-	}
+// func RemoveFollowsFromMeili(ids []string) bool {
+// 	index, isHealthy := GetMeiliFollowIndex()
+// 	if !isHealthy {
+// 		return false
+// 	}
 
-	fmt.Println(ids)
+// 	fmt.Println(ids)
 
-	_, err := index.DeleteDocuments(ids)
-	fmt.Println(err)
-	return err == nil
-}
+// 	_, err := index.DeleteDocuments(ids)
+// 	fmt.Println(err)
+// 	return err == nil
+// }
 
 // func UpdateUserFromMeili() {
 // 	index, _ := GetMeiliUsersIndex()

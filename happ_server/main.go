@@ -39,7 +39,7 @@ func main() {
 
 	// redisUtils.RedisClient = redisUtils.GetRedisClient()
 
-	meilisearchUtils.MeiliClient = meilisearchUtils.GetSimpleMeiliClient()
+	meilisearchUtils.GetMeiliClient()
 
 	_, err := firebaseUtils.GetFirebaseAuthClient(ctx)
 	if err != nil {

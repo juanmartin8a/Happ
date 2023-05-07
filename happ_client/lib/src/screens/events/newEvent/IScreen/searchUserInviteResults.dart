@@ -8,9 +8,9 @@ import 'package:happ_client/src/screens/events/newEvent/IScreen.dart';
 import 'package:happ_client/src/screens/events/newEvent/IScreen/searchUserInviteTile.dart';
 
 class SearchUserInviteResults extends ConsumerStatefulWidget {
-  // final bool isSearchRes;
+  final bool isEmpty;
   const SearchUserInviteResults({
-    // required this.isSearchRes,
+    required this.isEmpty,
     super.key
   });
 
@@ -20,6 +20,8 @@ class SearchUserInviteResults extends ConsumerStatefulWidget {
 
 class _SearchUserInviteResultsState extends ConsumerState<SearchUserInviteResults> {
   List<int> selectedUsersIds = [];
+
+  List<SearchUsers$Query$User> searchUsersRes = [];
 
   @override
   Widget build(BuildContext context) {
@@ -32,18 +34,59 @@ class _SearchUserInviteResultsState extends ConsumerState<SearchUserInviteResult
       }
     });
 
-    SearchState searchUserState = ref.watch(searchProvider);
+    ref.listen(searchProvider, (prev, next) {
+      if (next is SearchLoadedState) {
+        setState(() {
+          searchUsersRes = next.searchUsersRes;
+        });
+      } else if (next is SearchErrorState) {
+        setState(() {
+          searchUsersRes = [];
+        });
+      } else if (next is !SearchLoadedState) {
+        setState(() {
+          searchUsersRes = [];
+        });
+      }
+    });
 
-    if (searchUserState is !SearchLoadedState) {
-      return const SizedBox();
+    if (widget.isEmpty || ref.read(searchProvider) is SearchInitState) {
+      return ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          Container(
+            padding: const EdgeInsets.only(top: 150),
+            color: Colors.transparent,
+            child: Center(
+              child: 
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  text: "Pick friends to join the fun!\n",
+                  style: TextStyle(
+                    fontFamily: "Inter",
+                    color: Colors.grey[800],
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600
+                  ),
+                  children: const <TextSpan>[
+                    TextSpan(text: '😉', style: TextStyle(fontSize: 20))
+                  ]
+                )
+              )
+            )
+          ),
+          const SizedBox(height: 150)
+        ],
+      );
     }
 
     return ListView.builder(
       padding: EdgeInsets.zero,
-      itemCount: searchUserState.searchUsersRes.length + 1,
+      itemCount: searchUsersRes.length + 2,
       itemBuilder: (context, i) {
         if (i == 0) {
-          if (searchUserState.searchUsersRes.isNotEmpty) {
+          if (searchUsersRes.isNotEmpty) {
             return Container();
           } else {
             return Container(
@@ -60,18 +103,23 @@ class _SearchUserInviteResultsState extends ConsumerState<SearchUserInviteResult
                     fontWeight: FontWeight.w600
                   ),
                   children: const <TextSpan>[
-                    TextSpan(text: '🫣🦖', style: TextStyle(fontSize: 22))
+                    TextSpan(text: '🫣🦖', style: TextStyle(fontSize: 20))
                   ]
                 )
               )
             );
           }
         }
+
+        if (i == (searchUsersRes.length + 2) - 1) {
+          return const SizedBox(height: 150);
+        }
+
         int searchUserResIndex = i - 1;
         return SearchUserInviteTile(
-          user: searchUserState.searchUsersRes[searchUserResIndex],
-          isSelected: selectedUsersIds.contains(searchUserState.searchUsersRes[searchUserResIndex].id),
-          key: Key("searchUserIntiveTile_${searchUserState.searchUsersRes[searchUserResIndex].id}")
+          user: searchUsersRes[searchUserResIndex],
+          isSelected: selectedUsersIds.contains(searchUsersRes[searchUserResIndex].id),
+          key: Key("searchUserIntiveTile_${searchUsersRes[searchUserResIndex].id}")
         );
       }
     );

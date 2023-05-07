@@ -1,25 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/search/searchState.dart';
 import 'package:happ_client/src/screens/search/searchBar.dart';
 import 'package:happ_client/src/screens/search/widgets/searchUserTile.dart';
 
-class SearchResults extends ConsumerWidget {
-  const SearchResults({Key? key}) : super(key: key);
+class SearchResults extends ConsumerStatefulWidget {
+  const SearchResults({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _SearchResultsState createState() => _SearchResultsState();
+}
 
-    SearchState searchUserState = ref.watch(searchProvider);
-    if (searchUserState is !SearchLoadedState) {
-      return const SizedBox();
+class _SearchResultsState extends ConsumerState<SearchResults> {
+  List<SearchUsers$Query$User> searchUsersRes = [];
+
+  @override
+  Widget build(BuildContext context) {
+
+    ref.listen(searchProvider, (prev, next) {
+      if (next is SearchLoadedState) {
+        setState(() {
+          searchUsersRes = next.searchUsersRes;
+        });
+      } else if (next is SearchErrorState) {
+        setState(() {
+          searchUsersRes = [];
+        });
+      } else if (next is !SearchLoadedState) {
+        setState(() {
+          searchUsersRes = [];
+        });
+      }
+    });
+
+    if (ref.read(searchProvider) is SearchInitState) {
+      return ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          Container(
+            padding: const EdgeInsets.only(top: 150),
+            color: Colors.transparent,
+            child: Center(
+              child: 
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  text: "Look for your friends!\n",
+                  style: TextStyle(
+                    fontFamily: "Inter",
+                    color: Colors.grey[800],
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600
+                  ),
+                  children: const <TextSpan>[
+                    TextSpan(text: '🔍', style: TextStyle(fontSize: 20))
+                  ]
+                )
+              )
+            )
+          ),
+          const SizedBox(height: 150)
+        ],
+      );
     }
+
     return ListView.builder(
       padding: EdgeInsets.zero,
-      itemCount: searchUserState.searchUsersRes.length + 1,
+      itemCount: searchUsersRes.length + 2,
       itemBuilder: (context, i) {
         if (i == 0) {
-          if (searchUserState.searchUsersRes.isNotEmpty) {
+          if (searchUsersRes.isNotEmpty) {
             return Container(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               child: Text(
@@ -55,8 +106,13 @@ class SearchResults extends ConsumerWidget {
             );
           }
         }
+
+        if (i == (searchUsersRes.length + 2) - 1) {
+          return const SizedBox(height: 150);
+        }
+
         int searchUserResIndex = i - 1;
-        return SearchUserTile(users: searchUserState.searchUsersRes, user: searchUserState.searchUsersRes[searchUserResIndex]);
+        return SearchUserTile(users: searchUsersRes, user: searchUsersRes[searchUserResIndex]);
       }
     );
   }

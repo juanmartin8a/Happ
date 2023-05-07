@@ -208,6 +208,7 @@ class _GuestListState extends ConsumerState<GuestList> with SingleTickerProvider
             )
             ],
           ),
+          if (widget.isHost)
           Positioned(
             bottom: 34 * 0.75,
             right: 34 * 0.75,

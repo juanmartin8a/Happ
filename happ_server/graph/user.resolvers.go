@@ -574,52 +574,20 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 		return false, err
 	}
 
-	follows, err := tx.Follow.Query().
+	_, err = tx.Follow.Delete().
 		Where(
 			follow.Or(
 				follow.FollowerID(*userId),
 				follow.UserID(*userId),
 			),
 		).
-		All(ctx)
+		Exec(ctx)
 	if err != nil {
 		if rerr := tx.Rollback(); rerr != nil {
 			err = fmt.Errorf("%w: %v", err, rerr)
 			return false, err
 		}
 		return false, err
-	}
-
-	if len(follows) > 0 {
-		var meiliFollowIds []string
-		for _, follow := range follows {
-			id := fmt.Sprintf("%s_%s", strconv.Itoa(follow.FollowerID), strconv.Itoa(follow.UserID))
-			meiliFollowIds = append(meiliFollowIds, id)
-		}
-		_, err = tx.Follow.Delete().
-			Where(
-				follow.Or(
-					follow.FollowerID(*userId),
-					follow.UserID(*userId),
-				),
-			).
-			Exec(ctx)
-		if err != nil {
-			if rerr := tx.Rollback(); rerr != nil {
-				err = fmt.Errorf("%w: %v", err, rerr)
-				return false, err
-			}
-			return false, err
-		}
-
-		ok := meilisearchUtils.RemoveFollowsFromMeili(meiliFollowIds)
-		if !ok {
-			if rerr := tx.Rollback(); rerr != nil {
-				err = fmt.Errorf("%w: %v", err, rerr)
-				return false, err
-			}
-			return false, err
-		}
 	}
 
 	_, err = tx.Device.Delete().
@@ -748,24 +716,6 @@ func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int
 			}, nil
 		}
 
-		res := meilisearchUtils.AddFollowToMeili(*userId, followUserID)
-		if !res {
-			r.client.Follow.Update().
-				SetValid(false).
-				Where(
-					follow.And(
-						follow.FollowerID(*userId),
-						follow.UserID(followUserID),
-					),
-				).
-				Save(ctx)
-
-			return &model.AddResponse{
-				Value:     0,
-				Unchanged: true,
-			}, nil
-		}
-
 		go func() {
 			newctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
@@ -797,24 +747,6 @@ func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int
 		SetValid(false).
 		Exec(ctx)
 	if err != nil {
-		return &model.AddResponse{
-			Value:     0,
-			Unchanged: true,
-		}, nil
-	}
-
-	res := meilisearchUtils.RemoveFollowFromMeili(*userId, followUserID)
-	if !res {
-		_, _ = r.client.Follow.Update().
-			Where(
-				follow.And(
-					follow.FollowerID(*userId),
-					follow.UserID(followUserID),
-				),
-			).
-			SetValid(true). // asume user was following before
-			Save(ctx)
-
 		return &model.AddResponse{
 			Value:     0,
 			Unchanged: true,
@@ -2903,21 +2835,27 @@ func (r *queryResolver) SearchForUsersToAddAsGuests(ctx context.Context, search 
 
 // FollowState is the resolver for the followState field.
 func (r *userResolver) FollowState(ctx context.Context, obj *ent.User) (bool, error) {
+
 	userId, err := utils.GetUserIdFromHeader(ctx)
 	if err != nil {
-		return true, nil
+		return false, nil
 	}
 
 	if *userId == obj.ID {
 		return true, nil
 	}
 
-	id := fmt.Sprintf("%s_%s", strconv.Itoa(*userId), strconv.Itoa(obj.ID))
-
-	_, err = meilisearchUtils.GetFollowFromMeili(id)
-
+	res, err := r.client.Follow.Query().
+		Where(
+			follow.And(
+				follow.FollowerID(*userId),
+				follow.UserID(obj.ID),
+			),
+		).
+		Select(follow.FieldValid).
+		Only(ctx)
 	if err == nil {
-		return true, nil
+		return res.Valid, nil
 	}
 
 	return false, nil

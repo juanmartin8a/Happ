@@ -21,7 +21,7 @@ class SearchForUsersToAddAsGuestsController extends StateNotifier<SearchForUsers
     }
   }
 
-  void backToInit() async {
+  void backToInit() {
     state = SearchForUsersToAddAsGuestsInitState();
   }
 }

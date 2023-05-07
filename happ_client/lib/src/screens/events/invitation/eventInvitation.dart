@@ -117,8 +117,7 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
     UserFromId$Query$User user = ref.read(currentUserProvider)!;
     
     return Material(
-      color: Colors.greenAccent[400],
-      // color: Color(0xFFDCEDC8),
+      color: const Color.fromARGB(255, 1, 228, 96),
       child: Container(
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
