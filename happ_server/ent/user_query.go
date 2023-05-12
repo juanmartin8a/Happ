@@ -942,7 +942,7 @@ func (uq *UserQuery) loadDevices(ctx context.Context, query *DeviceQuery, nodes 
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_devices" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_devices" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -958,6 +958,9 @@ func (uq *UserQuery) loadEventReminderNotifications(ctx context.Context, query *
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(eventremindernotification.FieldUserID)
+	}
 	query.Where(predicate.EventReminderNotification(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.EventReminderNotificationsColumn), fks...))
 	}))
@@ -969,7 +972,7 @@ func (uq *UserQuery) loadEventReminderNotifications(ctx context.Context, query *
 		fk := n.UserID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -985,6 +988,9 @@ func (uq *UserQuery) loadEventUser(ctx context.Context, query *EventUserQuery, n
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(eventuser.FieldUserID)
+	}
 	query.Where(predicate.EventUser(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.EventUserColumn), fks...))
 	}))
@@ -996,7 +1002,7 @@ func (uq *UserQuery) loadEventUser(ctx context.Context, query *EventUserQuery, n
 		fk := n.UserID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, fk, n)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n)
 		}
 		assign(node, n)
 	}
@@ -1012,6 +1018,9 @@ func (uq *UserQuery) loadFollows(ctx context.Context, query *FollowQuery, nodes 
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(follow.FieldFollowerID)
+	}
 	query.Where(predicate.Follow(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.FollowsColumn), fks...))
 	}))
@@ -1023,7 +1032,7 @@ func (uq *UserQuery) loadFollows(ctx context.Context, query *FollowQuery, nodes 
 		fk := n.FollowerID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "follower_id" returned %v for node %v`, fk, n)
+			return fmt.Errorf(`unexpected referenced foreign-key "follower_id" returned %v for node %v`, fk, n)
 		}
 		assign(node, n)
 	}

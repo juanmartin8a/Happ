@@ -599,6 +599,9 @@ func (eq *EventQuery) loadEventReminderNotifications(ctx context.Context, query 
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(eventremindernotification.FieldEventID)
+	}
 	query.Where(predicate.EventReminderNotification(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(event.EventReminderNotificationsColumn), fks...))
 	}))
@@ -610,7 +613,7 @@ func (eq *EventQuery) loadEventReminderNotifications(ctx context.Context, query 
 		fk := n.EventID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "event_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "event_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -626,6 +629,9 @@ func (eq *EventQuery) loadEventUsers(ctx context.Context, query *EventUserQuery,
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(eventuser.FieldEventID)
+	}
 	query.Where(predicate.EventUser(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(event.EventUsersColumn), fks...))
 	}))
@@ -637,7 +643,7 @@ func (eq *EventQuery) loadEventUsers(ctx context.Context, query *EventUserQuery,
 		fk := n.EventID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "event_id" returned %v for node %v`, fk, n)
+			return fmt.Errorf(`unexpected referenced foreign-key "event_id" returned %v for node %v`, fk, n)
 		}
 		assign(node, n)
 	}

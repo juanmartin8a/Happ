@@ -81,7 +81,7 @@ func (fc *FollowCreate) Mutation() *FollowMutation {
 // Save creates the Follow in the database.
 func (fc *FollowCreate) Save(ctx context.Context) (*Follow, error) {
 	fc.defaults()
-	return withHooks[*Follow, FollowMutation](ctx, fc.sqlSave, fc.mutation, fc.hooks)
+	return withHooks(ctx, fc.sqlSave, fc.mutation, fc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.

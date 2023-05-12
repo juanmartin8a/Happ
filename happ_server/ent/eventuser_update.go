@@ -125,7 +125,7 @@ func (euu *EventUserUpdate) ClearUser() *EventUserUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (euu *EventUserUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, EventUserMutation](ctx, euu.sqlSave, euu.mutation, euu.hooks)
+	return withHooks(ctx, euu.sqlSave, euu.mutation, euu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -375,7 +375,7 @@ func (euuo *EventUserUpdateOne) Select(field string, fields ...string) *EventUse
 
 // Save executes the query and returns the updated EventUser entity.
 func (euuo *EventUserUpdateOne) Save(ctx context.Context) (*EventUser, error) {
-	return withHooks[*EventUser, EventUserMutation](ctx, euuo.sqlSave, euuo.mutation, euuo.hooks)
+	return withHooks(ctx, euuo.sqlSave, euuo.mutation, euuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

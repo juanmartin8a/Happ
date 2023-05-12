@@ -90,7 +90,7 @@ func (ernu *EventReminderNotificationUpdate) ClearUser() *EventReminderNotificat
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ernu *EventReminderNotificationUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, EventReminderNotificationMutation](ctx, ernu.sqlSave, ernu.mutation, ernu.hooks)
+	return withHooks(ctx, ernu.sqlSave, ernu.mutation, ernu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -298,7 +298,7 @@ func (ernuo *EventReminderNotificationUpdateOne) Select(field string, fields ...
 
 // Save executes the query and returns the updated EventReminderNotification entity.
 func (ernuo *EventReminderNotificationUpdateOne) Save(ctx context.Context) (*EventReminderNotification, error) {
-	return withHooks[*EventReminderNotification, EventReminderNotificationMutation](ctx, ernuo.sqlSave, ernuo.mutation, ernuo.hooks)
+	return withHooks(ctx, ernuo.sqlSave, ernuo.mutation, ernuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

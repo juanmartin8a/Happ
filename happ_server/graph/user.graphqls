@@ -1,18 +1,10 @@
 scalar Upload
 
-# type Device {
-#   token: String!
-#   userID: Int!
-#   createdAt: Strign!
-# }
-
 type User {
   id: Int!
   name: String!
   username: String!
   email: String!
-  # birthday: String!
-  # password: String!
   followState: Boolean!
   createdAt: String!
   updatedAt: String!
@@ -40,9 +32,6 @@ type EventInviteRes {
   invitedBy: User!
   invitedUserInfo: InvitedUserInfo!
   friends: [User!]!
-  # add 3 users;
-  # isUserConfirmed: Boolean!
-  # isUserHost: Boolean!
 }
 
 type PaginatedEventResults {
@@ -59,14 +48,6 @@ type InvitedUserInfo {
   isConfirmed: Boolean!
   isHost: Boolean!
   isCreator: Boolean!
-}
-
-input SignUpInput {
-  name: String!
-  username: String!
-  email: String!
-  # password: String!
-  # birthday: String!
 }
 
 enum SignInProvider {
@@ -126,17 +107,6 @@ enum PictureAction {
   DELETE
 }
 
-# type TokenResponse {
-#   refreshToken: String!
-#   accessToken: String!
-# }
-
-# type UserAuthResponse {
-#   user: User
-#   tokens: TokenResponse
-#   errors: [ErrorResponse!]
-# }
-
 type SignInResponse {
   user: User
   isNew: Boolean
@@ -168,11 +138,6 @@ type Query {
   searchUsers(
     search: String!
     userSearching: Int!
-  ): [User!]!,
-  userAccess: User,
-  getAllEvents: [Event!]!,
-  getAllGuests(
-    eventId: Int!
   ): [User!]!,
   getUserEvents(
     limit: Int!
@@ -206,19 +171,10 @@ type Query {
 }
 
 type Mutation {
-  # signUp(
-  #   input: SignUpInput!
-  # ): UserAuthResponse,
   signIn(
     input: SignInInput!
   ): SignInResponse!,
   deleteUser: Boolean!,
-  # signOut(
-  #   token: String!
-  # ): Boolean!
-  # refreshTokens(
-  #   token: String!
-  # ): TokenResponse
   addOrRemoveUser(
     followUserId: Int!
     isFollow: Boolean!

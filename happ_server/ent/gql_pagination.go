@@ -231,6 +231,9 @@ func (p *devicePager) applyOrder(query *DeviceQuery) *DeviceQuery {
 	if p.order.Field != DefaultDeviceOrder.Field {
 		query = query.Order(DefaultDeviceOrder.Field.toTerm(direction.OrderTermOption()))
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return query
 }
 
@@ -238,6 +241,9 @@ func (p *devicePager) orderExpr(query *DeviceQuery) sql.Querier {
 	direction := p.order.Direction
 	if p.reverse {
 		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
@@ -277,11 +283,9 @@ func (d *DeviceQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if d, err = pager.applyCursors(d, after, before); err != nil {
 		return nil, err
 	}
-	d = pager.applyOrder(d)
 	if limit := paginateLimit(first, last); limit != 0 {
 		d.Limit(limit)
 	}
@@ -290,7 +294,7 @@ func (d *DeviceQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	d = pager.applyOrder(d)
 	nodes, err := d.All(ctx)
 	if err != nil {
 		return nil, err
@@ -473,6 +477,9 @@ func (p *eventPager) applyOrder(query *EventQuery) *EventQuery {
 	if p.order.Field != DefaultEventOrder.Field {
 		query = query.Order(DefaultEventOrder.Field.toTerm(direction.OrderTermOption()))
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return query
 }
 
@@ -480,6 +487,9 @@ func (p *eventPager) orderExpr(query *EventQuery) sql.Querier {
 	direction := p.order.Direction
 	if p.reverse {
 		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
@@ -519,11 +529,9 @@ func (e *EventQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if e, err = pager.applyCursors(e, after, before); err != nil {
 		return nil, err
 	}
-	e = pager.applyOrder(e)
 	if limit := paginateLimit(first, last); limit != 0 {
 		e.Limit(limit)
 	}
@@ -532,7 +540,7 @@ func (e *EventQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	e = pager.applyOrder(e)
 	nodes, err := e.All(ctx)
 	if err != nil {
 		return nil, err
@@ -715,6 +723,9 @@ func (p *eventremindernotificationPager) applyOrder(query *EventReminderNotifica
 	if p.order.Field != DefaultEventReminderNotificationOrder.Field {
 		query = query.Order(DefaultEventReminderNotificationOrder.Field.toTerm(direction.OrderTermOption()))
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return query
 }
 
@@ -722,6 +733,9 @@ func (p *eventremindernotificationPager) orderExpr(query *EventReminderNotificat
 	direction := p.order.Direction
 	if p.reverse {
 		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
@@ -761,11 +775,9 @@ func (ern *EventReminderNotificationQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if ern, err = pager.applyCursors(ern, after, before); err != nil {
 		return nil, err
 	}
-	ern = pager.applyOrder(ern)
 	if limit := paginateLimit(first, last); limit != 0 {
 		ern.Limit(limit)
 	}
@@ -774,7 +786,7 @@ func (ern *EventReminderNotificationQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	ern = pager.applyOrder(ern)
 	nodes, err := ern.All(ctx)
 	if err != nil {
 		return nil, err
@@ -957,6 +969,9 @@ func (p *userPager) applyOrder(query *UserQuery) *UserQuery {
 	if p.order.Field != DefaultUserOrder.Field {
 		query = query.Order(DefaultUserOrder.Field.toTerm(direction.OrderTermOption()))
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return query
 }
 
@@ -964,6 +979,9 @@ func (p *userPager) orderExpr(query *UserQuery) sql.Querier {
 	direction := p.order.Direction
 	if p.reverse {
 		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
@@ -1003,11 +1021,9 @@ func (u *UserQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if u, err = pager.applyCursors(u, after, before); err != nil {
 		return nil, err
 	}
-	u = pager.applyOrder(u)
 	if limit := paginateLimit(first, last); limit != 0 {
 		u.Limit(limit)
 	}
@@ -1016,7 +1032,7 @@ func (u *UserQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	u = pager.applyOrder(u)
 	nodes, err := u.All(ctx)
 	if err != nil {
 		return nil, err

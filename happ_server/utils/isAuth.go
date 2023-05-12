@@ -12,11 +12,6 @@ func IsAuth(ctx context.Context) (*int, error) {
 		return nil, err
 	}
 
-	// userId, err := GetUserIdFromJWT(ec.Request().Header.Get("Authorization"))
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	userId, err := GetUserIdFromFirebaseIDToken(ctx, ec.Request().Header.Get("Authorization"))
 	if err != nil {
 		return nil, err

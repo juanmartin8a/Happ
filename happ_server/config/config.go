@@ -23,18 +23,18 @@ type config struct {
 		Params               struct {
 			ParseTime string
 			Charset   string
-			// Loc	string
-			TLS string
+			TLS       string
 		}
 	}
+	MeilisearchMK        string
+	FirebaseSAPrivateKey string
 }
 
 var C config
 
 const (
 	Development = "development"
-	// Staging = "staging"
-	// Production = "production"
+	Production  = "production"
 )
 
 type ReadConfigOption struct {
@@ -44,17 +44,13 @@ type ReadConfigOption struct {
 func ReadConfig(option ReadConfigOption) {
 	Config := &C
 
-	// e := appEnv(option)
+	e := appEnv(option)
 
-	// if e == Staging {
-	// 	setStaging()
-	// } else if e == Production {
-	// 	setProd()
-	// } else {
-	// 	setDev()
-	// }
-
-	setDev()
+	if e == Production {
+		setProd()
+	} else {
+		setDev()
+	}
 
 	viper.SetConfigType("yml")
 	viper.AutomaticEnv()
@@ -92,12 +88,7 @@ func setDev() {
 	viper.SetConfigName("config.dev")
 }
 
-func setStaging() {
-	viper.AddConfigPath(filepath.Join(rootDir(), "config"))
-	viper.SetConfigName("config.staging")
-}
-
 func setProd() {
 	viper.AddConfigPath(filepath.Join(rootDir(), "config"))
-	viper.SetConfigName("config.production")
+	viper.SetConfigName("config.prod")
 }

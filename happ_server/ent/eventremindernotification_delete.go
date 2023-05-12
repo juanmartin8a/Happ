@@ -27,7 +27,7 @@ func (ernd *EventReminderNotificationDelete) Where(ps ...predicate.EventReminder
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ernd *EventReminderNotificationDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, EventReminderNotificationMutation](ctx, ernd.sqlExec, ernd.mutation, ernd.hooks)
+	return withHooks(ctx, ernd.sqlExec, ernd.mutation, ernd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

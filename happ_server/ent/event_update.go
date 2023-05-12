@@ -219,7 +219,7 @@ func (eu *EventUpdate) RemoveEventReminderNotifications(e ...*EventReminderNotif
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (eu *EventUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, EventMutation](ctx, eu.sqlSave, eu.mutation, eu.hooks)
+	return withHooks(ctx, eu.sqlSave, eu.mutation, eu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -657,7 +657,7 @@ func (euo *EventUpdateOne) Select(field string, fields ...string) *EventUpdateOn
 
 // Save executes the query and returns the updated Event entity.
 func (euo *EventUpdateOne) Save(ctx context.Context) (*Event, error) {
-	return withHooks[*Event, EventMutation](ctx, euo.sqlSave, euo.mutation, euo.hooks)
+	return withHooks(ctx, euo.sqlSave, euo.mutation, euo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

@@ -8,6 +8,7 @@ import (
 	"happ/database"
 	"happ/ent"
 	"happ/ent/migrate"
+	awsUtils "happ/utils/aws"
 	"log"
 	// "os"
 )
@@ -15,6 +16,21 @@ import (
 func main() {
 	// fmt.Println(os.Getenv("PASSWORD"))
 	config.ReadConfig(config.ReadConfigOption{})
+
+	_, err := awsUtils.GetS3Client()
+	if err != nil {
+		log.Fatalf("Error getting S3 client: %s", err)
+	}
+
+	_, err = awsUtils.GetSSMClient()
+	if err != nil {
+		log.Fatalf("Error getting SSM client: %s", err)
+	}
+
+	_, err = awsUtils.GetKMSClient()
+	if err != nil {
+		log.Fatalf("Error getting KMS client: %s", err)
+	}
 
 	client, err := database.NewClient(database.NewClientOptions{})
 	if err != nil {

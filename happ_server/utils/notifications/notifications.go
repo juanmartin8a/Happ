@@ -2,7 +2,6 @@ package notifications
 
 import (
 	"context"
-	"fmt"
 	"happ/ent"
 	"happ/ent/device"
 	firebaseUtils "happ/utils/firebase"
@@ -10,7 +9,6 @@ import (
 )
 
 func SendPushNotifications(client *ent.Client, ctx context.Context, userId int, title string, body string) {
-	fmt.Println("called goroutine notifications")
 
 	devices, err := client.Device.Query().
 		Where(
@@ -29,7 +27,6 @@ func SendPushNotifications(client *ent.Client, ctx context.Context, userId int, 
 }
 
 func SendManyPushNotifications(client *ent.Client, ctx context.Context, userIds []int, title string, body string) {
-	fmt.Println("called goroutine notifications")
 
 	devices, err := client.Device.Query().
 		Where(
@@ -48,7 +45,6 @@ func SendManyPushNotifications(client *ent.Client, ctx context.Context, userIds 
 }
 
 func SendPushNotificationsWithDevices(ctx context.Context, devices []string, title string, body string) {
-	fmt.Println("called goroutine notifications")
 
 	_, err := firebaseUtils.SendManyPushNotifications(title, body, devices, ctx)
 	if err != nil {

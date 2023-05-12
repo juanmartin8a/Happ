@@ -3,10 +3,7 @@ module happ
 go 1.18
 
 require (
-	entgo.io/contrib v0.4.1
-	entgo.io/ent v0.12.1
 	firebase.google.com/go/v4 v4.11.0
-	github.com/99designs/gqlgen v0.17.29
 	github.com/aws/aws-sdk-go-v2 v1.17.5
 	github.com/aws/aws-sdk-go-v2/config v1.17.9
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.36
@@ -17,13 +14,22 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.0.0-rc.1
 	github.com/graph-gophers/dataloader v5.0.0+incompatible
 	github.com/hashicorp/go-multierror v1.1.1
+	// github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/meilisearch/meilisearch-go v0.23.1
 	github.com/spf13/viper v1.12.0
 	github.com/vektah/gqlparser/v2 v2.5.1
+	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167
 	golang.org/x/sync v0.1.0
 	google.golang.org/api v0.114.0
+)
+
+require (
+	entgo.io/contrib v0.4.5
+	entgo.io/ent v0.12.3
+	github.com/99designs/gqlgen v0.17.31
+	github.com/joho/godotenv v1.5.1
 )
 
 require (
@@ -42,7 +48,6 @@ require (
 	github.com/googleapis/gax-go/v2 v2.8.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.1 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
-	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30 // indirect
@@ -56,13 +61,13 @@ require (
 )
 
 require (
-	ariga.io/atlas v0.10.1 // indirect
+	ariga.io/atlas v0.10.2-0.20230427182402-87a07dfb83bf // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.8 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.12.22 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.12.22
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.18 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.29 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.23 // indirect
@@ -116,7 +121,7 @@ require (
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.8.0 // indirect
+	golang.org/x/tools v0.8.1-0.20230428195545-5283a0178901 // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

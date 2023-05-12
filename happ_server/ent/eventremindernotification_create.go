@@ -65,7 +65,7 @@ func (ernc *EventReminderNotificationCreate) Mutation() *EventReminderNotificati
 
 // Save creates the EventReminderNotification in the database.
 func (ernc *EventReminderNotificationCreate) Save(ctx context.Context) (*EventReminderNotification, error) {
-	return withHooks[*EventReminderNotification, EventReminderNotificationMutation](ctx, ernc.sqlSave, ernc.mutation, ernc.hooks)
+	return withHooks(ctx, ernc.sqlSave, ernc.mutation, ernc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.

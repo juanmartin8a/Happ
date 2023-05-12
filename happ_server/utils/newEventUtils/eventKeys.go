@@ -3,9 +3,9 @@ package newEventUtils
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 	AES_Encryption "happ/utils/AES-GCM_Encryption"
 	awsParameterStore "happ/utils/aws/awsParams"
+	"log"
 )
 
 func CreateEventKeys() (keyString *string, nonceString *string, err error) {
@@ -15,17 +15,6 @@ func CreateEventKeys() (keyString *string, nonceString *string, err error) {
 	key := make([]byte, 32)
 	rand.Read(key)
 
-	// keyBytes, err := awsParameterStore.GetEventKeyParameter("Happ_events_e")
-	// if err != nil {
-	// 	fmt.Printf("error while calling getEventKeyParameter: %s", err)
-	// 	return nil, nil, err
-	// }
-
-	// nonceBytes, err := awsParameterStore.GetEventKeyParameter("Happ_events_o")
-	// if err != nil {
-	// 	fmt.Printf("error while calling getEventKeyParameter: %s", err)
-	// 	return nil, nil, err
-	// }
 	keyChannel := make(chan awsParameterStore.KeysResGoroutine)
 	nonceChannel := make(chan awsParameterStore.KeysResGoroutine)
 
@@ -35,12 +24,12 @@ func CreateEventKeys() (keyString *string, nonceString *string, err error) {
 	keyRes, nonceRes := <-keyChannel, <-nonceChannel
 
 	if keyRes.Error != nil {
-		fmt.Printf("error while calling getEventKeyParameterGoroutine: %s", err)
+		log.Printf("error while calling getEventKeyParameterGoroutine: %s", err)
 		return nil, nil, err
 	}
 
 	if nonceRes.Error != nil {
-		fmt.Printf("error while calling getEventKeyParameterGoroutine: %s", err)
+		log.Printf("error while calling getEventKeyParameterGoroutine: %s", err)
 		return nil, nil, err
 	}
 
@@ -51,13 +40,13 @@ func CreateEventKeys() (keyString *string, nonceString *string, err error) {
 
 	encryptedKey, err := AES_Encryption.Encrypt(key, []byte(*keyBytes), []byte(*nonceBytes))
 	if err != nil {
-		fmt.Printf("error while encrypting key: %s", err)
+		log.Printf("error while encrypting key: %s", err)
 		return nil, nil, err
 	}
 
 	encryptedNonce, err := AES_Encryption.Encrypt(nonce, []byte(*keyBytes), []byte(*nonceBytes))
 	if err != nil {
-		fmt.Printf("error while encrypting nonce: %s", err)
+		log.Printf("error while encrypting nonce: %s", err)
 		return nil, nil, err
 	}
 

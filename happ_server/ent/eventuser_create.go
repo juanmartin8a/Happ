@@ -116,7 +116,7 @@ func (euc *EventUserCreate) Mutation() *EventUserMutation {
 // Save creates the EventUser in the database.
 func (euc *EventUserCreate) Save(ctx context.Context) (*EventUser, error) {
 	euc.defaults()
-	return withHooks[*EventUser, EventUserMutation](ctx, euc.sqlSave, euc.mutation, euc.hooks)
+	return withHooks(ctx, euc.sqlSave, euc.mutation, euc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.

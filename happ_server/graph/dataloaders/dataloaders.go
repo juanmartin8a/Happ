@@ -71,12 +71,6 @@ func GetUsers(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 				output[index] = &dataloader.Result{Data: nil, Error: err}
 			}
 		}
-		// if ok {
-		// 	output[index] = &dataloader.Result{Data: user, Error: nil}
-		// } else {
-		// 	err := fmt.Errorf("user not found %s", userKey.String())
-		// 	output[index] = &dataloader.Result{Data: nil, Error: err}
-		// }
 	}
 	return output
 }

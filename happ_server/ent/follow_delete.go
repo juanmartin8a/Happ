@@ -26,7 +26,7 @@ func (fd *FollowDelete) Where(ps ...predicate.Follow) *FollowDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (fd *FollowDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, FollowMutation](ctx, fd.sqlExec, fd.mutation, fd.hooks)
+	return withHooks(ctx, fd.sqlExec, fd.mutation, fd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

@@ -26,7 +26,7 @@ func (eud *EventUserDelete) Where(ps ...predicate.EventUser) *EventUserDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (eud *EventUserDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, EventUserMutation](ctx, eud.sqlExec, eud.mutation, eud.hooks)
+	return withHooks(ctx, eud.sqlExec, eud.mutation, eud.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

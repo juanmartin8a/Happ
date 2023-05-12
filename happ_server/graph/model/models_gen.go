@@ -87,12 +87,6 @@ type SignInResponse struct {
 	IsNew *bool     `json:"isNew,omitempty"`
 }
 
-type SignUpInput struct {
-	Name     string `json:"name"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-}
-
 type UpdateEventInput struct {
 	Name           *string               `json:"name,omitempty"`
 	Description    *string               `json:"description,omitempty"`

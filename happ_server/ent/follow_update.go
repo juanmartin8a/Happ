@@ -83,7 +83,7 @@ func (fu *FollowUpdate) ClearFollower() *FollowUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (fu *FollowUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, FollowMutation](ctx, fu.sqlSave, fu.mutation, fu.hooks)
+	return withHooks(ctx, fu.sqlSave, fu.mutation, fu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -280,7 +280,7 @@ func (fuo *FollowUpdateOne) Select(field string, fields ...string) *FollowUpdate
 
 // Save executes the query and returns the updated Follow entity.
 func (fuo *FollowUpdateOne) Save(ctx context.Context) (*Follow, error) {
-	return withHooks[*Follow, FollowMutation](ctx, fuo.sqlSave, fuo.mutation, fuo.hooks)
+	return withHooks(ctx, fuo.sqlSave, fuo.mutation, fuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

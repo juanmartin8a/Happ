@@ -10,6 +10,7 @@ import (
 	"happ/graph/dataloaders"
 	customMiddleware "happ/middleware"
 	"happ/utils"
+	awsUtils "happ/utils/aws"
 	"happ/utils/background"
 	firebaseUtils "happ/utils/firebase"
 	meilisearchUtils "happ/utils/meilisearch"
@@ -19,29 +20,44 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-const defaultPort = "8080"
-
-// var Client *ent.Client
-
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error: .env file not found: %s", err)
 	}
+
+	port := os.Getenv("PORT")
 
 	config.ReadConfig(config.ReadConfigOption{})
 
 	ctx := context.Background()
 
-	// redisUtils.RedisClient = redisUtils.GetRedisClient()
+	_, err := awsUtils.GetS3Client()
+	if err != nil {
+		log.Fatalf("Error getting S3 client: %s", err)
+	}
 
-	meilisearchUtils.GetMeiliClient()
+	_, err = awsUtils.GetSSMClient()
+	if err != nil {
+		log.Fatalf("Error getting SSM client: %s", err)
+	}
 
-	_, err := firebaseUtils.GetFirebaseAuthClient(ctx)
+	_, err = awsUtils.GetKMSClient()
+	if err != nil {
+		log.Fatalf("Error getting KMS client: %s", err)
+	}
+
+	_, err = meilisearchUtils.GetMeiliClient()
+	if err != nil {
+		log.Fatalf("Error getting Meili client: %s", err)
+	}
+
+	_, err = firebaseUtils.GetFirebaseAuthClient(ctx)
 	if err != nil {
 		log.Fatalf("Error getting Auth client")
 	}
@@ -50,10 +66,7 @@ func main() {
 		log.Fatalf("Error getting FCM client")
 	}
 
-	// notificationTest()
-
 	go checkMeilisearchServerHealth()
-	// go checkRedisServerHealth()
 
 	e := echo.New()
 
@@ -75,7 +88,6 @@ func main() {
 	go background.DeleteOrphanedEventReminderNotifications()
 	go background.SendEventNotifications()
 
-	// ctx := context.Background()
 	if err := client.Schema.Create(
 		ctx,
 		migrate.WithForeignKeys(false),
@@ -100,7 +112,6 @@ func main() {
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 
 	e.Logger.Fatal(e.Start("0.0.0.0:" + port))
-
 }
 
 func checkMeilisearchServerHealth() {
@@ -111,6 +122,6 @@ func checkMeilisearchServerHealth() {
 		} else {
 			log.Printf("Meilisearch server status: %v", status.Status)
 		}
-		time.Sleep(10 * time.Minute)
+		time.Sleep(1 * time.Minute)
 	}
 }

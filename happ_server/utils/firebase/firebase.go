@@ -3,6 +3,10 @@ package firebaseUtils
 import (
 	"context"
 	"fmt"
+	"log"
+
+	"happ/config"
+	awsParameterStore "happ/utils/aws/awsParams"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
@@ -17,7 +21,14 @@ var FCMClient *messaging.Client
 
 func GetFirebaseAuthClient(ctx context.Context) (*auth.Client, error) {
 	if FirebaseApp == nil {
-		sa := option.WithCredentialsFile("happ-fa9e4-firebase-adminsdk-csnty-1bb60eb9e0.json")
+		jsonBytes, err := awsParameterStore.GetParamTypeSecretString(config.C.FirebaseSAPrivateKey)
+		if err != nil {
+			log.Printf("error while getting db password: %s", err)
+			return nil, err
+		}
+
+		sa := option.WithCredentialsJSON(jsonBytes)
+
 		app, err := firebase.NewApp(ctx, nil, sa)
 		if err != nil {
 			return nil, fmt.Errorf("error initializing firebase app: %v", err)
@@ -37,7 +48,13 @@ func GetFirebaseAuthClient(ctx context.Context) (*auth.Client, error) {
 
 func GetFirebaseMessageClient(ctx context.Context) (*messaging.Client, error) {
 	if FirebaseApp == nil {
-		sa := option.WithCredentialsFile("happ-fa9e4-firebase-adminsdk-csnty-1bb60eb9e0.json")
+		jsonBytes, err := awsParameterStore.GetParamTypeSecretString(config.C.FirebaseSAPrivateKey)
+		if err != nil {
+			log.Printf("error while getting db password: %s", err)
+			return nil, err
+		}
+
+		sa := option.WithCredentialsJSON(jsonBytes)
 		app, err := firebase.NewApp(ctx, nil, sa)
 		if err != nil {
 			return nil, fmt.Errorf("error initializing firebase app: %v", err)
