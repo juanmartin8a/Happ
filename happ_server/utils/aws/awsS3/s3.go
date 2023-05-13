@@ -2,6 +2,7 @@ package awsS3
 
 import (
 	"context"
+	"happ/config"
 	awsUtils "happ/utils/aws"
 	"io"
 	"log"
@@ -14,9 +15,17 @@ import (
 
 func UploadToS3(key string, body io.Reader) bool {
 
+	var bucket *string
+
+	if config.C.AppEnv == "prod" {
+		bucket = aws.String("happ-prod-bucket")
+	} else if config.C.AppEnv == "dev" {
+		bucket = aws.String("happ-dev-bucket")
+	}
+
 	uploader := manager.NewUploader(awsUtils.S3Client)
 	_, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String("happ-dev-bucket"),
+		Bucket: bucket,
 		Key:    aws.String(key),
 		Body:   body,
 	})
@@ -32,8 +41,17 @@ func DeleteFromS3(objectKeys []string) bool {
 	for _, key := range objectKeys {
 		objectIds = append(objectIds, types.ObjectIdentifier{Key: aws.String(key)})
 	}
+
+	var bucket *string
+
+	if config.C.AppEnv == "prod" {
+		bucket = aws.String("happ-prod-bucket")
+	} else if config.C.AppEnv == "dev" {
+		bucket = aws.String("happ-dev-bucket")
+	}
+
 	_, err := awsUtils.S3Client.DeleteObjects(context.TODO(), &s3.DeleteObjectsInput{
-		Bucket: aws.String("happ-dev-bucket"),
+		Bucket: bucket,
 		Delete: &types.Delete{Objects: objectIds},
 	})
 	return err == nil

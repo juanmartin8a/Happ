@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"happ/config"
 	"happ/ent"
 	"happ/ent/device"
 	"happ/ent/event"
@@ -256,7 +257,11 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 
 	picture, ok := token.Claims["picture"].(string)
 	if !ok {
-		picture = "https://d3pvchlba3rmqp.cloudfront.net/userProfilePics/blueLobster.jpg"
+		if config.C.AppEnv == "prod" {
+			picture = "https://di7aab2ls1mmt.cloudfront.net/userProfilePics/blueLobster.jpg"
+		} else if config.C.AppEnv == "dev" {
+			picture = "https://d3pvchlba3rmqp.cloudfront.net/userProfilePics/blueLobster.jpg"
+		}
 	}
 
 	newUser, err := r.client.User.Create().
