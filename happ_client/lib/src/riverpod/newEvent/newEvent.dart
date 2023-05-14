@@ -1,6 +1,5 @@
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:happ_client/src/riverpod/newEvent/newEventState.dart';
-import 'package:happ_client/src/riverpod/userAccess/userAccess.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
@@ -9,8 +8,6 @@ class NewEventController extends StateNotifier<NewEventState> {
   NewEventController() : super(NewEventInitState());
 
   EventRepo get eventRepo => EventRepo();
-
-  UserAccessController get userAccess => UserAccessController();
 
   void newEvent(
     String name,

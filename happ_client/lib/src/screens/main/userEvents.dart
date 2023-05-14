@@ -530,17 +530,24 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
   }
 
   void insertIntoList(GetUserEvents$Query$PaginatedEventResults$EventInviteRes inviteRes) {
-    for (int i = 0; i < eventInvites.length; i++) {
-      // Place the new item where the i item's date is less than new
-      final newItemDate = int.parse(inviteRes.event.eventDate);
-      final currentItemDate = int.parse(eventInvites[i].event.eventDate);
-      if (newItemDate <= currentItemDate) {
-        setState(() {
-          eventInvites.insert(i, inviteRes);
-          eventIds = eventInvites.map((invite) => invite.event.id).toList();
-        });
-        break;
+    if (eventInvites.isNotEmpty) {
+      for (int i = 0; i < eventInvites.length; i++) {
+        // Place the new item where the i item's date is less than new
+        final newItemDate = int.parse(inviteRes.event.eventDate);
+        final currentItemDate = int.parse(eventInvites[i].event.eventDate);
+        if (newItemDate <= currentItemDate) {
+          setState(() {
+            eventInvites.insert(i, inviteRes);
+            eventIds = eventInvites.map((invite) => invite.event.id).toList();
+          });
+          break;
+        }
       }
+    } else {
+      setState(() {
+        eventInvites.add(inviteRes);
+        eventIds = eventInvites.map((invite) => invite.event.id).toList();
+      });
     }
   }
 

@@ -45,6 +45,7 @@ func getConfig() (*aws.Config, error) {
 	} else if appEnv == "prod" {
 		preCFG, err := config.LoadDefaultConfig(
 			context.TODO(),
+			config.WithRegion("us-east-2"),
 		)
 		if err != nil {
 			log.Printf("error: %v", err)
@@ -56,8 +57,6 @@ func getConfig() (*aws.Config, error) {
 
 	return &cfg, nil
 }
-
-// docker run -e AWS_ACCESS_KEY_ID=ASIARUUUWHRHV5LJLQB2 -e AWS_SECRET_ACCESS_KEY=BVZTfrgGxd/iUfyiAF5IWBIFvdBZUcBk4AfAaqnM -e AWS_SESSION_TOKEN="IQoJb3JpZ2luX2VjEHsaCXVzLWVhc3QtMiJIMEYCIQCpSpqYXZfyMDrfwQnKNdRs0Y7zWtZuQhvvrbl6X8U7kwIhAIyLUfnnc7KyKxsKggOwlWbGzF05pm8h/UkMi2SDyECEKqACCJT//////////wEQARoMMTEzMDU0NzI3MjQ3IgwXqfe++5MSu3kZ6UEq9AG56/EBLSTXWtAUIW0Flml3biMwf+mpr1AiP0HXlFRIWcJ4/8fHhh/c4c8ngZYzdV6PWYw2diq+PttMB1oPGFwsAg916EVeQfmg0/GxosFuRTCDf5GpRTVHRheyCGISd1Tae91/IcwFGJoYVwgPx7ccUjnoixE0I6sns6xObj02MwSR/I6oGL/RITaXsZwNlVFkPgz0QpAKls0+aYoMHpnlwGPDyt1nbo5QZt+d5XeOj7Gu1Xyt+UoJF9fLKV8/xx1k0vLM9PqyQ1g/qX3mq6N1KqyOkM9xPRx89fUR3cN0zBujhKCAyJqwwg6UUixq+5VOynk3MPzQ76IGOpwBQe66Z7B0Kew76I7pxr/7jEieRaglrs3buX4R0o2C4nFnM2NpMR/KtLBFXbEAJzeoqfx5fsGwyhJTdLzcybPBhQrH+7WMHw3AGbv7faggrskkArfvmE/FMLMCaB10InTGFEgoIwm87szuOC2MiGLD6838ev2w7zdKPN3Te0LlovxXWqN9GYiBqimtV32ZVlsqLwGIJgjNgtn+D7R7" happ_server
 
 func GetS3Client() (*s3.Client, error) {
 	cfg, err := getConfig()

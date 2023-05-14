@@ -88,11 +88,13 @@ func main() {
 	go background.DeleteOrphanedEventReminderNotifications()
 	go background.SendEventNotifications()
 
-	if err := client.Schema.Create(
-		ctx,
-		migrate.WithForeignKeys(false),
-	); err != nil {
-		log.Fatal("opening ent client", err)
+	if config.C.AppEnv == "dev" {
+		if err := client.Schema.Create(
+			ctx,
+			migrate.WithForeignKeys(false),
+		); err != nil {
+			log.Fatal("opening ent client", err)
+		}
 	}
 
 	srv := handler.NewDefaultServer(graph.NewSchema(client))

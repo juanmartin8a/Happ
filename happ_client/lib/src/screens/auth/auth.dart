@@ -27,7 +27,8 @@ class Auth extends ConsumerStatefulWidget {
 
 class _AuthState extends ConsumerState<Auth> {
 
-  bool isLoading = false;
+  bool isGoogleLoading = false;
+  bool isAppleLoading = false;
 
   @override
   void dispose() {
@@ -42,7 +43,8 @@ class _AuthState extends ConsumerState<Auth> {
     ref.listen(signInProvider, (prev, next) {
       if (next is SignInDoneState) {
         setState(() {
-          isLoading = false;
+          isGoogleLoading = false;
+          isAppleLoading = false;
         });
         final user = UserFromId$Query$User.fromJson(next.signInRes.user!.toJson());
 
@@ -52,7 +54,8 @@ class _AuthState extends ConsumerState<Auth> {
 
       } else if (next is SignInErrorState) {
         setState(() {
-          isLoading = false;
+          isGoogleLoading = false;
+          isAppleLoading = false;
         });
       }
     });
@@ -98,9 +101,9 @@ class _AuthState extends ConsumerState<Auth> {
                 // border: Border.all(width: 2, color: Colors.grey[800]!),
                 borderRadius: BorderRadius.circular(25)
               ),
-              child: isLoading 
+              child: isAppleLoading 
               ? const Center(
-                child: Loader(radius: 8)
+                child: Loader(radius: 8, brightness: Brightness.dark)
               )
               : Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -143,7 +146,7 @@ class _AuthState extends ConsumerState<Auth> {
                 border: Border.all(width: 2, color: Colors.grey[800]!),
                 borderRadius: BorderRadius.circular(25)
               ),
-              child: isLoading 
+              child: isGoogleLoading 
               ? const Center(
                 child: Loader(radius: 8)
               )
@@ -182,45 +185,37 @@ class _AuthState extends ConsumerState<Auth> {
 
   void signInWithGoogle() async {
     setState(() {
-      isLoading = true;
+      isGoogleLoading = true;
     });
     final FirebaseAuth auth = FirebaseAuth.instance;
     final GoogleSignIn googleSignIn = GoogleSignIn();
     try {
-      // Trigger the Google Authentication flow
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
       if (googleUser == null) {
-        // User canceled the sign-in flow
         setState(() {
-          isLoading = false;
+          isGoogleLoading = false;
         });
         return null;
       }
 
-      // Obtain the authentication details from the GoogleSignInAuthentication object
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-      // Create a new credential with the Google authentication details
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // Sign in to Firebase with the Google credential
       final UserCredential userCredential = await auth.signInWithCredential(credential);
 
-      // Get ID token
       String idToken = await userCredential.user!.getIdToken();
 
-      // Return the signed-in Firebase user
       ref.read(signInProvider.notifier).signIn(idToken, SignInProvider.google, null, null);
     } catch (error) {
       setState(() {
-        isLoading = false;
+        isGoogleLoading = false;
       });
       print('Error occurred during Google sign-in: $error');
-      // return null;
     }
   }
 
@@ -231,7 +226,6 @@ class _AuthState extends ConsumerState<Auth> {
         .join();
   }
 
-  /// Returns the sha256 hash of [input] in hex notation.
   String sha256ofString(String input) {
     final bytes = utf8.encode(input);
     final digest = sha256.convert(bytes);
@@ -239,13 +233,15 @@ class _AuthState extends ConsumerState<Auth> {
   }
 
   void signInWithApple() async {
+    setState(() {
+      isAppleLoading = true;
+    });
     final FirebaseAuth auth = FirebaseAuth.instance;
     try {
 
       final rawNonce = generateNonce();
       final nonce = sha256ofString(rawNonce);
 
-      // Request credential for the currently signed in Apple account.
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
@@ -254,40 +250,22 @@ class _AuthState extends ConsumerState<Auth> {
         nonce: nonce,
       );
 
-      print(appleCredential.email);
-
-      print(appleCredential.identityToken);
-
-      print(appleCredential.authorizationCode);
-
       String name = "${appleCredential.givenName} ${appleCredential.familyName}";
 
-      print(name);
-
-      // Create an `OAuthCredential` from the credential returned by Apple.
       final oauthCredential = OAuthProvider("apple.com").credential(
         idToken: appleCredential.identityToken,
         rawNonce: rawNonce,
       );
 
-      // Sign in the user with Firebase. If the nonce we generated earlier does
-      // not match the nonce in `appleCredential.identityToken`, sign in will fail.
-
       final UserCredential userCredential = await auth.signInWithCredential(oauthCredential);
 
-      // Get ID token
       String idToken = await userCredential.user!.getIdToken();
-
-      print(idToken);
-
-      print(userCredential.user);
 
       ref.read(signInProvider.notifier).signIn(idToken, SignInProvider.apple, name, appleCredential.authorizationCode);
       
-      // return userCredential;
     } catch(e) {
       setState(() {
-        isLoading = false;
+        isAppleLoading = false;
       });
       print('Error occurred during Google sign-in: $e');
     }

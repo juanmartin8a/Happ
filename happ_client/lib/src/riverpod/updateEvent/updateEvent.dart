@@ -1,7 +1,6 @@
 import 'package:happ_client/src/api/graphql/graphql_api.graphql.dart';
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:happ_client/src/riverpod/updateEvent/updateEventState.dart';
-import 'package:happ_client/src/riverpod/userAccess/userAccess.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class UpdateEventContoller extends StateNotifier<UpdateEventState> {
@@ -9,8 +8,6 @@ class UpdateEventContoller extends StateNotifier<UpdateEventState> {
   UpdateEventContoller() : super(UpdateEventInitState());
 
   EventRepo get eventRepo => EventRepo();
-
-  UserAccessController get userAccess => UserAccessController();
 
   void updateEvent(
     String? name,

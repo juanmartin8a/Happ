@@ -16,6 +16,14 @@ Map<String, dynamic> _$SaveDevice$MutationToJson(
       'saveDevice': instance.saveDevice,
     };
 
+ScanPass$Mutation _$ScanPass$MutationFromJson(Map<String, dynamic> json) =>
+    ScanPass$Mutation()..scanPass = json['scanPass'] as bool?;
+
+Map<String, dynamic> _$ScanPass$MutationToJson(ScanPass$Mutation instance) =>
+    <String, dynamic>{
+      'scanPass': instance.scanPass,
+    };
+
 AddOrRemoveUser$Mutation$AddResponse
     _$AddOrRemoveUser$Mutation$AddResponseFromJson(Map<String, dynamic> json) =>
         AddOrRemoveUser$Mutation$AddResponse()
@@ -510,37 +518,6 @@ UserFromId$Query _$UserFromId$QueryFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$UserFromId$QueryToJson(UserFromId$Query instance) =>
     <String, dynamic>{
       'userFromId': instance.userFromId?.toJson(),
-    };
-
-UserAccess$Query$User _$UserAccess$Query$UserFromJson(
-        Map<String, dynamic> json) =>
-    UserAccess$Query$User()
-      ..id = json['id'] as int
-      ..name = json['name'] as String
-      ..username = json['username'] as String
-      ..followState = json['followState'] as bool
-      ..profilePic = json['profilePic'] as String;
-
-Map<String, dynamic> _$UserAccess$Query$UserToJson(
-        UserAccess$Query$User instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'username': instance.username,
-      'followState': instance.followState,
-      'profilePic': instance.profilePic,
-    };
-
-UserAccess$Query _$UserAccess$QueryFromJson(Map<String, dynamic> json) =>
-    UserAccess$Query()
-      ..userAccess = json['userAccess'] == null
-          ? null
-          : UserAccess$Query$User.fromJson(
-              json['userAccess'] as Map<String, dynamic>);
-
-Map<String, dynamic> _$UserAccess$QueryToJson(UserAccess$Query instance) =>
-    <String, dynamic>{
-      'userAccess': instance.userAccess?.toJson(),
     };
 
 SeePass$Query _$SeePass$QueryFromJson(Map<String, dynamic> json) =>
@@ -1249,14 +1226,6 @@ Map<String, dynamic> _$GetEventGuests$QueryToJson(
       'getEventGuests': instance.getEventGuests.toJson(),
     };
 
-ScanPass$Mutation _$ScanPass$MutationFromJson(Map<String, dynamic> json) =>
-    ScanPass$Mutation()..scanPass = json['scanPass'] as bool?;
-
-Map<String, dynamic> _$ScanPass$MutationToJson(ScanPass$Mutation instance) =>
-    <String, dynamic>{
-      'scanPass': instance.scanPass,
-    };
-
 SaveDeviceArguments _$SaveDeviceArgumentsFromJson(Map<String, dynamic> json) =>
     SaveDeviceArguments(
       token: json['token'] as String,
@@ -1266,6 +1235,18 @@ Map<String, dynamic> _$SaveDeviceArgumentsToJson(
         SaveDeviceArguments instance) =>
     <String, dynamic>{
       'token': instance.token,
+    };
+
+ScanPassArguments _$ScanPassArgumentsFromJson(Map<String, dynamic> json) =>
+    ScanPassArguments(
+      eventId: json['eventId'] as int,
+      cypherText: json['cypherText'] as String,
+    );
+
+Map<String, dynamic> _$ScanPassArgumentsToJson(ScanPassArguments instance) =>
+    <String, dynamic>{
+      'eventId': instance.eventId,
+      'cypherText': instance.cypherText,
     };
 
 AddOrRemoveUserArguments _$AddOrRemoveUserArgumentsFromJson(
@@ -1515,16 +1496,4 @@ Map<String, dynamic> _$GetEventGuestsArgumentsToJson(
       'eventId': instance.eventId,
       'limit': instance.limit,
       'idsList': instance.idsList,
-    };
-
-ScanPassArguments _$ScanPassArgumentsFromJson(Map<String, dynamic> json) =>
-    ScanPassArguments(
-      eventId: json['eventId'] as int,
-      cypherText: json['cypherText'] as String,
-    );
-
-Map<String, dynamic> _$ScanPassArgumentsToJson(ScanPassArguments instance) =>
-    <String, dynamic>{
-      'eventId': instance.eventId,
-      'cypherText': instance.cypherText,
     };

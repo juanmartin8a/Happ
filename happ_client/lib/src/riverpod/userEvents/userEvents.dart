@@ -74,7 +74,6 @@ class UserEvents extends StateNotifier<UserEventState> {
     Map<String, dynamic> inviteResJson = inviteRes.toJson();
     inviteResJson["invitedUserInfo"] = newUserInfo.toJson();
 
-
     if (isFriends) {
       GetUserEventsFromFriends$Query$PaginatedEventResults$EventInviteRes newInviteRes = GetUserEventsFromFriends$Query$PaginatedEventResults$EventInviteRes.fromJson(inviteResJson);
       state = UpdateFriendsEvents(inviteRes: newInviteRes, actionPerformed: "updateUserInfo");

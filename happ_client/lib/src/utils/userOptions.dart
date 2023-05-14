@@ -78,15 +78,6 @@ class UserOptions {
     return mutationOptions;
   }
 
-  QueryOptions userAccessQueryOptions() {
-    QueryOptions queryOptions = QueryOptions(
-      document: UserAccessQuery().document,
-      fetchPolicy: FetchPolicy.noCache
-    );
-
-    return queryOptions;
-  }
-
   QueryOptions userFromIdQueryOptions(int id) {
     QueryOptions queryOptions = QueryOptions(
       document: UserFromIdQuery(

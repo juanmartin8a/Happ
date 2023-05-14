@@ -149,7 +149,6 @@ type Query {
     search: String!
     userSearching: Int!
   ): [User!]!,
-  userAccess: User,
   getUserEvents(
     limit: Int!
     idsList: [Int!]!

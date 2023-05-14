@@ -4,11 +4,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: juanmartin8a/happ_server:0.0.1
+    image: juanmartin8a/happ_server:v0.0.1
     ports:
       - "8080:8080"
-    env_file:
-      - .env
     environment:
       - APP_ENV=prod
+      - PORT=8080
     restart: unless-stopped
+    network_mode: host

@@ -1,7 +1,6 @@
 
 import 'package:happ_client/src/api/graphql/graphql_api.graphql.dart';
 import 'package:happ_client/src/client/client.dart';
-import 'package:happ_client/src/utils/jwt.dart';
 import 'package:happ_client/src/utils/userOptions.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
@@ -10,22 +9,6 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 class UserRepo {
 
   GraphQLClient get client => Client.client!;
-
-  Future<UserAccess$Query$User> userAccess() async {
-    final result = await client.query(
-      UserOptions().userAccessQueryOptions()
-    );
-
-    print(result);
-
-    if (result.hasException) {
-      throw (result.exception as OperationException);
-    } else {
-      return UserAccess$Query$User.fromJson(
-        (result.data as Map<String, dynamic>)["userAccess"]
-      );
-    }
-  }
 
   Future<SignIn$Mutation$SignInResponse> signIn(
     String token,
@@ -59,32 +42,6 @@ class UserRepo {
       );
     }
   }
-
-  // Future<SignUp$Mutation$UserAuthResponse> signUp(
-  //   String name,
-  //   String username,
-  //   String email, 
-  //   String password,
-  //   String birthday,
-  // ) async {
-  //   final result = await client.mutate(
-  //     UserOptions().signUpMutationOptions(name, username, email, password,birthday)
-  //   );
-
-  //   if (result.hasException) {
-  //     throw (result.exception as OperationException);
-  //   } else {
-  //     if ((result.data as Map<String, dynamic>)["signUp"]["tokens"] != null) {
-  //       await JWT().createJWTS(
-  //         (result.data as Map<String, dynamic>)["signUp"]["tokens"]["accessToken"],
-  //         (result.data as Map<String, dynamic>)["signUp"]["tokens"]["refreshToken"]
-  //       );
-  //     }
-  //     return SignUp$Mutation$UserAuthResponse.fromJson(
-  //       (result.data as Map<String, dynamic>)["signUp"]
-  //     );
-  //   }
-  // }
 
   Future<UserFromId$Query$User> getUser(
     int userId

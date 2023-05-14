@@ -39,10 +39,6 @@ func New() string {
 	address := string(addressBytes)
 	password := string(passwordBytes)
 
-	fmt.Println(user)
-	fmt.Println(address)
-	fmt.Println(password)
-
 	mc := mysql.Config{
 		User:                 user,     //config.C.Database.User,
 		Passwd:               password, //config.C.Database.Password,

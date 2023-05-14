@@ -111,7 +111,11 @@ class _OtherInvitationsState extends ConsumerState<OtherInvitations> {
             final index = eventInvites.indexWhere((invite) => invite.event.id == state.inviteRes!.event.id);
 
             if (index >= 0) {
-              eventInvites[index] = state.inviteRes!;
+              // eventInvites[index] = state.inviteRes!;
+              setState(() {
+                eventInvites.removeAt(index);
+                eventIds = eventInvites.map((invite) => invite.event.id).toList();
+              });
             }
           }
 

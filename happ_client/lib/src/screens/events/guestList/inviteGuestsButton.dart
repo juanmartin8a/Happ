@@ -102,9 +102,9 @@ class _InviteGuestsButtonState extends ConsumerState<InviteGuestsButton> {
             "Invite",
             style: TextStyle(
               color: Colors.white,
-              fontSize: 17,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
-              height: 1
+              // height: 1
             )
           ),
         )

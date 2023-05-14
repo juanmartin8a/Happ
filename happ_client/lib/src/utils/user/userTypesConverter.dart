@@ -15,12 +15,12 @@ class UserTypesConverter {
   //   return newUser;
   // }
 
-  UserAccess$Query$User convertToUserAccessUser(user) {
-    var userToJson = user.toJson();
-    var newUser = UserAccess$Query$User.fromJson(userToJson);
+  // UserAccess$Query$User convertToUserAccessUser(user) {
+  //   var userToJson = user.toJson();
+  //   var newUser = UserAccess$Query$User.fromJson(userToJson);
 
-    return newUser;
-  }
+  //   return newUser;
+  // }
 
   SearchUsers$Query$User convertToSearchUser(user) {
     var userToJson = user.toJson();

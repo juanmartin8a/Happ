@@ -59,9 +59,6 @@ class WrapperState extends ConsumerState<Wrapper> {
             isAuth = true;
             return const Auth();
           } else {
-            // if (isAuth) {
-            //   return const Home(key: Key("Home"));
-            // }
 
             return FutureBuilder(
               future: saveCurrentUser(ref.read(firebaseAuthProvider)),

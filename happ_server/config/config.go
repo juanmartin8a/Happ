@@ -33,8 +33,8 @@ type config struct {
 var C config
 
 const (
-	Development = "development"
-	Production  = "production"
+	Development = "dev"
+	Production  = "prod"
 )
 
 type ReadConfigOption struct {

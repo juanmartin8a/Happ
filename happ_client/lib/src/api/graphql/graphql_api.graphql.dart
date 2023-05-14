@@ -25,6 +25,21 @@ class SaveDevice$Mutation extends JsonSerializable with EquatableMixin {
 }
 
 @JsonSerializable(explicitToJson: true)
+class ScanPass$Mutation extends JsonSerializable with EquatableMixin {
+  ScanPass$Mutation();
+
+  factory ScanPass$Mutation.fromJson(Map<String, dynamic> json) =>
+      _$ScanPass$MutationFromJson(json);
+
+  bool? scanPass;
+
+  @override
+  List<Object?> get props => [scanPass];
+  @override
+  Map<String, dynamic> toJson() => _$ScanPass$MutationToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
 class AddOrRemoveUser$Mutation$AddResponse extends JsonSerializable
     with EquatableMixin {
   AddOrRemoveUser$Mutation$AddResponse();
@@ -691,44 +706,6 @@ class UserFromId$Query extends JsonSerializable with EquatableMixin {
   List<Object?> get props => [userFromId];
   @override
   Map<String, dynamic> toJson() => _$UserFromId$QueryToJson(this);
-}
-
-@JsonSerializable(explicitToJson: true)
-class UserAccess$Query$User extends JsonSerializable with EquatableMixin {
-  UserAccess$Query$User();
-
-  factory UserAccess$Query$User.fromJson(Map<String, dynamic> json) =>
-      _$UserAccess$Query$UserFromJson(json);
-
-  late int id;
-
-  late String name;
-
-  late String username;
-
-  late bool followState;
-
-  late String profilePic;
-
-  @override
-  List<Object?> get props => [id, name, username, followState, profilePic];
-  @override
-  Map<String, dynamic> toJson() => _$UserAccess$Query$UserToJson(this);
-}
-
-@JsonSerializable(explicitToJson: true)
-class UserAccess$Query extends JsonSerializable with EquatableMixin {
-  UserAccess$Query();
-
-  factory UserAccess$Query.fromJson(Map<String, dynamic> json) =>
-      _$UserAccess$QueryFromJson(json);
-
-  UserAccess$Query$User? userAccess;
-
-  @override
-  List<Object?> get props => [userAccess];
-  @override
-  Map<String, dynamic> toJson() => _$UserAccess$QueryToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -1612,21 +1589,6 @@ class GetEventGuests$Query extends JsonSerializable with EquatableMixin {
   Map<String, dynamic> toJson() => _$GetEventGuests$QueryToJson(this);
 }
 
-@JsonSerializable(explicitToJson: true)
-class ScanPass$Mutation extends JsonSerializable with EquatableMixin {
-  ScanPass$Mutation();
-
-  factory ScanPass$Mutation.fromJson(Map<String, dynamic> json) =>
-      _$ScanPass$MutationFromJson(json);
-
-  bool? scanPass;
-
-  @override
-  List<Object?> get props => [scanPass];
-  @override
-  Map<String, dynamic> toJson() => _$ScanPass$MutationToJson(this);
-}
-
 enum PictureAction {
   @JsonValue('ADD')
   add,
@@ -1709,6 +1671,80 @@ class SaveDeviceMutation
   @override
   SaveDevice$Mutation parse(Map<String, dynamic> json) =>
       SaveDevice$Mutation.fromJson(json);
+}
+
+@JsonSerializable(explicitToJson: true)
+class ScanPassArguments extends JsonSerializable with EquatableMixin {
+  ScanPassArguments({required this.eventId, required this.cypherText});
+
+  @override
+  factory ScanPassArguments.fromJson(Map<String, dynamic> json) =>
+      _$ScanPassArgumentsFromJson(json);
+
+  late int eventId;
+
+  late String cypherText;
+
+  @override
+  List<Object?> get props => [eventId, cypherText];
+  @override
+  Map<String, dynamic> toJson() => _$ScanPassArgumentsToJson(this);
+}
+
+final SCAN_PASS_MUTATION_DOCUMENT_OPERATION_NAME = 'ScanPass';
+final SCAN_PASS_MUTATION_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+      type: OperationType.mutation,
+      name: NameNode(value: 'ScanPass'),
+      variableDefinitions: [
+        VariableDefinitionNode(
+            variable: VariableNode(name: NameNode(value: 'eventId')),
+            type: NamedTypeNode(name: NameNode(value: 'Int'), isNonNull: true),
+            defaultValue: DefaultValueNode(value: null),
+            directives: []),
+        VariableDefinitionNode(
+            variable: VariableNode(name: NameNode(value: 'cypherText')),
+            type:
+                NamedTypeNode(name: NameNode(value: 'String'), isNonNull: true),
+            defaultValue: DefaultValueNode(value: null),
+            directives: [])
+      ],
+      directives: [],
+      selectionSet: SelectionSetNode(selections: [
+        FieldNode(
+            name: NameNode(value: 'scanPass'),
+            alias: null,
+            arguments: [
+              ArgumentNode(
+                  name: NameNode(value: 'eventId'),
+                  value: VariableNode(name: NameNode(value: 'eventId'))),
+              ArgumentNode(
+                  name: NameNode(value: 'cypherText'),
+                  value: VariableNode(name: NameNode(value: 'cypherText')))
+            ],
+            directives: [],
+            selectionSet: null)
+      ]))
+]);
+
+class ScanPassMutation
+    extends GraphQLQuery<ScanPass$Mutation, ScanPassArguments> {
+  ScanPassMutation({required this.variables});
+
+  @override
+  final DocumentNode document = SCAN_PASS_MUTATION_DOCUMENT;
+
+  @override
+  final String operationName = SCAN_PASS_MUTATION_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final ScanPassArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  ScanPass$Mutation parse(Map<String, dynamic> json) =>
+      ScanPass$Mutation.fromJson(json);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -2828,70 +2864,6 @@ class UserFromIdQuery
   @override
   UserFromId$Query parse(Map<String, dynamic> json) =>
       UserFromId$Query.fromJson(json);
-}
-
-final USER_ACCESS_QUERY_DOCUMENT_OPERATION_NAME = 'UserAccess';
-final USER_ACCESS_QUERY_DOCUMENT = DocumentNode(definitions: [
-  OperationDefinitionNode(
-      type: OperationType.query,
-      name: NameNode(value: 'UserAccess'),
-      variableDefinitions: [],
-      directives: [],
-      selectionSet: SelectionSetNode(selections: [
-        FieldNode(
-            name: NameNode(value: 'userAccess'),
-            alias: null,
-            arguments: [],
-            directives: [],
-            selectionSet: SelectionSetNode(selections: [
-              FieldNode(
-                  name: NameNode(value: 'id'),
-                  alias: null,
-                  arguments: [],
-                  directives: [],
-                  selectionSet: null),
-              FieldNode(
-                  name: NameNode(value: 'name'),
-                  alias: null,
-                  arguments: [],
-                  directives: [],
-                  selectionSet: null),
-              FieldNode(
-                  name: NameNode(value: 'username'),
-                  alias: null,
-                  arguments: [],
-                  directives: [],
-                  selectionSet: null),
-              FieldNode(
-                  name: NameNode(value: 'followState'),
-                  alias: null,
-                  arguments: [],
-                  directives: [],
-                  selectionSet: null),
-              FieldNode(
-                  name: NameNode(value: 'profilePic'),
-                  alias: null,
-                  arguments: [],
-                  directives: [],
-                  selectionSet: null)
-            ]))
-      ]))
-]);
-
-class UserAccessQuery extends GraphQLQuery<UserAccess$Query, JsonSerializable> {
-  UserAccessQuery();
-
-  @override
-  final DocumentNode document = USER_ACCESS_QUERY_DOCUMENT;
-
-  @override
-  final String operationName = USER_ACCESS_QUERY_DOCUMENT_OPERATION_NAME;
-
-  @override
-  List<Object?> get props => [document, operationName];
-  @override
-  UserAccess$Query parse(Map<String, dynamic> json) =>
-      UserAccess$Query.fromJson(json);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -4249,78 +4221,4 @@ class GetEventGuestsQuery
   @override
   GetEventGuests$Query parse(Map<String, dynamic> json) =>
       GetEventGuests$Query.fromJson(json);
-}
-
-@JsonSerializable(explicitToJson: true)
-class ScanPassArguments extends JsonSerializable with EquatableMixin {
-  ScanPassArguments({required this.eventId, required this.cypherText});
-
-  @override
-  factory ScanPassArguments.fromJson(Map<String, dynamic> json) =>
-      _$ScanPassArgumentsFromJson(json);
-
-  late int eventId;
-
-  late String cypherText;
-
-  @override
-  List<Object?> get props => [eventId, cypherText];
-  @override
-  Map<String, dynamic> toJson() => _$ScanPassArgumentsToJson(this);
-}
-
-final SCAN_PASS_MUTATION_DOCUMENT_OPERATION_NAME = 'ScanPass';
-final SCAN_PASS_MUTATION_DOCUMENT = DocumentNode(definitions: [
-  OperationDefinitionNode(
-      type: OperationType.mutation,
-      name: NameNode(value: 'ScanPass'),
-      variableDefinitions: [
-        VariableDefinitionNode(
-            variable: VariableNode(name: NameNode(value: 'eventId')),
-            type: NamedTypeNode(name: NameNode(value: 'Int'), isNonNull: true),
-            defaultValue: DefaultValueNode(value: null),
-            directives: []),
-        VariableDefinitionNode(
-            variable: VariableNode(name: NameNode(value: 'cypherText')),
-            type:
-                NamedTypeNode(name: NameNode(value: 'String'), isNonNull: true),
-            defaultValue: DefaultValueNode(value: null),
-            directives: [])
-      ],
-      directives: [],
-      selectionSet: SelectionSetNode(selections: [
-        FieldNode(
-            name: NameNode(value: 'scanPass'),
-            alias: null,
-            arguments: [
-              ArgumentNode(
-                  name: NameNode(value: 'eventId'),
-                  value: VariableNode(name: NameNode(value: 'eventId'))),
-              ArgumentNode(
-                  name: NameNode(value: 'cypherText'),
-                  value: VariableNode(name: NameNode(value: 'cypherText')))
-            ],
-            directives: [],
-            selectionSet: null)
-      ]))
-]);
-
-class ScanPassMutation
-    extends GraphQLQuery<ScanPass$Mutation, ScanPassArguments> {
-  ScanPassMutation({required this.variables});
-
-  @override
-  final DocumentNode document = SCAN_PASS_MUTATION_DOCUMENT;
-
-  @override
-  final String operationName = SCAN_PASS_MUTATION_DOCUMENT_OPERATION_NAME;
-
-  @override
-  final ScanPassArguments variables;
-
-  @override
-  List<Object?> get props => [document, operationName, variables];
-  @override
-  ScanPass$Mutation parse(Map<String, dynamic> json) =>
-      ScanPass$Mutation.fromJson(json);
 }
