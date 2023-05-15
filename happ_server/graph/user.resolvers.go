@@ -1969,27 +1969,45 @@ func (r *queryResolver) GetUserEvents(ctx context.Context, limit int, idsList []
 		stringIdsList = append(stringIdsList, strconv.Itoa(id))
 	}
 
-	idsListForSQL := ""
+	var args []interface{}
+	args = append(args, *userId) // add userId to args
 
-	if len(stringIdsList) > 0 {
-		idsListForSQL = `where e.id not in (` + strings.Join(stringIdsList[:], ",") + `)`
+	var params []string
+	for _, id := range stringIdsList {
+		// convert id to int and append to args
+		intId, err := strconv.Atoi(id)
+		if err != nil {
+			return nil, err // handle error
+		}
+		args = append(args, intId)
+		params = append(params, "?")
 	}
 
-	res, err := r.client.QueryContext(ctx, `
-		select e.*, eu.invited_by, eu.admin, eu.creator from events e
+	// join params with commas
+	placeholders := strings.Join(params, ",")
 
+	args = append(args, realLimitPlusOne)
+
+	query := `
+		select e.*, eu.invited_by, eu.admin, eu.creator from events e
 		inner join event_users eu
 			on (e.id = eu.event_id)
-			and (eu.user_id = `+strconv.Itoa(*userId)+`)
+			and (eu.user_id = ?)
 			and (eu.confirmed = true)
+	`
 
-		`+idsListForSQL+`
+	if len(placeholders) > 0 {
+		query += fmt.Sprintf("where e.id not in (%s) ", placeholders)
+	}
 
+	query += `
 		order by e.event_date ASC
-			
-		limit `+strconv.Itoa(realLimitPlusOne)+`
-	`)
+		limit ?
+	`
+
+	res, err := r.client.QueryContext(ctx, query, args...)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -2112,39 +2130,54 @@ func (r *queryResolver) GetUserEventsFromFriends(ctx context.Context, limit int,
 		stringIdsList = append(stringIdsList, strconv.Itoa(id))
 	}
 
-	idsListForSQL := ""
+	var args []interface{}
+	args = append(args, *userId) // add userId to args
+	args = append(args, *userId)
 
-	if len(stringIdsList) > 0 {
-		idsListForSQL = `where e.id not in (` + strings.Join(stringIdsList[:], ",") + `)`
+	var params []string
+	for _, id := range stringIdsList {
+		// convert id to int and append to args
+		intId, err := strconv.Atoi(id)
+		if err != nil {
+			return nil, err // handle error
+		}
+		args = append(args, intId)
+		params = append(params, "?")
 	}
 
-	res, err := r.client.QueryContext(ctx, `
+	// join params with commas
+	placeholders := strings.Join(params, ",")
+
+	args = append(args, realLimitPlusOne)
+
+	query := `
 		select e.*, eu.invited_by, eu.admin, eu.creator from events e
-
 		inner join event_users eu
-			on (e.id = eu.event_id)
-			and (eu.user_id = `+strconv.Itoa(*userId)+`)
-			and (eu.creator = false)
-			and (eu.confirmed = false)
+	 		on (e.id = eu.event_id)
+	 		and (eu.user_id = ?)
+	 		and (eu.creator = false)
+	 		and (eu.confirmed = false)
 
-		inner join follows f
-			on (f.user_id = eu.invited_by)
-			and (f.follower_id = `+strconv.Itoa(*userId)+`)
-			and (f.valid = true)
+	 	inner join follows f
+	 		on (f.user_id = eu.invited_by)
+	 		and (f.follower_id = ?)
+	 		and (f.valid = true)
+	`
 
-		`+idsListForSQL+`
-
-		order by eu.created_at DESC
-
-	  limit `+strconv.Itoa(realLimitPlusOne)+`
-	`)
-	if err != nil {
-		return &model.PaginatedEventResults{
-			Events:  eventInvitesRes,
-			HasMore: len(eventInvitesRes) == realLimitPlusOne,
-		}, nil
+	if len(placeholders) > 0 {
+		query += fmt.Sprintf("where e.id not in (%s) ", placeholders)
 	}
-	// log.Println(err)
+
+	query += `
+		order by eu.created_at DESC
+		limit ?
+	`
+
+	res, err := r.client.QueryContext(ctx, query, args...)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
 
 	for res.Next() {
 		var id int
@@ -2264,38 +2297,55 @@ func (r *queryResolver) GetUserOtherEvents(ctx context.Context, limit int, idsLi
 		stringIdsList = append(stringIdsList, strconv.Itoa(id))
 	}
 
-	idsListForSQL := ""
+	var args []interface{}
+	args = append(args, *userId) // add userId to args
+	args = append(args, *userId)
 
-	if len(stringIdsList) > 0 {
-		idsListForSQL = `and e.id not in (` + strings.Join(stringIdsList[:], ",") + `)`
+	var params []string
+	for _, id := range stringIdsList {
+		// convert id to int and append to args
+		intId, err := strconv.Atoi(id)
+		if err != nil {
+			return nil, err // handle error
+		}
+		args = append(args, intId)
+		params = append(params, "?")
 	}
 
-	res, err := r.client.QueryContext(ctx, `
+	// join params with commas
+	placeholders := strings.Join(params, ",")
+
+	args = append(args, realLimitPlusOne)
+
+	query := `
 		select e.*, eu.invited_by, eu.admin, eu.creator from events e
-
 		inner join event_users eu
-			on (e.id = eu.event_id)
-			and (eu.user_id = `+strconv.Itoa(*userId)+`)
-			and (eu.creator = false)
-			and (eu.confirmed = false)
+	 		on (e.id = eu.event_id)
+	 		and (eu.user_id = ?)
+	 		and (eu.creator = false)
+	 		and (eu.confirmed = false)
 
-		left join follows f
-			on (f.user_id = eu.invited_by)
-			and (f.follower_id = `+strconv.Itoa(*userId)+`)
+	 	left join follows f
+		  on (f.user_id = eu.invited_by)
+	 		and (f.follower_id = ?)
 
 		where (f.user_id is null or f.valid = false)
-		`+idsListForSQL+`
+	`
 
-		order by eu.created_at DESC
-			
-		limit `+strconv.Itoa(realLimitPlusOne)+`
-
-	`)
-	if err != nil {
-		return nil, err
+	if len(placeholders) > 0 {
+		query += fmt.Sprintf("and e.id not in (%s) ", placeholders)
 	}
 
-	// log.Println(err)
+	query += `
+		order by eu.created_at DESC
+		limit ?
+	`
+
+	res, err := r.client.QueryContext(ctx, query, args...)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
 
 	for res.Next() {
 		var id int
@@ -2510,26 +2560,48 @@ func (r *queryResolver) GetEventGuests(ctx context.Context, eventID int, limit i
 		stringIdsList = append(stringIdsList, strconv.Itoa(id))
 	}
 
-	idsListForSQL := ""
+	var args []interface{}
+	args = append(args, eventID) // add userId to args
+	args = append(args, *userId)
 
-	if len(stringIdsList) > 0 {
-		idsListForSQL = `AND u.id NOT IN (` + strings.Join(stringIdsList[:], ",") + `)`
+	var params []string
+	for _, id := range stringIdsList {
+		// convert id to int and append to args
+		intId, err := strconv.Atoi(id)
+		if err != nil {
+			return nil, err // handle error
+		}
+		args = append(args, intId)
+		params = append(params, "?")
 	}
 
-	res, err := r.client.QueryContext(ctx, `
-		SELECT u.*, f.user_id FROM users u
+	// join params with commas
+	placeholders := strings.Join(params, ",")
 
-		INNER JOIN event_users eu ON eu.user_id = u.id AND eu.event_id = `+strconv.Itoa(eventID)+` AND eu.confirmed = true AND eu.admin = false
-		LEFT JOIN follows f ON f.user_id = u.id AND f.follower_id = `+strconv.Itoa(*userId)+` AND f.valid = true
+	args = append(args, *userId)
+	args = append(args, realLimitPlusOne)
 
-		WHERE eu.user_id IS NOT NULL
-		`+idsListForSQL+`
+	query := `
+	SELECT u.*, f.user_id FROM users u
 
-		ORDER BY CASE WHEN f.user_id = `+strconv.Itoa(*userId)+` THEN 1 ELSE 2 END, f.user_id DESC
+	INNER JOIN event_users eu ON eu.user_id = u.id AND eu.event_id = ? AND eu.confirmed = true AND eu.admin = false
+	LEFT JOIN follows f ON f.user_id = u.id AND f.follower_id = ? AND f.valid = true
 
-		LIMIT `+strconv.Itoa(realLimitPlusOne)+`;
-	`)
+	WHERE eu.user_id IS NOT NULL
+	`
+
+	if len(placeholders) > 0 {
+		query += fmt.Sprintf("AND u.id NOT IN (%s) ", placeholders)
+	}
+
+	query += `
+		ORDER BY CASE WHEN f.user_id = ?  THEN 1 ELSE 2 END, f.user_id DESC
+		LIMIT ?
+	`
+
+	res, err := r.client.QueryContext(ctx, query, args...)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -2617,30 +2689,50 @@ func (r *queryResolver) GetEventHosts(ctx context.Context, eventID int, limit in
 		stringIdsList = append(stringIdsList, strconv.Itoa(id))
 	}
 
-	idsListForSQL := ""
+	var args []interface{}
+	args = append(args, eventID) // add userId to args
+	args = append(args, *userId)
 
-	if len(stringIdsList) > 0 {
-		idsListForSQL = `AND u.id NOT IN (` + strings.Join(stringIdsList[:], ",") + `)`
+	var params []string
+	for _, id := range stringIdsList {
+		// convert id to int and append to args
+		intId, err := strconv.Atoi(id)
+		if err != nil {
+			return nil, err // handle error
+		}
+		args = append(args, intId)
+		params = append(params, "?")
 	}
 
-	res, err := r.client.QueryContext(ctx, `
-		SELECT u.*, f.user_id FROM users u
+	// join params with commas
+	placeholders := strings.Join(params, ",")
 
-		INNER JOIN event_users eu ON eu.user_id = u.id AND eu.event_id = `+strconv.Itoa(eventID)+` AND eu.confirmed = true AND eu.admin = true
-		LEFT JOIN follows f ON f.user_id = u.id AND f.follower_id = `+strconv.Itoa(*userId)+` AND f.valid = true
+	args = append(args, *userId)
+	args = append(args, realLimitPlusOne)
 
-		WHERE eu.user_id IS NOT NULL
-		`+idsListForSQL+`
+	query := `
+	SELECT u.*, f.user_id FROM users u
 
-		ORDER BY CASE WHEN f.user_id = `+strconv.Itoa(*userId)+` THEN 1 ELSE 2 END, f.user_id DESC
+	INNER JOIN event_users eu ON eu.user_id = u.id AND eu.event_id = ? AND eu.confirmed = true AND eu.admin = true
+	LEFT JOIN follows f ON f.user_id = u.id AND f.follower_id = ? AND f.valid = true
 
-		LIMIT `+strconv.Itoa(realLimit)+`;
-	`)
+	WHERE eu.user_id IS NOT NULL
+	`
+
+	if len(placeholders) > 0 {
+		query += fmt.Sprintf("AND u.id NOT IN (%s) ", placeholders)
+	}
+
+	query += `
+		ORDER BY CASE WHEN f.user_id = ?  THEN 1 ELSE 2 END, f.user_id DESC
+		LIMIT ?
+	`
+
+	res, err := r.client.QueryContext(ctx, query, args...)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
-
-	// log.Println(err)
 
 	for res.Next() {
 		var id int

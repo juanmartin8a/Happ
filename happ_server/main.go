@@ -105,10 +105,12 @@ func main() {
 			return nil
 		})
 
-		e.GET("/playground", func(c echo.Context) error {
-			playground.Handler("GraphQL", "/query").ServeHTTP(c.Response(), c.Request())
-			return nil
-		})
+		if config.C.AppEnv == "dev" {
+			e.GET("/playground", func(c echo.Context) error {
+				playground.Handler("GraphQL", "/query").ServeHTTP(c.Response(), c.Request())
+				return nil
+			})
+		}
 	}
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)

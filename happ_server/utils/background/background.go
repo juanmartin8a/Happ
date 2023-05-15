@@ -32,9 +32,9 @@ func DeleteOrphanedEventUsers() {
 					FROM event_users AS eu2
 					LEFT JOIN events AS e ON eu2.event_id = e.id
 					WHERE e.id IS NULL
-					LIMIT `+strconv.Itoa(batchSize)+`
+					LIMIT ?
 				) AS dt ON eu.event_id = dt.event_id AND eu.user_id = dt.user_id;
-			`)
+			`, batchSize)
 
 			if err != nil {
 				log.Printf("Error deleting orphaned event_user rows: %v", err)
@@ -73,9 +73,9 @@ func DeleteOrphanedEventReminderNotifications() {
 					FROM event_reminder_notifications AS ern2
 					LEFT JOIN events AS e ON ern2.event_id = e.id
 					WHERE e.id IS NULL
-					LIMIT `+strconv.Itoa(batchSize)+`
+					LIMIT ?
 				) AS dt ON ern.event_id = dt.event_id AND ern.user_id = dt.user_id;
-			`)
+			`, batchSize)
 
 			if err != nil {
 				log.Printf("Error deleting orphaned event_user rows: %v", err)
@@ -111,8 +111,8 @@ func DeleteEventsAfterEventDate() {
 			res, err := utils.Client.DB().ExecContext(ctx, `
 				DELETE FROM events e
 				WHERE DATE_ADD(e.event_date, INTERVAL 7 DAY) < NOW()
-				LIMIT `+strconv.Itoa(batchSize)+`
-			`)
+				LIMIT ?
+			`, batchSize)
 
 			if err != nil {
 				log.Printf("Error deleting orphaned event_user rows: %v", err)
@@ -163,12 +163,12 @@ func SendEventNotifications() {
 						FROM event_users AS eu
 						JOIN events AS e ON eu.event_id = e.id
 						LEFT JOIN event_reminder_notifications AS ern ON ern.event_id = eu.event_id AND ern.user_id = eu.user_id AND ern.days_left = `+strconv.Itoa(daysLeft)+`
-						WHERE ern.id IS NULL AND DATEDIFF(e.event_date, NOW()) = `+strconv.Itoa(daysLeft)+`
-						LIMIT `+strconv.Itoa(batchSize)+`
+						WHERE ern.id IS NULL AND DATEDIFF(e.event_date, NOW()) = ?
+						LIMIT ?
 					) AS eu
 					JOIN events AS e ON eu.event_id = e.id
 					JOIN devices AS d ON eu.user_id = d.user_id
-				`)
+				`, daysLeft, batchSize)
 				if err != nil {
 					log.Printf("Error fetching event_users for notifications: %v", err)
 					break
