@@ -1,0 +1,6 @@
+query SearchLocation($search: String!) {
+  searchLocation(search: $search) {
+    placeId
+    description
+  }
+}

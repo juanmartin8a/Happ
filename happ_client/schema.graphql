@@ -138,6 +138,11 @@ type AcceptInvitationResponse {
   isHost: Boolean!
 }
 
+type LocationAutoCompletePrediction {
+  placeId: String!,
+  description: String!
+}
+
 type Query {
   user(
     username: String!
@@ -178,6 +183,12 @@ type Query {
     search: String!
     eventId: Int!
   ): [User!]!,
+  searchLocation(
+    search: String!
+  ): [LocationAutoCompletePrediction!]!,
+  locationDetails(
+    placeID: String!
+  ): EventCoordinates!,
 }
 
 type Mutation {

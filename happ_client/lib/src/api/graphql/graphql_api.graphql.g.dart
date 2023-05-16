@@ -1,5 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// @dart=2.12
 
 part of 'graphql_api.graphql.dart';
 
@@ -520,6 +519,32 @@ Map<String, dynamic> _$UserFromId$QueryToJson(UserFromId$Query instance) =>
       'userFromId': instance.userFromId?.toJson(),
     };
 
+LocationDetails$Query$EventCoordinates
+    _$LocationDetails$Query$EventCoordinatesFromJson(
+            Map<String, dynamic> json) =>
+        LocationDetails$Query$EventCoordinates()
+          ..latitude = (json['latitude'] as num).toDouble()
+          ..longitude = (json['longitude'] as num).toDouble();
+
+Map<String, dynamic> _$LocationDetails$Query$EventCoordinatesToJson(
+        LocationDetails$Query$EventCoordinates instance) =>
+    <String, dynamic>{
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+    };
+
+LocationDetails$Query _$LocationDetails$QueryFromJson(
+        Map<String, dynamic> json) =>
+    LocationDetails$Query()
+      ..locationDetails = LocationDetails$Query$EventCoordinates.fromJson(
+          json['locationDetails'] as Map<String, dynamic>);
+
+Map<String, dynamic> _$LocationDetails$QueryToJson(
+        LocationDetails$Query instance) =>
+    <String, dynamic>{
+      'locationDetails': instance.locationDetails.toJson(),
+    };
+
 SeePass$Query _$SeePass$QueryFromJson(Map<String, dynamic> json) =>
     SeePass$Query()..seePass = json['seePass'] as String?;
 
@@ -966,6 +991,36 @@ Map<String, dynamic> _$SearchForUsersToAddAsGuests$QueryToJson(
           instance.searchForUsersToAddAsGuests.map((e) => e.toJson()).toList(),
     };
 
+SearchLocation$Query$LocationAutoCompletePrediction
+    _$SearchLocation$Query$LocationAutoCompletePredictionFromJson(
+            Map<String, dynamic> json) =>
+        SearchLocation$Query$LocationAutoCompletePrediction()
+          ..placeId = json['placeId'] as String
+          ..description = json['description'] as String;
+
+Map<String, dynamic>
+    _$SearchLocation$Query$LocationAutoCompletePredictionToJson(
+            SearchLocation$Query$LocationAutoCompletePrediction instance) =>
+        <String, dynamic>{
+          'placeId': instance.placeId,
+          'description': instance.description,
+        };
+
+SearchLocation$Query _$SearchLocation$QueryFromJson(
+        Map<String, dynamic> json) =>
+    SearchLocation$Query()
+      ..searchLocation = (json['searchLocation'] as List<dynamic>)
+          .map((e) =>
+              SearchLocation$Query$LocationAutoCompletePrediction.fromJson(
+                  e as Map<String, dynamic>))
+          .toList();
+
+Map<String, dynamic> _$SearchLocation$QueryToJson(
+        SearchLocation$Query instance) =>
+    <String, dynamic>{
+      'searchLocation': instance.searchLocation.map((e) => e.toJson()).toList(),
+    };
+
 GetUserOtherEvents$Query$PaginatedEventResults$EventInviteRes$Event$EventCoordinates
     _$GetUserOtherEvents$Query$PaginatedEventResults$EventInviteRes$Event$EventCoordinatesFromJson(
             Map<String, dynamic> json) =>
@@ -1386,6 +1441,18 @@ Map<String, dynamic> _$UserFromIdArgumentsToJson(
       'id': instance.id,
     };
 
+LocationDetailsArguments _$LocationDetailsArgumentsFromJson(
+        Map<String, dynamic> json) =>
+    LocationDetailsArguments(
+      placeID: json['placeID'] as String,
+    );
+
+Map<String, dynamic> _$LocationDetailsArgumentsToJson(
+        LocationDetailsArguments instance) =>
+    <String, dynamic>{
+      'placeID': instance.placeID,
+    };
+
 SeePassArguments _$SeePassArgumentsFromJson(Map<String, dynamic> json) =>
     SeePassArguments(
       eventId: json['eventId'] as int,
@@ -1452,6 +1519,18 @@ Map<String, dynamic> _$SearchForUsersToAddAsGuestsArgumentsToJson(
     <String, dynamic>{
       'search': instance.search,
       'eventId': instance.eventId,
+    };
+
+SearchLocationArguments _$SearchLocationArgumentsFromJson(
+        Map<String, dynamic> json) =>
+    SearchLocationArguments(
+      search: json['search'] as String,
+    );
+
+Map<String, dynamic> _$SearchLocationArgumentsToJson(
+        SearchLocationArguments instance) =>
+    <String, dynamic>{
+      'search': instance.search,
     };
 
 GetUserOtherEventsArguments _$GetUserOtherEventsArgumentsFromJson(

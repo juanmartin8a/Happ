@@ -6,7 +6,6 @@ import 'package:happ_client/src/riverpod/eventUpdateReady/eventUpdateReady.dart'
 import 'package:happ_client/src/riverpod/locationSearch/locationDetails.dart';
 import 'package:happ_client/src/riverpod/locationSearch/locationDetailsState.dart';
 import 'package:happ_client/src/riverpod/locationSearch/reverseLocationDetails.dart';
-import 'package:happ_client/src/riverpod/newEventComplete/newEventComplete.dart';
 import 'package:happ_client/src/utils/widgets/mapboxMap.dart';
 import 'package:latlong2/latlong.dart' as latLng;
 
@@ -45,8 +44,8 @@ class _UpdateEventMapState extends ConsumerState<UpdateEventMap> with AutomaticK
     ref.listen(updateLocationDetailsProvider, (prev, next) {
       if (next is LocationDetailsLoadedState) {
         if (next.name != null) {
-          final lat = next.details["results"][0]["geometry"]["location"]["lat"];
-          final lng = next.details["results"][0]["geometry"]["location"]["lng"];
+          final lat = next.details!.latitude;
+          final lng = next.details!.longitude;
 
           latLng.LatLng newCoordinates = latLng.LatLng(lat, lng);
           ref.read(eventUpdateReadyControllerProvider.notifier).fieldChange(
@@ -61,8 +60,8 @@ class _UpdateEventMapState extends ConsumerState<UpdateEventMap> with AutomaticK
     if (state is LocationDetailsLoadedState) {
       if (state.error == false) {
         if (state.name != null) {
-          final lat = state.details["results"][0]["geometry"]["location"]["lat"];
-          final lng = state.details["results"][0]["geometry"]["location"]["lng"];
+          final lat = state.details!.latitude;
+          final lng = state.details!.longitude;
 
           latLng.LatLng newCoordinates = latLng.LatLng(lat, lng);
 
@@ -71,8 +70,8 @@ class _UpdateEventMapState extends ConsumerState<UpdateEventMap> with AutomaticK
             _mapController.moveAndRotate(newCoordinates, 16, 0);
           });
         } else {
-          final lat = state.details["lat"];
-          final lng = state.details["lng"];
+          final lat = state.details!.latitude;
+          final lng = state.details!.longitude;
 
           latLng.LatLng newCoordinates = latLng.LatLng(lat, lng);
 

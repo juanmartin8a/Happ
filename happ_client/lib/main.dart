@@ -30,13 +30,13 @@ void main() async {
   final firebaseAuth = FirebaseAuth.instance;
 
   final HttpLink httpLink = HttpLink(
-    'http://192.168.100.88:8080/query',
+    'http://localhost:8080/query',
+    // 'https://api.happ.rsvp/query'
   );
 
   final AuthLink authLink = AuthLink(
     getToken: () async {
       String? token = await getUserIDToken(firebaseAuth);
-      print("token: $token");
       return token != null ? "Bearer $token" : null;
     },
   );
@@ -52,26 +52,6 @@ void main() async {
 
 
   Client.client = client.value;
-
-  // print(Client.client.);
-
-  // print("hey");
-
-  // await JWT().deleteAll();
-  // final token = await JWT().getJWT();
-  // print("token: $token");
-
-  // await JWT().deleteAll();
-
-  // final token2 = await JWT().getJWT();
-  // print("token2: $token2");
-  // final FirebaseAuth _auth = FirebaseAuth.instance;
-  // final GoogleSignIn _googleSignIn = GoogleSignIn();
-  // // final SignInWithApple _appleSignIn = SignInWithApple.;
-  // await _auth.signOut();
-  // await _googleSignIn.signOut();
-  // // await _appleSignIn.
-  // print("aaaa");
 
   runApp(ProviderScope(child: MyApp()));
 }

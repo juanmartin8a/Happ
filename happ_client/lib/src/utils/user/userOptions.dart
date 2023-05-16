@@ -3,40 +3,6 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 
 class UserOptions {
 
-  // MutationOptions signUpMutationOptions(
-  //   String name,
-  //   String username,
-  //   String email, 
-  //   String password,
-  //   String birthday,
-  // ) {
-  //   MutationOptions mutationOptions = MutationOptions(
-  //     document: SignUpMutation(
-  //       variables: SignUpArguments(
-  //         input: SignUpInput(
-  //           name: name,
-  //           username: username,
-  //           email: email,
-  //           password: password,
-  //           birthday: birthday,
-  //         ),
-  //       )
-  //     ).document,
-  //     variables: {
-  //       "input": {
-  //         "name": name,
-  //         "username": username,
-  //         "email": email,
-  //         "birthday": birthday,
-  //         "password": password,
-  //       }
-  //     },
-  //     fetchPolicy: FetchPolicy.networkOnly
-  //   );
-
-  //   return mutationOptions;
-  // }
-
   MutationOptions signInMutationOptions(
     String token,
     SignInProvider provider,

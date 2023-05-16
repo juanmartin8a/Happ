@@ -364,4 +364,40 @@ class EventOptions {
 
     return mutationOptions;
   }
+
+  QueryOptions searchLocationQueryOptions(
+    String search
+  ) {
+    QueryOptions queryOptions = QueryOptions(
+      document: SearchLocationQuery(
+        variables: SearchLocationArguments(
+          search: search
+        )
+      ).document,
+      variables: {
+        "search": search,
+      },
+      fetchPolicy: FetchPolicy.noCache
+    );
+
+    return queryOptions;
+  }
+
+  QueryOptions locationDetailsQueryOptions(
+    String placeID
+  ) {
+    QueryOptions queryOptions = QueryOptions(
+      document: LocationDetailsQuery(
+        variables: LocationDetailsArguments(
+          placeID: placeID
+        )
+      ).document,
+      variables: {
+        "placeID": placeID,
+      },
+      fetchPolicy: FetchPolicy.noCache
+    );
+
+    return queryOptions;
+  }
 }

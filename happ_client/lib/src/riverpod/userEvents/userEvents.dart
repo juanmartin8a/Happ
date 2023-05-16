@@ -34,7 +34,7 @@ class UserEvents extends StateNotifier<UserEventState> {
       }
       return res;
     } catch (e) {
-      print("error aaaaa");
+      print("error");
       print(e);
       return null;
     }

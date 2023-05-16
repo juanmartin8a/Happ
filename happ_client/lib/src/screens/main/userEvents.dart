@@ -42,7 +42,6 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
 
   bool isLoading = true;
   bool hasMore = true;
-  // List<GetUserEvents$Query$PaginatedEventResults$EventInviteRes> eventInvites = [];
 
   @override
   void initState() {
@@ -95,30 +94,6 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
             isLoading = false;
           });
           break ;
-        // case UpdateUserEvents:
-        //   final state = next as UpdateUserEvents;
-        //   if (state.actionPerformed == "insertIntoList") {
-        //     // for (int i = 0; i < eventInvites.length; i++) {
-        //     //   // Place the new item where the i item's date is less than new
-        //     //   final newItemDate = int.parse(state.inviteRes!.event.eventDate);
-        //     //   final currentItemDate = int.parse(eventInvites[i].event.eventDate);
-        //     //   if (newItemDate <= currentItemDate) {
-        //     //     setState(() {
-        //     //       eventInvites.insert(i, state.inviteRes!);
-        //     //       eventIds = eventInvites.map((invite) => invite.event.id).toList();
-        //     //     });
-        //     //     break;
-        //     //   }
-        //     // }
-        //   } else if (state.actionPerformed == "updateSingleEvent") {
-        //     // final index = eventInvites.indexWhere((invite) => invite.event.id == state.event!.id);
-        //     // setState(() {
-        //     //   eventInvites[index].event = state.event!;
-        //     //   eventIds = eventInvites.map((invite) => invite.event.id).toList();
-        //     // });
-        //   }
-
-        //   break;
       }
     });
     ref.listen(leaveEventProvider, (prev, next) {
@@ -199,8 +174,6 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
 
     return SmartRefresher(
       enablePullDown: true,
-      // header: ClassicHeader(),
-      
       header: CustomHeader(
         refreshStyle: RefreshStyle.Follow,
         onOffsetChange: (offset) {
@@ -246,7 +219,6 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
             );
           }
           return Container(
-            // color: Colors.red,
             alignment: Alignment.center,
             margin: const EdgeInsets.only(top: 12),
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -262,14 +234,6 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
       ),
       controller: _refreshController,
       onRefresh: () async {
-        // await Future.delayed(const Duration(milliseconds: 300));
-        // final res = await Future.wait([
-        //   ref.read(fi.userEventsProvider.notifier).getUserEventsFromFriends(8, [], isRefresh: true),
-        //   ref.read(oi.userEventsProvider.notifier).getUserOtherEvents(8, [], isRefresh: true)
-        // ]);
-    
-        // bool hasErr = false;
-
         final success = await ref.read(userEventsProvider.notifier).getUserEvents(10, [], isRefresh: true);
     
         if (success) {
@@ -284,7 +248,6 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
         padding: const EdgeInsets.all(0),
         controller: scrollController,
         children: [
-          // SizedBox(height: 450),
           if (eventInvites.isEmpty)
           Container(
             padding: const EdgeInsets.only(
@@ -315,8 +278,6 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
           if (eventInvites.isNotEmpty)
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-            // color: Colors.red,
-            // padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
               "Soonest first :)",
               style: TextStyle(
@@ -332,18 +293,14 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
             return GestureDetector(
               onTap: () {
                 final inviteRes = EventTypesConverter().convertOtherInviteResToFriendsInviteRes(invite);
-                // final event = EventTypesConverter().convertEventToFriendsEvent(invite.event);
-                // final invitedBy = EventTypesConverter().convertOtherInvitedByToFriendsinvitedBy(invite.invitedBy);
-                // final userInfo = EventTypesConverter().convertOtherUserInfoToFriendsUserInfo(invite.invitedUserInfo);
                 context.push('/event', extra: EventParams(
-                    // event: event, invitedBy: invitedBy, userInfo: userInfo
                     inviteRes: inviteRes,
                   )
                 );
               },
               child: Container(
                 color: Colors.transparent,
-                padding: const EdgeInsets.only(bottom: 40, left: 12, right: 12),
+                padding: const EdgeInsets.only(bottom: 20, left: 12, right: 12),
                 
                 // width: 200,
                 // decoration: BoxDecoration(
@@ -353,17 +310,6 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                  //   Text(
-                  //     "Invited by ${invite.invitedBy.name}",
-                  //     style: TextStyle(
-                  //       fontSize: 13,
-                  //       fontWeight: FontWeight.w500,
-                  //       color: Colors.grey[600],
-                  //       height: 1
-                  //     )
-                  //   ),
-                  //   const SizedBox(height:4),
-                    // const SizedBox(height: 20),
                     AspectRatio(
                       aspectRatio: 4/3,
                       child: ClipRRect(
@@ -398,8 +344,6 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.deepPurpleAccent
-                            // color: Color(0xFFFFA500)
-                            // color: Colors.lightBlue
                           ),
                         )
                       ],
@@ -523,6 +467,9 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
           const SizedBox(
             height: 20,
             child: Loader(radius: 8)
+          ),
+          const SizedBox(
+            height: 150,
           ),
         ],
       ),

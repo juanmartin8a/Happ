@@ -76,8 +76,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  artemis: '>=7.0.0 <8.0.0'
-  build_runner: ^2.1.4
+  artemis:  ^7.11.0-beta.1
+  build_runner: ^2.3.0
   json_serializable: ^6.0.1
 
   # The "flutter_lints" package below contains a set of recommended lints to

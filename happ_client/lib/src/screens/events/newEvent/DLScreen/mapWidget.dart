@@ -60,8 +60,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> with AutomaticKeepAliveCl
     ref.listen(locationDetailsProvider, (prev, next) {
       if (next is LocationDetailsLoadedState) {
         if (next.name != null) {
-          final lat = next.details["results"][0]["geometry"]["location"]["lat"];
-          final lng = next.details["results"][0]["geometry"]["location"]["lng"];
+          final lat = next.details!.latitude;
+          final lng = next.details!.longitude;
           latLng.LatLng newCoordinates = latLng.LatLng(lat, lng);
           ref.read(newEventCompleteProvider.notifier).fieldChange(
             location: newCoordinates,
@@ -77,8 +77,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> with AutomaticKeepAliveCl
     if (state is LocationDetailsLoadedState) {
       if (state.error == false) {
         if (state.name != null) {
-          final lat = state.details["results"][0]["geometry"]["location"]["lat"];
-          final lng = state.details["results"][0]["geometry"]["location"]["lng"];
+          final lat = state.details!.latitude;
+          final lng = state.details!.longitude;
 
           latLng.LatLng newCoordinates = latLng.LatLng(lat, lng);
 
@@ -88,8 +88,8 @@ class _MapWidgetState extends ConsumerState<MapWidget> with AutomaticKeepAliveCl
             _mapController.moveAndRotate(newCoordinates, 16, 0);
           });
         } else {
-          final lat = state.details["lat"];
-          final lng = state.details["lng"];
+          final lat = state.details!.latitude;
+          final lng = state.details!.longitude;
 
           latLng.LatLng newCoordinates = latLng.LatLng(lat, lng);
 

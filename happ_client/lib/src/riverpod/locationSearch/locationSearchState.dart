@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:happ_client/src/api/graphql/graphql_api.dart';
 
 abstract class LocationSearchState extends Equatable {
   const LocationSearchState();
@@ -11,7 +12,7 @@ class LocationSearchInitState extends LocationSearchState {}
 
 class LocationSearchLoadedState extends LocationSearchState {
   final bool error;
-  final List predictions;
+  final List<SearchLocation$Query$LocationAutoCompletePrediction> predictions;
   final String search;
 
   const LocationSearchLoadedState({

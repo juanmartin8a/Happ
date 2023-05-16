@@ -1,11 +1,12 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/locationSearch/locationDetails.dart';
 import 'package:happ_client/src/utils/buttons/customGestureDetector.dart';
 
 class SearchLocationTile extends ConsumerWidget {
-  final dynamic tile;
+  final SearchLocation$Query$LocationAutoCompletePrediction tile;
   final bool isNew;
   const SearchLocationTile({
     required this.tile,
@@ -37,7 +38,7 @@ class SearchLocationTile extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  tile["description"],
+                  tile.description,
                   style: TextStyle(
                     color: Colors.grey[800],
                     fontSize: 14,
@@ -57,10 +58,10 @@ class SearchLocationTile extends ConsumerWidget {
           isNew 
           ? locationDetailsProvider.notifier
           : updateLocationDetailsProvider.notifier
-        ).getPlaceDetails(tile["place_id"], tile["description"]);
+        ).getPlaceDetails(tile.placeId, tile.description);
         Navigator.pop(context);
       },
-      key: Key("place_id_${tile["place_id"]}"),
+      key: Key("place_id_${tile.placeId}"),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8),
         // padding: EdgeInsets.zero,

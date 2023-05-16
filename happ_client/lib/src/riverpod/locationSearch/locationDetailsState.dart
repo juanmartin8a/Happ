@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:happ_client/src/api/graphql/graphql_api.dart';
 
 abstract class LocationDetailsState extends Equatable {
   const LocationDetailsState();
@@ -11,7 +12,7 @@ class LocationDetailsInitState extends LocationDetailsState {}
 
 class LocationDetailsLoadedState extends LocationDetailsState {
   final bool error;
-  final Map<String, dynamic> details;
+  final LocationDetails$Query$EventCoordinates? details;
   final String? name;
 
   const LocationDetailsLoadedState({

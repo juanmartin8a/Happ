@@ -1,10 +1,8 @@
 
 import 'package:happ_client/src/api/graphql/graphql_api.graphql.dart';
 import 'package:happ_client/src/client/client.dart';
-import 'package:happ_client/src/utils/userOptions.dart';
+import 'package:happ_client/src/utils/user/userOptions.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-
-// enum UserParams { Client.client! }
 
 class UserRepo {
 
@@ -20,23 +18,9 @@ class UserRepo {
       UserOptions().signInMutationOptions(token, provider, name, authorizationCode)
     );
 
-    print("result");
-    print(result);
-
     if (result.hasException) {
       throw (result.exception as OperationException);
     } else {
-      // if ((result.data as Map<String, dynamic>)["signIn"]["tokens"] != null) {
-      //   // print(result.data);
-      //   // await JWT().createJWTS(
-      //   //   (result.data as Map<String, dynamic>)["signIn"]["tokens"]["accessToken"],
-      //   //   (result.data as Map<String, dynamic>)["signIn"]["tokens"]["refreshToken"]
-      //   // );
-      //   // var refreshToken = await JWT().getRefreshJWT();
-
-      //   // print("refresh token is: $refreshToken");
-      // }
-      // print((result.data as Map<String, dynamic>)["signIn"]["user"]["id"].runtimeType);
       return SignIn$Mutation$SignInResponse.fromJson(
         (result.data as Map<String, dynamic>)["signIn"]
       );

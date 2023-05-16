@@ -1,0 +1,6 @@
+query LocationDetails($placeID: String!) {
+  locationDetails(placeID: $placeID) {
+    latitude
+    longitude
+  }
+}

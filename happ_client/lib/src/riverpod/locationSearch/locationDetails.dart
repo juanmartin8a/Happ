@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:happ_client/src/api/graphql/graphql_api.dart';
+import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:happ_client/src/riverpod/locationSearch/locationDetailsState.dart';
 import 'package:happ_client/src/utils/network/networkUtils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,41 +11,39 @@ class LocationDetailsController extends StateNotifier<LocationDetailsState> {
 
   LocationDetailsController() : super(LocationDetailsInitState());
 
-  getPlaceDetails(
+  EventRepo eventRepo = EventRepo();
+
+  void getPlaceDetails(
     String id,
     String name
   ) async {
 
     // Uri uri = Uri.https(
     //   "maps.googleapis.com",
-    //   "maps/api/place/details/json",
+    //   "maps/api/geocode/json",
     //   {
     //     "place_id": id,
     //     "key": placesAPIKey,
-    //     "fields": ["geometry"]
     //   }
     // );
 
-    Uri uri = Uri.https(
-      "maps.googleapis.com",
-      "maps/api/geocode/json",
-      {
-        "place_id": id,
-        "key": placesAPIKey,
-      }
-    );
+    // final res = await NetworkUtils.fetchFromUrl(uri);
 
-    final res = await NetworkUtils.fetchFromUrl(uri);
+    // if (res != null) {
+    //   Map<String, dynamic> data = json.decode(res);
 
-    if (res != null) {
-      Map<String, dynamic> data = json.decode(res);
+    //   state = LocationDetailsLoadedState(error: false, details: data, name: name);
 
-      state = LocationDetailsLoadedState(error: false, details: data, name: name);
-
-      return data;
-    } else {
-      state = LocationDetailsLoadedState(error: true, details: const {}, name: name);
-      return null;
+    //   return data;
+    // } else {
+    //   state = LocationDetailsLoadedState(error: true, details: const {}, name: name);
+    //   return null;
+    // }
+    try {
+      final res = await eventRepo.locationDetails(id);
+      state = LocationDetailsLoadedState(error: false, details: res.locationDetails, name: name);
+    } catch(e) {
+      state = LocationDetailsLoadedState(error: true, details: null, name: name);
     }
   }
 
@@ -52,10 +52,12 @@ class LocationDetailsController extends StateNotifier<LocationDetailsState> {
     double longitude
   ) async {
 
-    Map<String, dynamic> details = {
-      "lat": latitude,
-      "lng": longitude
+    Map<String, dynamic> detailsJSON = {
+      "latitude": latitude,
+      "longitude": longitude
     };
+
+    final details = LocationDetails$Query$EventCoordinates.fromJson(detailsJSON);
 
     state = LocationDetailsLoadedState(error: false, details: details);
   }

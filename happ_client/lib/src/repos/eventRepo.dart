@@ -22,8 +22,6 @@ class EventRepo {
       EventOptions().newEventMutationOptions(name, description, eventDate, eventPics, eventPicsLight, latitude, longitude, eventPlace)
     );
 
-    print(result);
-
     if (result.hasException) {
       throw (result.exception as OperationException);
     } else {
@@ -41,8 +39,6 @@ class EventRepo {
     final result = await client.mutate(
       EventOptions().inviteGuestsAndOrganizersMutationOptions(guests, organizers, eventId)
     );
-
-    print(result);
 
     if (result.hasException) {
       throw (result.exception as OperationException);
@@ -78,8 +74,6 @@ class EventRepo {
       EventOptions().getUserEventsFromFriendsQueryOptions(limit, idsList)
     );
 
-    print(result);
-
     if (result.hasException) {
       throw (result.exception as OperationException);
     } else {
@@ -96,8 +90,6 @@ class EventRepo {
     final result = await client.query(
       EventOptions().getUserOtherEventsQueryOptions(limit, idsList)
     );
-
-    print(result);
 
     if (result.hasException) {
       throw (result.exception as OperationException);
@@ -167,8 +159,6 @@ class EventRepo {
       EventOptions().getEventHostsQueryOptions(eventId, limit, idsList)
     );
 
-    // print(result);
-
     if (result.hasException) {
       throw (result.exception as OperationException);
     } else {
@@ -189,12 +179,9 @@ class EventRepo {
     String? eventPlace,
     int eventId
   ) async {
-    print(eventPics);
     final result = await client.mutate(
       EventOptions().updateEventMutationOptions(name, description, eventDate, eventPics, eventPicsLight, latitude, longitude, eventPlace, eventId)
     );
-
-    print(result);
 
     if (result.hasException) {
       throw (result.exception as OperationException);
@@ -283,6 +270,38 @@ class EventRepo {
       throw (result.exception as OperationException);
     } else {
       return ScanPass$Mutation.fromJson(
+        result.data!,
+      );
+    }
+  }
+
+  Future<SearchLocation$Query> searchLocation(
+    String search
+  ) async {
+    final result = await client.query(
+      EventOptions().searchLocationQueryOptions(search)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return SearchLocation$Query.fromJson(
+        result.data!,
+      );
+    }
+  }
+
+  Future<LocationDetails$Query> locationDetails(
+    String placeID
+  ) async {
+    final result = await client.query(
+      EventOptions().locationDetailsQueryOptions(placeID)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return LocationDetails$Query.fromJson(
         result.data!,
       );
     }
