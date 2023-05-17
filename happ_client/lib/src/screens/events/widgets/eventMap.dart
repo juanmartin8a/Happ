@@ -32,22 +32,15 @@ class _EventMapWidgetState extends ConsumerState<EventMapWidget> with AutomaticK
   late bool userLocationAccess;
 
   final MapController _mapController = MapController();
-  // late CameraPosition _initialCameraPosition;
-
 
   late latLng.LatLng startingPos;
-  // latLng.LatLng? markerPos;
 
   latLng.LatLng? currentPosMarker;
-
-  // double? latitude;
-  // double? longitude;
 
   @override
   void initState() {
     super.initState();
     startingPos = latLng.LatLng(widget.latitude, widget.longitude);
-    // _initialCameraPosition = CameraPosition(target: latLng, zoom: 15);
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       userLocationPermission();
@@ -86,7 +79,6 @@ class _EventMapWidgetState extends ConsumerState<EventMapWidget> with AutomaticK
                           point: currentPosMarker!,
                           width: 30,
                           height: 30,
-                          // anchorPos: AnchorPos.align(AnchorAlign.top),
                           builder: (context) => const UserLocationMarkerAnimation()
                         ),
                         Marker(
@@ -126,25 +118,18 @@ class _EventMapWidgetState extends ConsumerState<EventMapWidget> with AutomaticK
                   ),
                 ),
                 Positioned(
-                  // alignment: Alignment.bottomLeft,
                   left: 8,
                   bottom: 8,
                   child: GestureDetector(
                     onTap: () {
                       launchUrl(Uri.parse('https://www.mapbox.com/about/maps/'));
                     },
-                    child: Container(
-                      // color: Colors.red,
-                      child: SvgPicture.asset(
-                        // uriName,
-                        // color:Colors.red,
-                        width: 80,
-                        // height: 20,
-                        "assets/logos/mapbox-logo-svg-black.svg",
-                        placeholderBuilder: (BuildContext context) => Container(
-                          padding: const EdgeInsets.all(30.0),
-                          child: const CircularProgressIndicator(),
-                        ),
+                    child: SvgPicture.asset(
+                      width: 80,
+                      "assets/logos/mapbox-logo-svg-black.svg",
+                      placeholderBuilder: (BuildContext context) => Container(
+                        padding: const EdgeInsets.all(30.0),
+                        child: const CircularProgressIndicator(),
                       ),
                     ),
                   ),
@@ -160,7 +145,6 @@ class _EventMapWidgetState extends ConsumerState<EventMapWidget> with AutomaticK
           alignment: Alignment.centerLeft,
           child: Text(
             widget.eventPlace,
-            // maxLines: 1,
             style:  TextStyle(
               color: Colors.grey[800]!,
               fontSize: 14,
@@ -169,7 +153,6 @@ class _EventMapWidgetState extends ConsumerState<EventMapWidget> with AutomaticK
             )
           ),
         ),
-        // MapboxMap(initialCameraPosition: initialCameraPosition)
       ],
     );
   }

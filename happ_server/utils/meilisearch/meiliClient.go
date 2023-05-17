@@ -16,7 +16,7 @@ func GetMeiliClient() (*meilisearch.Client, error) {
 
 	APIKeyBytes, err := awsParameterStore.GetParamTypeSecretString(config.C.MeilisearchMK)
 	if err != nil {
-		log.Printf("error while getting db password: %s", err)
+		log.Printf("Error while getting meilisearch master key: %s", err)
 		return nil, err
 	}
 

@@ -102,6 +102,11 @@ type ComplexityRoot struct {
 		IsHost      func(childComplexity int) int
 	}
 
+	LocationAutoCompletePrediction struct {
+		Description func(childComplexity int) int
+		PlaceID     func(childComplexity int) int
+	}
+
 	Mutation struct {
 		AcceptInvitation          func(childComplexity int, eventID int) int
 		AddGuests                 func(childComplexity int, eventID int, userIds []int) int
@@ -134,7 +139,10 @@ type ComplexityRoot struct {
 		GetUserEvents               func(childComplexity int, limit int, idsList []int) int
 		GetUserEventsFromFriends    func(childComplexity int, limit int, idsList []int) int
 		GetUserOtherEvents          func(childComplexity int, limit int, idsList []int) int
+		LocationDetails             func(childComplexity int, placeID string) int
+		LocationDetailsFromCoords   func(childComplexity int, coords model.CoordinatesInput) int
 		SearchForUsersToAddAsGuests func(childComplexity int, search string, eventID int) int
+		SearchLocation              func(childComplexity int, search string) int
 		SearchUsers                 func(childComplexity int, search string, userSearching int) int
 		SeePass                     func(childComplexity int, eventID int) int
 		User                        func(childComplexity int, username string) int
@@ -196,6 +204,9 @@ type QueryResolver interface {
 	GetEventGuests(ctx context.Context, eventID int, limit int, idsList []int) (*model.PaginatedEventUsersResults, error)
 	GetEventHosts(ctx context.Context, eventID int, limit int, idsList []int) (*model.PaginatedEventUsersResults, error)
 	SearchForUsersToAddAsGuests(ctx context.Context, search string, eventID int) ([]*ent.User, error)
+	SearchLocation(ctx context.Context, search string) ([]*model.LocationAutoCompletePrediction, error)
+	LocationDetails(ctx context.Context, placeID string) (*model.Coordinates, error)
+	LocationDetailsFromCoords(ctx context.Context, coords model.CoordinatesInput) (string, error)
 }
 type UserResolver interface {
 	FollowState(ctx context.Context, obj *ent.User) (bool, error)
@@ -427,6 +438,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.InvitedUserInfo.IsHost(childComplexity), true
+
+	case "LocationAutoCompletePrediction.description":
+		if e.complexity.LocationAutoCompletePrediction.Description == nil {
+			break
+		}
+
+		return e.complexity.LocationAutoCompletePrediction.Description(childComplexity), true
+
+	case "LocationAutoCompletePrediction.placeId":
+		if e.complexity.LocationAutoCompletePrediction.PlaceID == nil {
+			break
+		}
+
+		return e.complexity.LocationAutoCompletePrediction.PlaceID(childComplexity), true
 
 	case "Mutation.acceptInvitation":
 		if e.complexity.Mutation.AcceptInvitation == nil {
@@ -667,6 +692,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetUserOtherEvents(childComplexity, args["limit"].(int), args["idsList"].([]int)), true
 
+	case "Query.locationDetails":
+		if e.complexity.Query.LocationDetails == nil {
+			break
+		}
+
+		args, err := ec.field_Query_locationDetails_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.LocationDetails(childComplexity, args["placeID"].(string)), true
+
+	case "Query.locationDetailsFromCoords":
+		if e.complexity.Query.LocationDetailsFromCoords == nil {
+			break
+		}
+
+		args, err := ec.field_Query_locationDetailsFromCoords_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.LocationDetailsFromCoords(childComplexity, args["coords"].(model.CoordinatesInput)), true
+
 	case "Query.searchForUsersToAddAsGuests":
 		if e.complexity.Query.SearchForUsersToAddAsGuests == nil {
 			break
@@ -678,6 +727,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SearchForUsersToAddAsGuests(childComplexity, args["search"].(string), args["eventId"].(int)), true
+
+	case "Query.searchLocation":
+		if e.complexity.Query.SearchLocation == nil {
+			break
+		}
+
+		args, err := ec.field_Query_searchLocation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SearchLocation(childComplexity, args["search"].(string)), true
 
 	case "Query.searchUsers":
 		if e.complexity.Query.SearchUsers == nil {
@@ -806,6 +867,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputAppleData,
+		ec.unmarshalInputCoordinatesInput,
 		ec.unmarshalInputNewEventInput,
 		ec.unmarshalInputSignInInput,
 		ec.unmarshalInputUpdateEventInput,
@@ -949,6 +1011,11 @@ type Coordinates {
   longitude: Float!
 }
 
+input CoordinatesInput {
+  latitude: Float!
+  longitude: Float!
+}
+
 input NewEventInput {
   name: String!
   description: String!
@@ -1004,6 +1071,11 @@ type AcceptInvitationResponse {
   isHost: Boolean!
 }
 
+type LocationAutoCompletePrediction {
+  placeId: String!,
+  description: String!
+}
+
 type Query {
   user(
     username: String!
@@ -1044,6 +1116,15 @@ type Query {
     search: String!
     eventId: Int!
   ): [User!]!,
+  searchLocation(
+    search: String!
+  ): [LocationAutoCompletePrediction!]!,
+  locationDetails(
+    placeID: String!
+  ): Coordinates!,
+  locationDetailsFromCoords (
+    coords: CoordinatesInput!
+  ): String!,
 }
 
 type Mutation {
@@ -1091,9 +1172,7 @@ type Mutation {
   saveDevice(
     token: String!
   ): Boolean
-}
-
-# `, BuiltIn: false},
+}`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -1497,6 +1576,36 @@ func (ec *executionContext) field_Query_getUserOtherEvents_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_locationDetailsFromCoords_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CoordinatesInput
+	if tmp, ok := rawArgs["coords"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("coords"))
+		arg0, err = ec.unmarshalNCoordinatesInput2happᚋgraphᚋmodelᚐCoordinatesInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["coords"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_locationDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["placeID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("placeID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["placeID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_searchForUsersToAddAsGuests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1518,6 +1627,21 @@ func (ec *executionContext) field_Query_searchForUsersToAddAsGuests_args(ctx con
 		}
 	}
 	args["eventId"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_searchLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["search"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["search"] = arg0
 	return args, nil
 }
 
@@ -3042,6 +3166,94 @@ func (ec *executionContext) fieldContext_InvitedUserInfo_isCreator(ctx context.C
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LocationAutoCompletePrediction_placeId(ctx context.Context, field graphql.CollectedField, obj *model.LocationAutoCompletePrediction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LocationAutoCompletePrediction_placeId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PlaceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LocationAutoCompletePrediction_placeId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LocationAutoCompletePrediction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LocationAutoCompletePrediction_description(ctx context.Context, field graphql.CollectedField, obj *model.LocationAutoCompletePrediction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LocationAutoCompletePrediction_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LocationAutoCompletePrediction_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LocationAutoCompletePrediction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4606,6 +4818,183 @@ func (ec *executionContext) fieldContext_Query_searchForUsersToAddAsGuests(ctx c
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_searchForUsersToAddAsGuests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_searchLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_searchLocation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SearchLocation(rctx, fc.Args["search"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.LocationAutoCompletePrediction)
+	fc.Result = res
+	return ec.marshalNLocationAutoCompletePrediction2ᚕᚖhappᚋgraphᚋmodelᚐLocationAutoCompletePredictionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_searchLocation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "placeId":
+				return ec.fieldContext_LocationAutoCompletePrediction_placeId(ctx, field)
+			case "description":
+				return ec.fieldContext_LocationAutoCompletePrediction_description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LocationAutoCompletePrediction", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_searchLocation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_locationDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_locationDetails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().LocationDetails(rctx, fc.Args["placeID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Coordinates)
+	fc.Result = res
+	return ec.marshalNCoordinates2ᚖhappᚋgraphᚋmodelᚐCoordinates(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_locationDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "latitude":
+				return ec.fieldContext_Coordinates_latitude(ctx, field)
+			case "longitude":
+				return ec.fieldContext_Coordinates_longitude(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Coordinates", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_locationDetails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_locationDetailsFromCoords(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_locationDetailsFromCoords(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().LocationDetailsFromCoords(rctx, fc.Args["coords"].(model.CoordinatesInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_locationDetailsFromCoords(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_locationDetailsFromCoords_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -7004,6 +7393,44 @@ func (ec *executionContext) unmarshalInputAppleData(ctx context.Context, obj int
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCoordinatesInput(ctx context.Context, obj interface{}) (model.CoordinatesInput, error) {
+	var it model.CoordinatesInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"latitude", "longitude"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "latitude":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("latitude"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Latitude = data
+		case "longitude":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("longitude"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Longitude = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewEventInput(ctx context.Context, obj interface{}) (model.NewEventInput, error) {
 	var it model.NewEventInput
 	asMap := map[string]interface{}{}
@@ -7737,6 +8164,41 @@ func (ec *executionContext) _InvitedUserInfo(ctx context.Context, sel ast.Select
 	return out
 }
 
+var locationAutoCompletePredictionImplementors = []string{"LocationAutoCompletePrediction"}
+
+func (ec *executionContext) _LocationAutoCompletePrediction(ctx context.Context, sel ast.SelectionSet, obj *model.LocationAutoCompletePrediction) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, locationAutoCompletePredictionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LocationAutoCompletePrediction")
+		case "placeId":
+
+			out.Values[i] = ec._LocationAutoCompletePrediction_placeId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+
+			out.Values[i] = ec._LocationAutoCompletePrediction_description(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -8163,6 +8625,75 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_searchForUsersToAddAsGuests(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "searchLocation":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_searchLocation(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "locationDetails":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_locationDetails(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "locationDetailsFromCoords":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_locationDetailsFromCoords(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -8719,6 +9250,11 @@ func (ec *executionContext) marshalNCoordinates2ᚖhappᚋgraphᚋmodelᚐCoordi
 	return ec._Coordinates(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNCoordinatesInput2happᚋgraphᚋmodelᚐCoordinatesInput(ctx context.Context, v interface{}) (model.CoordinatesInput, error) {
+	res, err := ec.unmarshalInputCoordinatesInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNCreateEventResponse2happᚋgraphᚋmodelᚐCreateEventResponse(ctx context.Context, sel ast.SelectionSet, v model.CreateEventResponse) graphql.Marshaler {
 	return ec._CreateEventResponse(ctx, sel, &v)
 }
@@ -8877,6 +9413,60 @@ func (ec *executionContext) marshalNInvitedUserInfo2ᚖhappᚋgraphᚋmodelᚐIn
 		return graphql.Null
 	}
 	return ec._InvitedUserInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNLocationAutoCompletePrediction2ᚕᚖhappᚋgraphᚋmodelᚐLocationAutoCompletePredictionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.LocationAutoCompletePrediction) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLocationAutoCompletePrediction2ᚖhappᚋgraphᚋmodelᚐLocationAutoCompletePrediction(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNLocationAutoCompletePrediction2ᚖhappᚋgraphᚋmodelᚐLocationAutoCompletePrediction(ctx context.Context, sel ast.SelectionSet, v *model.LocationAutoCompletePrediction) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LocationAutoCompletePrediction(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNNewEventInput2happᚋgraphᚋmodelᚐNewEventInput(ctx context.Context, v interface{}) (model.NewEventInput, error) {

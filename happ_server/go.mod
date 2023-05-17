@@ -11,7 +11,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.0
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.35.4
 	github.com/go-sql-driver/mysql v1.7.0
-	github.com/golang-jwt/jwt/v5 v5.0.0-rc.1
 	github.com/graph-gophers/dataloader v5.0.0+incompatible
 	github.com/hashicorp/go-multierror v1.1.1
 	// github.com/joho/godotenv v1.5.1
@@ -19,8 +18,7 @@ require (
 	github.com/meilisearch/meilisearch-go v0.23.1
 	github.com/spf13/viper v1.12.0
 	github.com/vektah/gqlparser/v2 v2.5.1
-	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
-	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167
+	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167 // indirect
 	golang.org/x/sync v0.1.0
 	google.golang.org/api v0.114.0
 )
@@ -30,6 +28,7 @@ require (
 	entgo.io/ent v0.12.3
 	github.com/99designs/gqlgen v0.17.31
 	github.com/joho/godotenv v1.5.1
+	googlemaps.github.io/maps v1.4.0
 )
 
 require (
@@ -48,6 +47,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.8.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.1 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
+	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30 // indirect

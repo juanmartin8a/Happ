@@ -127,9 +127,6 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
               eventInvites[index].event = event;
               eventIds = eventInvites.map((invite) => invite.event.id).toList();
             });
-            // final newEvent = GetUserEventsFromFriends$Query$PaginatedEventResults$EventInviteRes$Event.fromJson(newEventJson);
-            // ref.read(userEventsProvider.notifier).updateEvent(newEvent, "User");
-            // updateSingleEvent(newEvent);
           }
         }
       }
@@ -497,14 +494,6 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
       });
     }
   }
-
-  // void updateSingleEvent(GetUserEvents$Query$PaginatedEventResults$EventInviteRes$Event event) {
-  //   final index = eventInvites.indexWhere((invite) => invite.event.id == event.id);
-  //   setState(() {
-  //     eventInvites[index].event = event;
-  //     eventIds = eventInvites.map((invite) => invite.event.id).toList();
-  //   });
-  // }
   
   @override
   bool get wantKeepAlive => true;

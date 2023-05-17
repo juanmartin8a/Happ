@@ -28,6 +28,7 @@ type config struct {
 	}
 	MeilisearchMK        string
 	FirebaseSAPrivateKey string
+	MapsAPIKey           string
 }
 
 var C config

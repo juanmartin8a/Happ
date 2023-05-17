@@ -61,11 +61,8 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // final router = ref.watch(routerProvider);
 
     return RefreshConfiguration(
-      // footerTriggerDistance: 15,
-      // dragSpeedRatio: 0.91,
       headerTriggerDistance: 60,
       headerBuilder: () => const MaterialClassicHeader(),
       footerBuilder: () => const ClassicFooter(),
@@ -80,19 +77,9 @@ class MyApp extends ConsumerWidget {
         routeInformationProvider: _router.routeInformationProvider,
         routeInformationParser: _router.routeInformationParser,
         routerDelegate: _router.routerDelegate,
-        // rou
-        // theme: theme.copyWith(
-        //   colorScheme: theme.colorScheme.copyWith(
-        //     primary: Colors.black,
-        //     secondary: Colors.blue,
-        //   ),
-        // ),
         theme: ThemeData(
           // primarySwatch: Colors.blue,
-          fontFamily: "Inter",//"Montserrat"//"Rubik", //"Kumbh_Sans" //"Metropolis" // "Kumbh_Sans" // "Hind"//"MPlus1",
-          // textTheme: GoogleFonts.mPlus1pTextTheme(
-          //   Theme.of(context).textTheme,
-          // ),
+          fontFamily: "Inter",
           // appBarTheme: const AppBarTheme(
           //   foregroundColor: Colors.black,
           //   systemOverlayStyle: SystemUiOverlayStyle(
@@ -113,25 +100,6 @@ class MyApp extends ConsumerWidget {
         path: '/',
         builder: (BuildContext context, GoRouterState state) => const Wrapper(),
       ),
-      // GoRoute(
-      //   path: '/sign_in',
-      //   builder: (BuildContext context, GoRouterState state) => const SignIn(),
-      // ),
-      // GoRoute(
-      //   path: '/sign_up',
-      //   builder: (BuildContext context, GoRouterState state) => const SignUp(),
-      // ),
-      // GoRoute(
-      //   path: '/profile',
-      //   builder: (BuildContext context, GoRouterState state) {
-      //     final userAccessUser = UserTypesConverter().convertToUserAccessUser(state.extra);
-
-      //     return Profile(
-      //       user: userAccessUser,
-      //       key: Key("user_id_${userAccessUser.id}")
-      //     );
-      //   }
-      // ),
       GoRoute(
         path: '/new-event-guest-list',
         // name: "sample",

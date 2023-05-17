@@ -13,6 +13,7 @@ import (
 	awsUtils "happ/utils/aws"
 	"happ/utils/background"
 	firebaseUtils "happ/utils/firebase"
+	googleMapsUtils "happ/utils/googleMaps"
 	meilisearchUtils "happ/utils/meilisearch"
 	"log"
 	"os"
@@ -55,6 +56,11 @@ func main() {
 	_, err = meilisearchUtils.GetMeiliClient()
 	if err != nil {
 		log.Fatalf("Error getting Meili client: %s", err)
+	}
+
+	_, err = googleMapsUtils.GetGoogleMapsClient()
+	if err != nil {
+		log.Fatalf("Error getting Google Maps client: %s", err)
 	}
 
 	_, err = firebaseUtils.GetFirebaseAuthClient(ctx)

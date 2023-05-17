@@ -59,11 +59,6 @@ class _DLScreenEditAddressState extends ConsumerState<DLScreenEditAddress> {
             _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
             _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
           });
-          // print("name");
-          // print(name);
-          // ref.read(newEventCompleteProvider.notifier).fieldChange(
-          //   eventPlace: name,
-          // );
         }
       }
     });
@@ -159,10 +154,4 @@ class _DLScreenEditAddressState extends ConsumerState<DLScreenEditAddress> {
       )
     );
   }
-
-  // TextPosition getPositionAtOffset(Offset offset) {
-  //    final RenderEditable renderBox = _editableText!.renderEditable;
-  //   final TextPosition position = renderBox.getPositionForPoint(offset);
-  //   return position;
-  // }
 }

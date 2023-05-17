@@ -1,7 +1,5 @@
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:happ_client/src/riverpod/eventUpdateReady/eventUpdateReady.dart';
 import 'package:happ_client/src/riverpod/pickDateAndTime/pickDateAndTime.dart';
 import 'package:happ_client/src/riverpod/pickDateAndTime/pickDateAndTimeState.dart';
 import 'package:happ_client/src/utils/widgets/datetimeField.dart';
@@ -53,7 +51,6 @@ class _UpdateDatetimeState extends ConsumerState<UpdateDatetime> {
         var day = DateFormat.d().format(state.date);
         
         dateOrTime = "$month $day, $year";
-        // print(dateOrTime);
       }
     } else {
       final state = ref.watch(updatePickTimeControllerProvider);

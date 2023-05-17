@@ -31,6 +31,11 @@ type Coordinates struct {
 	Longitude float64 `json:"longitude"`
 }
 
+type CoordinatesInput struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
 type CreateEventResponse struct {
 	Event  *ent.Event       `json:"event,omitempty"`
 	Errors []*ErrorResponse `json:"errors,omitempty"`
@@ -53,6 +58,11 @@ type InvitedUserInfo struct {
 	IsConfirmed bool `json:"isConfirmed"`
 	IsHost      bool `json:"isHost"`
 	IsCreator   bool `json:"isCreator"`
+}
+
+type LocationAutoCompletePrediction struct {
+	PlaceID     string `json:"placeId"`
+	Description string `json:"description"`
 }
 
 type NewEventInput struct {

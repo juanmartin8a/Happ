@@ -306,4 +306,21 @@ class EventRepo {
       );
     }
   }
+
+  Future<LocationDetailsFromCoords$Query> locationDetailsFromCoords(
+    double latitude,
+    double longitude
+  ) async {
+    final result = await client.query(
+      EventOptions().locationDetailsFromCoordsQueryOptions(latitude, longitude)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return LocationDetailsFromCoords$Query.fromJson(
+        result.data!,
+      );
+    }
+  }
 }

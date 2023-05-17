@@ -6,9 +6,6 @@ import 'package:happ_client/src/riverpod/newEventAddPictures/newEventAddPictures
 import 'package:happ_client/src/screens/events/newEvent/NPDScreen/photosDialog.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-// final newEventCompleteProvider =
-//   StateNotifierProvider<NewEventCompleteController, NewEventCompleteState>((ref) => NewEventCompleteController());
-
 class PictureSlider extends ConsumerStatefulWidget {
   const PictureSlider({
     Key? key
@@ -31,14 +28,12 @@ class _PictureSliderState extends ConsumerState<PictureSlider> with AutomaticKee
     }
     return SizedBox(
       width: MediaQuery.of(context).size.width,
-      // padding: const EdgeInsets.symmetric(horizontal:8),
       height: ((MediaQuery.of(context).size.width - 24) * 0.75),
       child:  imageList.isEmpty
       ? Container(
         padding: const EdgeInsets.only(
           right: 12,
           left: 12,
-          // bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: AspectRatio(
           aspectRatio: 4/3,
@@ -84,7 +79,6 @@ class _PictureSliderState extends ConsumerState<PictureSlider> with AutomaticKee
             padding: const EdgeInsets.only(
               right: 8,
               left: 8,
-              // bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
             child: AspectRatio(
               aspectRatio: 4/3,

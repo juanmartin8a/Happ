@@ -3,10 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addRemove/addRemove.dart';
 import 'package:happ_client/src/riverpod/addRemove/addRemoveState.dart';
-import 'package:happ_client/src/riverpod/search/search.dart';
 import 'package:happ_client/src/screens/search/searchBar.dart';
 
-// class SearchUserAddButton extends ConsumerStatefulWidget {
 class SearchUserAddButton extends ConsumerWidget {
   final List<SearchUsers$Query$User> users;
   final bool isFollow;
@@ -52,7 +50,6 @@ class SearchUserAddButton extends ConsumerWidget {
               color: isFollow ? Colors.grey[900] : Colors.white,
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              // height: 1
             )
           ),
         )

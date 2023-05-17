@@ -6,7 +6,6 @@ import "package:happ_client/src/riverpod/firebaseAuthProvider/firebaseAuthProvid
 import "package:happ_client/src/screens/settings/widgets/loadingDialog.dart";
 import "package:happ_client/src/screens/settings/widgets/settingsTile.dart";
 import "package:happ_client/src/utils/buttons/customGestureDetector.dart";
-import "package:happ_client/src/utils/widgets/floatingActions.dart";
 
 class Settings extends ConsumerStatefulWidget {
   const Settings({super.key});
@@ -27,7 +26,6 @@ class _SettingsState extends ConsumerState<Settings> {
           ),
           SizedBox(
             height: 45,
-            // color: Colors.white,
             child: Center(
               child: Text(
                 "More",
@@ -45,7 +43,6 @@ class _SettingsState extends ConsumerState<Settings> {
               children: [
                 BackgroundChangeOnTapGestureDetector(
                   onTap: () {
-                    print("tapped");
                     ref.read(firebaseAuthProvider).signOut();
                   },
                   key: const Key("signOut_tap"),
@@ -53,10 +50,8 @@ class _SettingsState extends ConsumerState<Settings> {
                     name: "Sign Out",
                     icon: Icon(
                       EvaIcons.logOutOutline,
-                      // size: 26,
                       color: Colors.grey[800]
                     ),
-                    // textColor: Colors.red,
                     key: const Key("log_out")
                   ),
                 ),
@@ -66,12 +61,10 @@ class _SettingsState extends ConsumerState<Settings> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      // padding: EdgeInsets.zero,
                       child: RichText(
                         textAlign: TextAlign.center,
                         
                         text: TextSpan(
-                          // text: "Sorry, could not find any users  (ง •̀_•́)ง\n",
                           style: TextStyle(
                             fontFamily: "Inter",
                             fontSize: 17,
@@ -85,14 +78,6 @@ class _SettingsState extends ConsumerState<Settings> {
                           ]
                         )
                       )
-                      // Text(
-                      //   r"⬇️ DANGER ZONE💀  ⬇️",
-                      //   style: TextStyle(
-                      //     fontSize: 17,
-                      //     fontWeight: FontWeight.w700,
-                      //     color: Colors.grey[800]!
-                      //   )
-                      // ),
                     ),
                     const SizedBox(height: 2),
                     BackgroundChangeOnTapGestureDetector(
@@ -111,7 +96,6 @@ class _SettingsState extends ConsumerState<Settings> {
                         name: "Delete Account",
                         icon: Icon(
                           FluentIcons.delete_16_regular,
-                          // size: 26,
                           color: Colors.red
                         ),
                         textColor: Colors.red,

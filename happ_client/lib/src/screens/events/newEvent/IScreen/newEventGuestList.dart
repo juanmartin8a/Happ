@@ -6,7 +6,6 @@ import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
 import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelect.dart';
 import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelectState.dart';
 import 'package:happ_client/src/screens/events/newEvent/IScreen/searchUserInviteTile.dart';
-import 'package:happ_client/src/utils/user/currentUser.dart';
 import 'package:happ_client/src/utils/user/userTypesConverter.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
 
@@ -115,7 +114,6 @@ class _NewEventGuestListState extends ConsumerState<NewEventGuestList> {
                   const SliverToBoxAdapter(
                     child: SizedBox(height: 20),
                   ),
-                  // const SizedBox(height: 8),
                   SliverToBoxAdapter(
                     child: Container(
                       padding: const EdgeInsets.only(
@@ -194,46 +192,9 @@ class _NewEventGuestListState extends ConsumerState<NewEventGuestList> {
                       childCount: users.length,
                     ),
                   ),
-                  // ...widget.users.map((user) {
-                  //   return SearchUserInviteTile(
-                  //     user: user,
-                  //     isSelected: true,
-                  //     fromGuestList: true,
-                  //     key: Key("searchUserInviteTile_fromNewEventInvitedFriendsList_${user.id}")
-                  //   );
-                  // }).toList()
                 ],
               )
-              // ListView.builder(
-              //   padding: const EdgeInsets.only(top: 8),
-              //   itemCount: widget.users.length,
-              //   itemBuilder: (context, i) =>
-              //     SearchUserInviteTile(
-              //       user: widget.users[i],
-              //       isSelected: true,
-              //       fromGuestList: true,
-              //       key: Key("searchUserInviteTile_fromNewEventInvitedFriendsList_${widget.users[i]}")
-              //     )
-              // ),
             )
-            // Text( 
-            //   "Guest List",
-            //   style: TextStyle(
-            //     color: Colors.grey[800],
-            //     fontSize: 20,
-            //     // letterSpacing: 0.5,
-            //     // fontStyle: FontStyle.normal,
-            //     fontWeight: FontWeight.w700,
-            //     // height: 1
-            //   ),
-            // ),
-            // Container(
-            //   padding: const EdgeInsets.symmetric(horizontal: 8),
-            //   // child: const SearchLocationBar()
-            // ),
-            // const Expanded(
-            //   child: SearchLocationResults()
-            // )
           ],
         ),
       ),

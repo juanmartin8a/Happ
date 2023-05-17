@@ -1281,6 +1281,29 @@ Map<String, dynamic> _$GetEventGuests$QueryToJson(
       'getEventGuests': instance.getEventGuests.toJson(),
     };
 
+LocationDetailsFromCoords$Query _$LocationDetailsFromCoords$QueryFromJson(
+        Map<String, dynamic> json) =>
+    LocationDetailsFromCoords$Query()
+      ..locationDetailsFromCoords = json['locationDetailsFromCoords'] as String;
+
+Map<String, dynamic> _$LocationDetailsFromCoords$QueryToJson(
+        LocationDetailsFromCoords$Query instance) =>
+    <String, dynamic>{
+      'locationDetailsFromCoords': instance.locationDetailsFromCoords,
+    };
+
+CoordinatesInput _$CoordinatesInputFromJson(Map<String, dynamic> json) =>
+    CoordinatesInput(
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+    );
+
+Map<String, dynamic> _$CoordinatesInputToJson(CoordinatesInput instance) =>
+    <String, dynamic>{
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+    };
+
 SaveDeviceArguments _$SaveDeviceArgumentsFromJson(Map<String, dynamic> json) =>
     SaveDeviceArguments(
       token: json['token'] as String,
@@ -1575,4 +1598,16 @@ Map<String, dynamic> _$GetEventGuestsArgumentsToJson(
       'eventId': instance.eventId,
       'limit': instance.limit,
       'idsList': instance.idsList,
+    };
+
+LocationDetailsFromCoordsArguments _$LocationDetailsFromCoordsArgumentsFromJson(
+        Map<String, dynamic> json) =>
+    LocationDetailsFromCoordsArguments(
+      coords: CoordinatesInput.fromJson(json['coords'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$LocationDetailsFromCoordsArgumentsToJson(
+        LocationDetailsFromCoordsArguments instance) =>
+    <String, dynamic>{
+      'coords': instance.coords.toJson(),
     };

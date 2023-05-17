@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:happ_client/src/riverpod/addGuests/addGuestsState.dart';
@@ -17,8 +18,7 @@ class AddGuests extends StateNotifier<AddGuestsState> {
       final res = await eventRepo.addGuests(guests, eventId);
       state = AddGuestsDoneState(res: res.addGuests!);
     } catch(e) {
-      print("errorrrrr");
-      print(e);
+      debugPrint("error in addGuests: $e");
       state = AddGuestsErrorState();
     }
   }

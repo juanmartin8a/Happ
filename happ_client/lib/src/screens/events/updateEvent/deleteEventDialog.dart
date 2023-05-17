@@ -16,20 +16,6 @@ class DeleteEventDialog extends ConsumerStatefulWidget {
 }
 
 class _DeleteEventDialogState extends ConsumerState<DeleteEventDialog> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return const Placeholder();
-//   }
-// }
-
-// class RemoveGuestsConfirmDialog extends ConsumerWidget {
-  // final List<int> userIds;
-  // final int eventId;
-  // const RemoveGuestsConfirmDialog({
-  //   required this.userIds,
-  //   required this.eventId,
-  //   super.key
-  // });
 
   bool error = false;
   bool loading = false;
@@ -39,8 +25,6 @@ class _DeleteEventDialogState extends ConsumerState<DeleteEventDialog> {
     ref.listen(deleteEventProvider, (prev, next) {
       switch (next.runtimeType) {
         case DeleteEventDoneState:
-          // ref.read(deleteEventProvider.notifier).deleteEvent(widget.eventId);
-          // ref.read(guestListActionProvider.notifier).isAdd(null);
           Navigator.pop(context);
           break;
         case DeleteEventLoadingState:
@@ -149,7 +133,6 @@ class _DeleteEventDialogState extends ConsumerState<DeleteEventDialog> {
                         left: 12
                       ),
                       child: Column(
-                        // mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Expanded(
                             child: Center(
@@ -160,7 +143,6 @@ class _DeleteEventDialogState extends ConsumerState<DeleteEventDialog> {
                                   fontSize: 19,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white,
-                                  // height: 1
                                 )
                               ),
                             ),

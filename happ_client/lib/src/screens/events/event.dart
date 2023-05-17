@@ -28,14 +28,8 @@ import 'class/eventAndInviteParams.dart';
 
 class Event extends ConsumerStatefulWidget {
   final GetUserEventsFromFriends$Query$PaginatedEventResults$EventInviteRes inviteRes;
-  // final GetUserEventsFromFriends$Query$EventInviteRes$Event event;
-  // final GetUserEventsFromFriends$Query$EventInviteRes$User invitedBy;
-  // final GetUserEventsFromFriends$Query$EventInviteRes$InvitedUserInfo userInfo;
   const Event({
     required this.inviteRes,
-    // required this.event,
-    // required this.invitedBy,
-    // required this.userInfo,
     Key? key
   }) : super(key: key);
 
@@ -44,7 +38,6 @@ class Event extends ConsumerStatefulWidget {
 }
 
 class _EventState extends ConsumerState<Event> {
-  // final PageController pageController = PageController(length: );
 
   int currentPage = 0;
 
@@ -59,11 +52,6 @@ class _EventState extends ConsumerState<Event> {
 
   bool isGuestsLoading = true;
   bool isHostsLoading = true;
-
-  // String pressedItems = [
-  //   "Update",
-  //   "Remove"
-  // ]
 
   @override
   void initState() {

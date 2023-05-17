@@ -27,13 +27,13 @@ class EventMapAttributionDialog extends StatelessWidget {
                     // height: (MediaQuery.of(context).size.width * 0.8) * 0.8,
                     child: Column(
                       children: [
-                        Container(
+                        SizedBox(
                           height: 45,
                           child: Center(
                             child: RichText(
                               text: TextSpan(
                                 text: '© Mapbox',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.blue,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
@@ -48,13 +48,13 @@ class EventMapAttributionDialog extends StatelessWidget {
                             ),
                           ),
                         ),
-                        Container(
+                        SizedBox(
                           height: 45,
                           child: Center(
                             child: RichText(
                               text: TextSpan(
                                 text: '© OpenStreetMap',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.blue,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
@@ -69,13 +69,13 @@ class EventMapAttributionDialog extends StatelessWidget {
                             ),
                           ),
                         ),
-                        Container(
+                        SizedBox(
                           height: 45,
                           child: Center(
                             child: RichText(
                               text: TextSpan(
                                 text: 'Improve this map',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.blue,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
@@ -99,19 +99,6 @@ class EventMapAttributionDialog extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () {
-                    // if (dateOrTime != null) {
-                    //   if (isDate) {
-                    //     ref.read(pickDateControllerProvider.notifier).pickDate(dateOrTime!);
-                    //     ref.read(newEventCompleteProvider.notifier).fieldChange(
-                    //       date: dateOrTime
-                    //     );
-                    //   } else {
-                    //     ref.read(pickTimeControllerProvider.notifier).pickTime(dateOrTime!);
-                    //     ref.read(newEventCompleteProvider.notifier).fieldChange(
-                    //       time: dateOrTime
-                    //     );
-                    //   }
-                    // }
                     Navigator.pop(context);
                   },
                   child: Container(

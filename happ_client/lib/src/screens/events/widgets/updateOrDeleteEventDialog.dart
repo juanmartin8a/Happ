@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
-import 'package:happ_client/src/riverpod/deleteEvent/deleteEvent.dart';
 import 'package:happ_client/src/screens/events/class/eventAndInviteParams.dart';
 import 'package:happ_client/src/screens/events/updateEvent/deleteEventDialog.dart';
 import 'package:happ_client/src/screens/events/widgets/leaveEventConfirmDialog.dart';
@@ -141,7 +140,6 @@ class UpdateOrDeleteEventDialog extends ConsumerWidget {
                         if (inviteRes.invitedUserInfo.isCreator && inviteRes.invitedUserInfo.isConfirmed)
                         GestureDetector(
                           onTap: () {
-                            // ref.read(deleteEventProvider.notifier).deleteEvent(inviteRes.event.id);
                             Navigator.pop(context);
                             showGeneralDialog(
                               context: context,
@@ -154,7 +152,6 @@ class UpdateOrDeleteEventDialog extends ConsumerWidget {
                           },
                           child: Container(
                             height: 45,
-                            // width: 60,
                             color: Colors.transparent,
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Center(
@@ -185,33 +182,6 @@ class UpdateOrDeleteEventDialog extends ConsumerWidget {
                     ),
                   ),
                 ),
-                // const SizedBox(
-                //   height: 8,
-                // ),
-                // GestureDetector(
-                //   onTap: () {
-                //     Navigator.pop(context);
-                //   },
-                //   child: Container(
-                //     width: MediaQuery.of(context).size.width * 0.6,
-                //     height: 45,
-                //     decoration: BoxDecoration(
-                //       color: Colors.black,
-                //       borderRadius: BorderRadius.circular(30)
-                //     ),
-                //     child: const Center(
-                //       child: Text(
-                //         "Cancel",
-                //         style: TextStyle(
-                //           color: Colors.white,
-                //           fontSize: 15,
-                //           fontWeight: FontWeight.w600,
-                //           height: 1
-                //         )
-                //       ),
-                //     ),
-                //   ),
-                // ),
               ],
             ),
           ),

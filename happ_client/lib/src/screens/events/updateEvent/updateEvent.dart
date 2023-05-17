@@ -22,7 +22,6 @@ import 'package:happ_client/src/screens/events/updateEvent/widgets/updateEventPi
 import 'package:happ_client/src/utils/userLocation/UserLocation.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
 import 'package:latlong2/latlong.dart' as latLng;
-import 'package:http/src/multipart_file.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class CustomImage {
@@ -138,18 +137,11 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                           padding: const EdgeInsets.only(
                             right: 12,
                             left: 12,
-                            // bottom: MediaQuery.of(context).viewInsets.bottom,
                           ),
                           width: MediaQuery.of(context).size.width,
-                          // height: 45,
-                          // padding: EdgeInsets.symmetric(horizontal: 8),
-                          // color: Colors.red,
                           child: TextFormField(
-                            // expands: true,
-                            // maxLines: null,
                             controller: nameController,
                             textInputAction: TextInputAction.done,
-                            // textAlign: TextAlign.center,
                             textAlignVertical: TextAlignVertical.center,
                             keyboardAppearance: Brightness.dark,
                             style: TextStyle(
@@ -190,56 +182,6 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                           eventPics: event.eventPics, 
                           key: const Key("UpdateEventPictureSlider"),
                         )
-                        // PageView.builder(
-                        //   itemCount: updateEventPics.length,//event.eventPics.length,
-                        //   onPageChanged: (value) {
-                        //     // setState(() {
-                        //     //   // currentPage = value;
-                        //     // });
-                        //   },
-                        //   itemBuilder: (context, i) {
-                        //     return GestureDetector(
-                        //       onTap: () {
-                        //         showGeneralDialog(
-                        //           context: context, 
-                        //           barrierColor: Colors.transparent,
-                        //           transitionDuration: const Duration(milliseconds: 200),
-                        //           pageBuilder: (context, anim1, anim2) {
-                        //             return const ImageActionsDialog();
-                        //           }
-                        //         );
-                        //       },
-                        //       child: Container(
-                        //         width: MediaQuery.of(context).size.width,
-                        //         padding: const EdgeInsets.symmetric(horizontal: 12),
-                        //         // height: MediaQuery.of(context).size.width,
-                        //         child: AspectRatio(
-                        //           aspectRatio: 4/3,
-                        //           child: ClipRRect(
-                        //             borderRadius: BorderRadius.circular(20),
-                        //             child: Container(
-                        //               decoration: BoxDecoration(
-                        //                 color: Colors.grey[200],
-                        //                 borderRadius: BorderRadius.circular(20)
-                        //               ),
-                        //               // user taps image
-                        //               // user selects action
-                            
-                        //               // if remove then dialog close and remove image
-                            
-                        //               // if edit dialog close and open photos dialog
-                        //               // when image chosen, load images, replace and close dialog 
-                        //               child: Image.network(
-                        //                 updateEventPics[i].imageUrl!,
-                        //                 fit: BoxFit.cover
-                        //               ),//Image.asset('assets/images/image2.jpeg', fit: BoxFit.cover)
-                        //             ),
-                        //           )
-                        //         )
-                        //       ),
-                        //     );
-                        //   }
-                        // ),
                       ),
                       const SizedBox(height: 6),
                       Center(
@@ -248,11 +190,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                           padding: const EdgeInsets.only(
                             right: 12,
                             left: 12,
-                            // bottom: MediaQuery.of(context).viewInsets.bottom,
                           ),
-                          // height: 45,
-                          // padding: EdgeInsets.symmetric(horizontal: 8),
-                          // color: Colors.red,
                           child: TextFormField(
                             // expands: true,
                             maxLines: null,
@@ -288,31 +226,11 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                           ),
                         ),
                       ),
-                      // SizedBox(
-                      //   height: MediaQuery.of(context).padding.top + 45,
-                      //   // color: Colors.yellow
-                      // ),
-                      // Container(
-                      //   height: 100,
-                      //   color: Colors.black
-                      // ),
-                      // const Spacer(),
-                      // Container(
-                      //   height: MediaQuery.of(context).viewInsets.bottom,//EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                      //   // color: Colors.red, 
-                      // ),
                       const SizedBox(height: 40),
-                      // const Spacer(),
                       Container(
-                        // color: Colors.red,
-                        // height: MediaQuery.of(context).size.height,
-                        // constraints: BoxConstraints(
-                        //   minHeight: MediaQuery.of(context).size.height - 45,
-                        // ),
                         padding: const EdgeInsets.only(
                           right: 12,
                           left: 12,
-                          // bottom: MediaQuery.of(context).viewInsets.bottom,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -391,16 +309,6 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                             ),
                             const SizedBox(height: 8),
                             DLScreenEditAddress(isNew: false, address: event.eventPlace),
-                            // SizedBox(
-                            //   height: MediaQuery.of(context).padding.top + 45,
-                            //   // color: Colors.yellow
-                            // ),
-                            // Container(
-                            //   height: MediaQuery.of(context).viewInsets.bottom,//EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                            //   // color: Colors.red, 
-                            // ),
-                            // const SizedBox(height: 45 + 20),
-                            // const Spacer(),
                           ],
                         ),
                       ),
@@ -455,7 +363,6 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
     ref.invalidate(updatePickDateControllerProvider);
     ref.invalidate(updatePickTimeControllerProvider);
     ref.invalidate(updateLocationDetailsProvider);
-    ref.invalidate(updateReverseLocationDetailsProvider);
     ref.invalidate(eventUpdateReadyControllerProvider);
     ref.invalidate(picturesActionsProvider);
     ref.invalidate(updatePicturesProvider);

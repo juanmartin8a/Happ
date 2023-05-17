@@ -6,7 +6,6 @@ import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
 import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelect.dart';
 import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelectState.dart';
 import 'package:happ_client/src/screens/events/newEvent/IScreen/userRemoveMakeOrganizerDialog.dart';
-import 'package:happ_client/src/utils/user/currentUser.dart';
 
 class SearchUserInviteTile extends ConsumerStatefulWidget {
   final SearchUsers$Query$User user;
@@ -137,8 +136,6 @@ class _SearchUserInviteTileState extends ConsumerState<SearchUserInviteTile> {
               )
             : GestureDetector(
               onTap: () {
-                // call dialog that lets user remove guest 
-                // and (upgrade it to admin || remove it from admin)
                 showGeneralDialog(
                   context: context, 
                   barrierColor: Colors.transparent,

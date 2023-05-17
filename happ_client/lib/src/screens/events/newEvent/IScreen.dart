@@ -217,12 +217,6 @@ class _IScreenState extends ConsumerState<IScreen> {
                       '/new-event-guest-list',
                       extra: params
                     );
-                    // Navigator.of(context).push(
-                    //   builder: () => InvitedFriendsList(
-
-                    //     key: Key(),
-                    //   )
-                    // )
                   },
                   child: Container(
                     decoration: BoxDecoration(

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
 import 'package:happ_client/src/screens/search/widgets/saerchUserAddButton.dart';
-import 'package:happ_client/src/utils/user/currentUser.dart';
 
 class SearchUserTile extends ConsumerWidget {
   final List<SearchUsers$Query$User> users;
@@ -62,21 +61,8 @@ class SearchUserTile extends ConsumerWidget {
                         fontWeight: FontWeight.w600,
                         height: 1
                       ),
-                      // color: Colors.white,
                     ),
                     const SizedBox(height: 2),
-                    // UsernameUI(
-                    //   username: name,
-                    //   isMe: id == CurrentUser.userId,
-                    //   forName: true,
-                    //   key: Key('searchUser_name_$id'),
-                    //   textStyle: TextStyle(
-                    //     color: Colors.grey,
-                    //     fontSize: 14.5,
-                    //     fontWeight: FontWeight.w400,
-                    //     height: 1
-                    //   ),
-                    // )
                     Text(
                       user.username,
                       style: TextStyle(
@@ -97,33 +83,6 @@ class SearchUserTile extends ConsumerWidget {
               isFollow: user.followState,
               key: Key("addRemoveButton_${user.id}")
             )
-            // if (isSearchedUsers)
-            // GestureDetector(
-            //   onTap: () {
-                
-            //     // removeSearchedUser!();
-            //     // print("helo there");
-            //   },
-            //   child: Container(
-            //     height: 26,
-            //     width: 75,
-            //     decoration: BoxDecoration(
-            //       color: Colors.grey[200],
-            //       borderRadius: BorderRadius.circular(20)
-            //     ),
-            //     child: Center(
-            //       child: Text(
-            //         "Added",
-            //         style: TextStyle(
-            //           color: Colors.grey[800],
-            //           fontSize: 15,
-            //           fontWeight: FontWeight.w600,
-            //           height: 1
-            //         )
-            //       ),
-            //     )
-            //   ),
-            // )
           ],
         ),
       ),

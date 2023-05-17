@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/riverpod/seePass/seePassState.dart';
@@ -12,11 +13,9 @@ class SeePassController extends StateNotifier<SeePassState> {
     state = SeePassLoadingState();
     try {
       final res = await eventRepo.seePass(eventId);
-      print(res);
       state = SeePassDoneState(cypherText: res.seePass);
-      // return to see if unchaged is == true
     } catch (e) {
-      print(e);
+      debugPrint("error in seePass: $e");
     }
   }
 }

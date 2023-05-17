@@ -1671,6 +1671,43 @@ class GetEventGuests$Query extends JsonSerializable with EquatableMixin {
   Map<String, dynamic> toJson() => _$GetEventGuests$QueryToJson(this);
 }
 
+@JsonSerializable(explicitToJson: true)
+class LocationDetailsFromCoords$Query extends JsonSerializable
+    with EquatableMixin {
+  LocationDetailsFromCoords$Query();
+
+  factory LocationDetailsFromCoords$Query.fromJson(Map<String, dynamic> json) =>
+      _$LocationDetailsFromCoords$QueryFromJson(json);
+
+  late String locationDetailsFromCoords;
+
+  @override
+  List<Object?> get props => [locationDetailsFromCoords];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$LocationDetailsFromCoords$QueryToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class CoordinatesInput extends JsonSerializable with EquatableMixin {
+  CoordinatesInput({
+    required this.latitude,
+    required this.longitude,
+  });
+
+  factory CoordinatesInput.fromJson(Map<String, dynamic> json) =>
+      _$CoordinatesInputFromJson(json);
+
+  late double latitude;
+
+  late double longitude;
+
+  @override
+  List<Object?> get props => [latitude, longitude];
+  @override
+  Map<String, dynamic> toJson() => _$CoordinatesInputToJson(this);
+}
+
 enum PictureAction {
   @JsonValue('ADD')
   add,
@@ -4896,4 +4933,79 @@ class GetEventGuestsQuery
   @override
   GetEventGuests$Query parse(Map<String, dynamic> json) =>
       GetEventGuests$Query.fromJson(json);
+}
+
+@JsonSerializable(explicitToJson: true)
+class LocationDetailsFromCoordsArguments extends JsonSerializable
+    with EquatableMixin {
+  LocationDetailsFromCoordsArguments({required this.coords});
+
+  @override
+  factory LocationDetailsFromCoordsArguments.fromJson(
+          Map<String, dynamic> json) =>
+      _$LocationDetailsFromCoordsArgumentsFromJson(json);
+
+  late CoordinatesInput coords;
+
+  @override
+  List<Object?> get props => [coords];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$LocationDetailsFromCoordsArgumentsToJson(this);
+}
+
+final LOCATION_DETAILS_FROM_COORDS_QUERY_DOCUMENT_OPERATION_NAME =
+    'LocationDetailsFromCoords';
+final LOCATION_DETAILS_FROM_COORDS_QUERY_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+    type: OperationType.query,
+    name: NameNode(value: 'LocationDetailsFromCoords'),
+    variableDefinitions: [
+      VariableDefinitionNode(
+        variable: VariableNode(name: NameNode(value: 'coords')),
+        type: NamedTypeNode(
+          name: NameNode(value: 'CoordinatesInput'),
+          isNonNull: true,
+        ),
+        defaultValue: DefaultValueNode(value: null),
+        directives: [],
+      )
+    ],
+    directives: [],
+    selectionSet: SelectionSetNode(selections: [
+      FieldNode(
+        name: NameNode(value: 'locationDetailsFromCoords'),
+        alias: null,
+        arguments: [
+          ArgumentNode(
+            name: NameNode(value: 'coords'),
+            value: VariableNode(name: NameNode(value: 'coords')),
+          )
+        ],
+        directives: [],
+        selectionSet: null,
+      )
+    ]),
+  )
+]);
+
+class LocationDetailsFromCoordsQuery extends GraphQLQuery<
+    LocationDetailsFromCoords$Query, LocationDetailsFromCoordsArguments> {
+  LocationDetailsFromCoordsQuery({required this.variables});
+
+  @override
+  final DocumentNode document = LOCATION_DETAILS_FROM_COORDS_QUERY_DOCUMENT;
+
+  @override
+  final String operationName =
+      LOCATION_DETAILS_FROM_COORDS_QUERY_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final LocationDetailsFromCoordsArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  LocationDetailsFromCoords$Query parse(Map<String, dynamic> json) =>
+      LocationDetailsFromCoords$Query.fromJson(json);
 }

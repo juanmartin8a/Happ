@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:happ_client/src/riverpod/eventGuests/eventGuestsState.dart';
@@ -16,13 +17,11 @@ class EventGuestsController extends StateNotifier<EventGuestsState> {
     state = EventGuestsLoadingState();
     try {
       final res = await eventRepo.getEventGuests(eventId, limit, idsList);
-      // final newRes = EventTypesConverter().convertToGetUserEvents(res);
       state = GetEventGuestsDoneState(res: res);
     } catch (e) {
-      print("erroraaaaaa");
+      debugPrint("error in getEventGuests: $e");
       state = EventGuestsErrorState();
     }
-    // state = AddPicturesDoneState(imageList: imageList);
   }
 
   void removeGuests(

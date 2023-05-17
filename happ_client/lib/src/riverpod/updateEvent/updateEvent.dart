@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.graphql.dart';
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:happ_client/src/riverpod/updateEvent/updateEventState.dart';
@@ -25,7 +26,7 @@ class UpdateEventContoller extends StateNotifier<UpdateEventState> {
       final res = await eventRepo.updateEvent(name, description, eventDate, eventPics, eventPicsLight, latitude, longitude, eventPlace, eventId);
       state = UpdateEventDoneState(updateEventRes: res);
     } catch (e) {
-      print(e);
+      debugPrint("error in updateEvent: $e");
       state = UpdateEventErrorState();
     }
   }

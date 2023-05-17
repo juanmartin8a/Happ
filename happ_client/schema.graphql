@@ -5,6 +5,11 @@ type EventCoordinates {
   longitude: Float!
 }
 
+input CoordinatesInput {
+  latitude: Float!
+  longitude: Float!
+}
+
 type User {
   id: Int!
   name: String!
@@ -189,6 +194,9 @@ type Query {
   locationDetails(
     placeID: String!
   ): EventCoordinates!,
+  locationDetailsFromCoords (
+    coords: CoordinatesInput!
+  ): String!,
 }
 
 type Mutation {

@@ -11,11 +11,6 @@ class UserLocation {
         return false;
       }
     }
-    // if (permission == LocationPermission.deniedForever) {
-    //   // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-    //   //   content: Text('Location permissions are permanently denied, we cannot request permissions.')));
-    //   return false;
-    // }
     return true;
   }
 }

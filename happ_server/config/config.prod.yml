@@ -14,3 +14,4 @@ database:
 
 meilisearchMK: meilisearchMK
 firebaseSAPrivateKey: FirebaseSAPrivateKey
+mapsAPIKey: MapsAPIKey

@@ -133,7 +133,6 @@ class _UpdateButtonState extends ConsumerState<UpdateButton> {
     return GestureDetector(
       onTap: () {
         if (canUpdate && ref.read(updateEventProvider) is !UpdateEventLoadingState) {
-          // print(eventPics![0].file!.);
           ref.read(updateEventProvider.notifier).updateEvent(
             name,
             description,

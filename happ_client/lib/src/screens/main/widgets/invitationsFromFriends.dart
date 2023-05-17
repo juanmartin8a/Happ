@@ -7,7 +7,6 @@ import 'package:happ_client/src/riverpod/leaveEvent/leaveEventState.dart';
 import 'package:happ_client/src/riverpod/userEvents/userEvents.dart';
 import 'package:happ_client/src/riverpod/userEvents/userEventsState.dart';
 import 'package:happ_client/src/screens/events/class/eventAndInviteParams.dart';
-import 'package:happ_client/src/utils/event/eventTypesConverter.dart';
 import 'package:happ_client/src/utils/widgets/loader.dart';
 import 'package:intl/intl.dart';
 
@@ -30,8 +29,6 @@ class InvitationsFromFriends extends ConsumerStatefulWidget {
 }
 
 class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends> {
-
-  // List<GetUserEventsFromFriends$Query$PaginatedEventResults$EventInviteRes> eventInvites = [];
 
   ScrollController scrollController = ScrollController();
 
@@ -111,7 +108,6 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
             final index = eventInvites.indexWhere((invite) => invite.event.id == state.inviteRes!.event.id);
 
             if (index >= 0) {
-              // eventInvites[index] = state.inviteRes!;
               setState(() {
                 eventInvites.removeAt(index);
                 eventIds = eventInvites.map((invite) => invite.event.id).toList();
@@ -134,10 +130,6 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
         }
       }
     });
-    // if (events.isEmpty || widget.ready == null) {
-    //   return Container();
-    // }
-    // print(state);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,7 +172,6 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(50),
               ),
-              // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: 
               RichText(
                 textAlign: TextAlign.center,
@@ -193,21 +184,11 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
-                  children: const <TextSpan>[
-                    // TextSpan(text: '🎊😄', style: TextStyle(fontSize: 22))
-                  ]
+                  // children: const <TextSpan>[
+                  //   // TextSpan(text: '🎊😄', style: TextStyle(fontSize: 22))
+                  // ]
                 )
               )
-              // Text(
-              //   "No invitations from friends?  (ง •̀_•́)ง",
-              //   textAlign: TextAlign.center,
-              //   style: TextStyle(
-              //   fontSize: 14,
-              //     fontWeight: FontWeight.w600,
-              //     color: Colors.grey[800],
-              //     // height: 1
-              //   ),
-              // ),
             ),
           ),
         )
@@ -222,12 +203,7 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
               ...eventInvites.map((invite) {
                 return GestureDetector(
                   onTap: () {
-                    // final inviteRes = EventTypesConverter().convertOtherInviteResToFriendsInviteRes(invite);
-                    // final event = EventTypesConverter().convertEventToFriendsEvent(invite.event);
-                    // final invitedBy = EventTypesConverter().convertOtherInvitedByToFriendsinvitedBy(invite.invitedBy);
-                    // final userInfo = EventTypesConverter().convertOtherUserInfoToFriendsUserInfo(invite.invitedUserInfo);
                     context.push('/event', extra: EventParams(
-                        // event: event, invitedBy: invitedBy, userInfo: userInfo
                         inviteRes: invite,
                       )
                     );
@@ -243,16 +219,6 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Text(
-                        //   // invite.invitedBy.name,
-                        //   "Invited by ${invite.invitedBy.name}",
-                        //   style: TextStyle(
-                        //     fontSize: 13,
-                        //     fontWeight: FontWeight.w500,
-                        //     color: Colors.grey[600],
-                        //     height: 1
-                        //   )
-                        // ),
                         Row(
                           children: [
                             if (invite.invitedUserInfo.isHost)

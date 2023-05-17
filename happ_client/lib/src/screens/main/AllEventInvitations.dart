@@ -18,7 +18,6 @@ class _AllEventInvitationsState extends ConsumerState<AllEventInvitations> with 
   final RefreshController _refreshController = RefreshController(initialRefresh: false);
   late AnimationController _scaleController;
 
-  // wait for both to be done and then fade in
   bool? friends;
   bool? other;
 

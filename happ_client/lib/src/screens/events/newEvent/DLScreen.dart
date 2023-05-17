@@ -47,12 +47,6 @@ class _DLScreenState extends ConsumerState<DLScreen> with AutomaticKeepAliveClie
     });
   }
 
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  // }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -74,11 +68,7 @@ class _DLScreenState extends ConsumerState<DLScreen> with AutomaticKeepAliveClie
                 child: IntrinsicHeight(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    // mainAxisSize: MainAxisSize.min,
                     children: [
-                      // SizedBox(
-                      //   height: 45 + MediaQuery.of(context).padding.top,
-                      // ),
                       const Spacer(),
                       Text(
                         "Date and Time",
@@ -148,15 +138,8 @@ class _DLScreenState extends ConsumerState<DLScreen> with AutomaticKeepAliveClie
                       Container(height: 8, ),
                       Container(
                         key: addressGlobalKey,
-                        // padding: EdgeInsets.only(bottom: 8),
-                        // color: Colors.blue,
                         child: const DLScreenEditAddress(),
                       ),
-                      // Container(height: 8, color: Colors.green,),
-                      // SizedBox(
-                      //   height: MediaQuery.of(context).padding.top + 45,
-                      //   // color: Colors.yellow
-                      // ),
                       Builder(
                         builder: (context) {
                           double heightToAdd = 0;

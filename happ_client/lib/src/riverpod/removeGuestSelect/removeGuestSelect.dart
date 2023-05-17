@@ -14,19 +14,7 @@ class RemoveGuestSelectController extends StateNotifier<RemoveGuestSelectState> 
   }
 }
 
-// User taps on pencil
-// Dialog of Remove or ADD
-// If Remove then allow host to select guests that user wants to delete
-// pencil icon changes to trash icon
-// when trash icon is pressed, then selected guests are removed
-// trash icon changes to pencil again.
-
 final removeGuestSelectProvider =
   StateNotifierProvider<RemoveGuestSelectController, RemoveGuestSelectState>(
     (ref) => RemoveGuestSelectController()
   );
-
-// final inviteUserSelectProvider =
-//   StateNotifierProvider.family<InviteUserSelectController, InviteUserSelectState, String>(
-//     (ref, key) => InviteUserSelectController()
-//   );

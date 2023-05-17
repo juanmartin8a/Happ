@@ -400,4 +400,26 @@ class EventOptions {
 
     return queryOptions;
   }
+
+  QueryOptions locationDetailsFromCoordsQueryOptions(
+    double latitude,
+    double longitude
+  ) {
+    QueryOptions queryOptions = QueryOptions(
+      document: LocationDetailsFromCoordsQuery(
+        variables: LocationDetailsFromCoordsArguments(
+          coords: CoordinatesInput(latitude: latitude, longitude: longitude),
+        )
+      ).document,
+      variables: {
+        "coords": {
+          "latitude": latitude,
+          "longitude": longitude
+        },
+      },
+      fetchPolicy: FetchPolicy.noCache
+    );
+
+    return queryOptions;
+  }
 }

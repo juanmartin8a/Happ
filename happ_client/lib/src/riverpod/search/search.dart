@@ -1,9 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/repos/userRepo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/riverpod/search/searchState.dart';
-
-import '../../utils/user/currentUser.dart';
 
 class SearchController extends StateNotifier<SearchState> {
 
@@ -13,15 +12,13 @@ class SearchController extends StateNotifier<SearchState> {
 
   UserRepo get userRepo => UserRepo();
 
-  // ADD userSearching here
   void searchUsers(String search) async {
     // state = ProfileLoadingState();
     try {
       final res = await userRepo.searchUsers(search, currentUser.id);
-      // print(res);
       state = SearchLoadedState(searchUsersRes: res.searchUsers);
     } catch (e) {
-      print(e);
+      debugPrint("error in searchUsers: $e");
       state = SearchErrorState();
     }
   }
@@ -45,8 +42,3 @@ class SearchController extends StateNotifier<SearchState> {
     state = SearchInitState();
   }
 }
-
-// final searchProvider =
-//   StateNotifierProvider<SearchController, SearchState>(
-//     (ref) => SearchController()
-//   );

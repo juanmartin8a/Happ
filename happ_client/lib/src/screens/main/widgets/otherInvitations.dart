@@ -212,11 +212,7 @@ class _OtherInvitationsState extends ConsumerState<OtherInvitations> {
                 return GestureDetector(
                   onTap: () {
                     final inviteRes = EventTypesConverter().convertOtherInviteResToFriendsInviteRes(invite);
-                    // final event = EventTypesConverter().convertEventToFriendsEvent(invite.event);
-                    // final invitedBy = EventTypesConverter().convertOtherInvitedByToFriendsinvitedBy(invite.invitedBy);
-                    // final userInfo = EventTypesConverter().convertOtherUserInfoToFriendsUserInfo(invite.invitedUserInfo);
                     context.push('/event', extra: EventParams(
-                        // event: event, invitedBy: invitedBy, userInfo: userInfo
                         inviteRes: inviteRes,
                       )
                     );

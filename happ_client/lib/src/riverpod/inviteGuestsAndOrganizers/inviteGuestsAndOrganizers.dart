@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:happ_client/src/riverpod/inviteGuestsAndOrganizers/inviteGuestsAndOrganizersState.dart';
@@ -18,8 +19,7 @@ class InviteGuestsAndOrganizersController extends StateNotifier<InviteGuestsAndO
       final res = await eventRepo.inviteGuestsAndOrganizers(guests, organizers, eventId);
       state = InviteGuestsAndOrganizersDoneState(res: res.inviteGuestsAndOrganizers);
     } catch(e) {
-      print("errorrrrr");
-      print(e);
+      debugPrint("error in inviteGuestsAndOrganizers: $e");
       state = InviteGuestsAndOrganizersErrorState();
     }
   }

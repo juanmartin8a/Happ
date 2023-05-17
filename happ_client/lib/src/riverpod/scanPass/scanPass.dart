@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/riverpod/scanPass/scanPassState.dart';
@@ -18,6 +19,7 @@ class ScanPassController extends StateNotifier<ScanPassState> {
         state = ScanPassDoneState(false);
       }
     } catch (e) {
+      debugPrint("error in scanPass: $e");
       state = ScanPassErrorState();
     }
   }

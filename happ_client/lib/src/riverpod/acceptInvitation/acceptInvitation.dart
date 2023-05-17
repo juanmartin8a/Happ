@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:happ_client/src/riverpod/acceptInvitation/acceptInvitationState.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,12 +13,9 @@ class AcceptInvitationController extends StateNotifier<AcceptInvitationState> {
     state = AcceptInvitationLoadingState();
     try {
       final res = await eventRepo.acceptInvitation(eventId);
-      print(res);
       state = AcceptInvitationDoneState(acceptInviteRes: res);
-      // return to see if unchaged is == true
     } catch (e) {
-      print("errrorrrr :(");
-      print(e);
+      debugPrint("error in acceptInvitation: $e");
       state = AcceptInvitationInitState();
     }
   }

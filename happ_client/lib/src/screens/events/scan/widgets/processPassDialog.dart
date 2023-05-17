@@ -112,27 +112,12 @@ class ProcessPass extends ConsumerWidget {
                                     color: Colors.white,
                                     size: 80,
                                   ),
-                                  // Text(
-                                  //   ";)",
-                                  //   textAlign: TextAlign.center,
-                                  //   style: const TextStyle(
-                                  //     fontSize: 50,
-                                  //     fontWeight: FontWeight.w700,
-                                  //     color: Colors.white,
-                                  //     height: 1
-                                  //   )
-                                  // ),
                                 ],
                               ),
                             ),
                           ),
                           GestureDetector(
                             onTap: () {
-                              // if (widgetColor == Colors.greenAccent[700]) {
-                              //   func(2, newEventId: eventId);
-                              // } else {
-                              //   func(0);
-                              // }
                               Navigator.pop(context);
                               ref.invalidate(scanPassProvider);
                             },

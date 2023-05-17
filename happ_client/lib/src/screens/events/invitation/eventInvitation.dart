@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
-import 'package:happ_client/src/utils/user/currentUser.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../../utils/widgets/floatingActions.dart';
@@ -36,39 +35,12 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
       final html = dynamicHTML();
       controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        // ..setBackgroundColor(const Color(0x00000000))
-        
-        // ..setNavigationDelegate(
-        //   NavigationDelegate(
-        //     onProgress: (int progress) {
-        //       // Update loading bar.
-        //     },
-        //     onPageStarted: (String url) {},
-        //     onPageFinished: (String url) {},
-        //     onWebResourceError: (WebResourceError error) {},
-        //     onNavigationRequest: (NavigationRequest request) {
-        //       if (request.url.startsWith('https://www.youtube.com/')) {
-        //         return NavigationDecision.prevent;
-        //       }
-        //       return NavigationDecision.navigate;
-        //     },
-        //   ),
-        // )
-        // ..loadRequest(Uri.parse('https://flutter.dev'));
-        
         ..loadHtmlString(html);
     }
   }
   
   @override
   Widget build(BuildContext context) {
-    // print("toro");
-    // AcceptInvitationState state = ref.watch(acceptInvitationProvider);
-    // if (state is AcceptInvitationDoneState) {
-    //   isDefault = false;
-    //   widgetColor = Colors.greenAccent[400]!;
-    //   cypherText = state.cypherText;
-    // }
 
     if (widget.cypherText == null) {
       return Material(
@@ -127,73 +99,6 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
             Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                // SizedBox(
-                //   height: MediaQuery.of(context).padding.top
-                // ),
-                // Container(
-                //   height: 45,
-                //   padding: const EdgeInsets.symmetric(horizontal: 0),
-                //   child: Row(
-                //     crossAxisAlignment: CrossAxisAlignment.center,
-                //     children: [
-                //       GestureDetector(
-                //         onTap: () {
-                //           Navigator.pop(context);
-                //         },
-                //         child: FloatingActions(
-                //           icon: EvaIcons.arrowBackOutline, 
-                //           padding: const EdgeInsets.only(left: 8, right: 8),
-                //           // padding:  EdgeInsets.zero,
-                //           color: Colors.black,
-                //           size: 36,
-                //           key: Key("goBack_${widget.event.id}")
-                //         )
-                //       ),
-                //       Column(
-                //         crossAxisAlignment: CrossAxisAlignment.start,
-                //         mainAxisAlignment: MainAxisAlignment.center,
-                //         children: [
-                //           Text(
-                //             widget.event.name,
-                //             style: const TextStyle(
-                //               fontSize: 20,
-                //               fontWeight: FontWeight.w700,
-                //               color: Colors.black,
-                //               height: 1
-                //             )
-                //           ),
-                //           const SizedBox(height: 2),
-                //           Builder(
-                //             builder: (context) {
-                //               String date = "";
-
-                //               DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(widget.event.eventDate));
-                //               DateTime dateTimeNow = DateTime.now();
-
-                //               if (dateTimeNow.year == dateTime.year) {
-                //                 date ="${DateFormat.EEEE().format(dateTime)}, ${DateFormat.MMMM().format(dateTime)} ${dateTime.day}";
-                //               } else {
-                //                 date ="${DateFormat.EEEE().format(dateTime)}, ${DateFormat.MMMM().format(dateTime)}  ${dateTime.day}, ${dateTime.year}";
-                //               }
-
-                //               return Text(
-                //                 date,
-                //                 style: TextStyle(
-                //                   fontSize: 15,
-                //                   fontWeight: FontWeight.w500,
-                //                   color: Colors.grey[800],
-                //                   height: 1
-                //                 )
-                //               );
-                //             }
-                //           ),
-                        
-                //         ],
-                //       )
-                //     ],
-                //   )
-                // ),
-                // const Spacer(),
                 const SizedBox(height: 45),
                 Center(
                   child: Padding(
@@ -210,8 +115,6 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
                     ),
                   )
                 ),
-
-                // const SizedBox(height: 12),
                  Center(
                   child: Text(
                     "Pass",

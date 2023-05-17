@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:happ_client/src/riverpod/eventHosts/eventHostsState.dart';
@@ -15,15 +16,12 @@ class EventHostsController extends StateNotifier<EventHostsState> {
   ) async {
     state = EventHostsLoadingState();
     try {
-      // print("helloooooo");
       final res = await eventRepo.getEventHosts(eventId, limit, idsList);
-      // final newRes = EventTypesConverter().convertToGetUserEvents(res);
       state = GetEventHostsDoneState(res: res);
     } catch (e) {
-      print("erroraaaaa");
+      debugPrint("error in getEventHosts: $e");
       state = EventHostsErrorState();
     }
-    // state = AddPicturesDoneState(imageList: imageList);
   }
 }
 

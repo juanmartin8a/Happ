@@ -266,21 +266,15 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
   }
 
   void requestPermission() async {
-    final PermissionState _ps = await PhotoManager.requestPermissionExtend();
-    accessGranted = _ps.isAuth;
+    final PermissionState ps = await PhotoManager.requestPermissionExtend();
+    accessGranted = ps.isAuth;
     if (accessGranted == true) {
       getPhotos(0);
     }
   }
-  // user clicks add picture
-  // get permissions
-  // if it has permission then request photos
-  // put photos in widget list
-  // if add more
 
   void getPhotos(page) async {
     List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
-      // onlyAll: true,
       type: RequestType.image,
       filterOption: FilterOptionGroup()
       ..addOrderOption(
@@ -339,11 +333,9 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
         )
       );
       if (widget.selectOne == true) {
-        // print("aaaa");
         setState(() {
           selectedImages = [];
         });
-        // print(selectedImages);
       } else {
         setState(() {
           selectedImages.removeWhere((i) => i == index);
@@ -424,7 +416,7 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
   }
 
   Future<File> compressFile(String filePath, String destinationPath) async {
-    File? res = await FlutterImageCompress.compressAndGetFile(
+    await FlutterImageCompress.compressAndGetFile(
       filePath,
       destinationPath,
       minWidth: 720,
@@ -432,25 +424,17 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
       quality: 70,
     );
 
-    if (res == null) {
-      // print("error");
-    }
-
     return File(destinationPath);
   }
 
   Future<File> highlyCompressFile(String filePath, String destinationPath) async {
-    File? res = await FlutterImageCompress.compressAndGetFile(
+    await FlutterImageCompress.compressAndGetFile(
       filePath,
       destinationPath,
       minWidth: 320,
       minHeight: 320,
       quality: 70,
     );
-
-    if (res == null) {
-      print("error");
-    }
 
     return File(destinationPath);
   }

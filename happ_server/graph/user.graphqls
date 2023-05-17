@@ -73,6 +73,11 @@ type Coordinates {
   longitude: Float!
 }
 
+input CoordinatesInput {
+  latitude: Float!
+  longitude: Float!
+}
+
 input NewEventInput {
   name: String!
   description: String!
@@ -128,6 +133,11 @@ type AcceptInvitationResponse {
   isHost: Boolean!
 }
 
+type LocationAutoCompletePrediction {
+  placeId: String!,
+  description: String!
+}
+
 type Query {
   user(
     username: String!
@@ -168,6 +178,15 @@ type Query {
     search: String!
     eventId: Int!
   ): [User!]!,
+  searchLocation(
+    search: String!
+  ): [LocationAutoCompletePrediction!]!,
+  locationDetails(
+    placeID: String!
+  ): Coordinates!,
+  locationDetailsFromCoords (
+    coords: CoordinatesInput!
+  ): String!,
 }
 
 type Mutation {
@@ -216,5 +235,3 @@ type Mutation {
     token: String!
   ): Boolean
 }
-
-# 

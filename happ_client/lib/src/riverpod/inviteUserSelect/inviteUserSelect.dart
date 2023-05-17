@@ -27,8 +27,3 @@ final inviteUserSelectProvider =
   StateNotifierProvider<InviteUserSelectController, InviteUserSelectState>(
     (ref) => InviteUserSelectController()
   );
-
-// final inviteUserSelectProvider =
-//   StateNotifierProvider.family<InviteUserSelectController, InviteUserSelectState, String>(
-//     (ref, key) => InviteUserSelectController()
-//   );

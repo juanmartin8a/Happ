@@ -2,22 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/riverpod/eventUpdateReady/eventUpdateReady.dart';
-import 'package:happ_client/src/riverpod/newEventComplete/newEventComplete.dart';
 import 'package:happ_client/src/riverpod/pickDateAndTime/pickDateAndTime.dart';
-import 'package:intl/intl.dart';
 
-// class UpdateDatetimePicker extends StatefulWidget {
-//   final bool isDate;
-//   const DateTimePicker({
-//     required this.isDate,
-//     required Key key
-//   }) : super(key: key);
-
-//   @override
-//   State<DateTimePicker> createState() => _DateTimePickerState();
-// }
-
-// class _DateTimePickerState extends State<DateTimePicker> {
 class UpdateDatetimePicker extends ConsumerWidget {
   final bool isDate;
   final DateTime datetime;

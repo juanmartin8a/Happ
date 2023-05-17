@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:happ_client/src/riverpod/newEvent/newEventState.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,7 +25,7 @@ class NewEventController extends StateNotifier<NewEventState> {
       final res = await eventRepo.newEvent(name, description, eventDate, eventPics, eventPicsLight, latitude, longitude, eventPlace);
       state = NewEventDoneState(newEventRes: res);
     } catch (e) {
-      print(e);
+      debugPrint("error in newEvent: $e");
       state = NewEventErrorState();
     }
   }

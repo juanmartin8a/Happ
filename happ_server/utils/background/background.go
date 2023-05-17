@@ -38,9 +38,16 @@ func DeleteOrphanedEventUsers() {
 
 			if err != nil {
 				log.Printf("Error deleting orphaned event_user rows: %v", err)
+				time.Sleep(pauseDuration)
+				continue
 			}
 
-			affectedRows, _ := res.RowsAffected()
+			affectedRows, err := res.RowsAffected()
+			if err != nil {
+				log.Printf("Error getting affected rows after deleting orphaned event_user rows: %v", err)
+				time.Sleep(pauseDuration)
+				continue
+			}
 
 			if affectedRows == 0 || batchesProcessed >= maxBatches {
 				hasOrphans = false
@@ -78,10 +85,17 @@ func DeleteOrphanedEventReminderNotifications() {
 			`, batchSize)
 
 			if err != nil {
-				log.Printf("Error deleting orphaned event_user rows: %v", err)
+				log.Printf("Error deleting orphaned event_reminder_notification rows: %v", err)
+				time.Sleep(pauseDuration)
+				continue
 			}
 
-			affectedRows, _ := res.RowsAffected()
+			affectedRows, err := res.RowsAffected()
+			if err != nil {
+				log.Printf("Error getting affected rows after deleting orphaned event_reminder_notification rows: %v", err)
+				time.Sleep(pauseDuration)
+				continue
+			}
 
 			if affectedRows == 0 || batchesProcessed >= maxBatches {
 				hasOrphans = false
@@ -94,8 +108,6 @@ func DeleteOrphanedEventReminderNotifications() {
 }
 
 func DeleteEventsAfterEventDate() {
-	// Delete events 1 day after the event date,
-	// Runs every 2 hours
 	const maxBatches = 10
 	const batchSize = 100
 	const pauseDuration = time.Second * 2
@@ -109,16 +121,23 @@ func DeleteEventsAfterEventDate() {
 		for hasOrphans {
 			batchesProcessed++
 			res, err := utils.Client.DB().ExecContext(ctx, `
-				DELETE FROM events e
-				WHERE DATE_ADD(e.event_date, INTERVAL 7 DAY) < NOW()
+				DELETE FROM events
+				WHERE DATE_ADD(event_date, INTERVAL 7 DAY) < NOW()
 				LIMIT ?
 			`, batchSize)
 
 			if err != nil {
-				log.Printf("Error deleting orphaned event_user rows: %v", err)
+				log.Printf("Error deleting event after event date: %v", err)
+				time.Sleep(pauseDuration)
+				continue
 			}
 
-			affectedRows, _ := res.RowsAffected()
+			affectedRows, err := res.RowsAffected()
+			if err != nil {
+				log.Printf("Error getting affected rows after deleting events 7 days or more after event date: %v", err)
+				time.Sleep(pauseDuration)
+				continue
+			}
 
 			if affectedRows == 0 || batchesProcessed >= maxBatches {
 				hasOrphans = false
@@ -171,7 +190,8 @@ func SendEventNotifications() {
 				`, daysLeft, batchSize)
 				if err != nil {
 					log.Printf("Error fetching event_users for notifications: %v", err)
-					break
+					time.Sleep(pauseDuration)
+					continue
 				}
 
 				affectedRows := 0

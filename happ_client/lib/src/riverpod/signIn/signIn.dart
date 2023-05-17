@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/repos/userRepo.dart';
 import 'package:happ_client/src/riverpod/signIn/signInState.dart';
@@ -20,7 +21,7 @@ class SignInController extends StateNotifier<SignInState> {
       final res = await userRepo.signIn(token, provider, name, authorizationCode);
       state = SignInDoneState(signInRes: res);
     } catch (e) {
-      print(e);
+      debugPrint("error in signIn: $e");
       state = SignInErrorState();
     }
   }

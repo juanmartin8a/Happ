@@ -18,7 +18,7 @@ class SearchLocationResults extends ConsumerWidget {
     if (searchLocationState is !LocationSearchLoadedState) {
       return const SizedBox();
     }
-    // print(searchLocationState.predictions);
+    
     return ListView.builder(
       padding: EdgeInsets.zero,
       itemCount: searchLocationState.predictions.length + 1,

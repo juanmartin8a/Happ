@@ -15,7 +15,7 @@ class SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return  Container(
       height: 40,
-      padding: EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       color: Colors.transparent,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,8 +17,7 @@ class UserEvents extends StateNotifier<UserEventState> {
       state = UserEventsLoadedState(res: res, isRefresh: isRefresh);
       return true;
     } catch (e) {
-      print("error");
-      print(e);
+      debugPrint("error in getUserEvents: $e");
       return false;
     }
   }
@@ -34,8 +34,7 @@ class UserEvents extends StateNotifier<UserEventState> {
       }
       return res;
     } catch (e) {
-      print("error");
-      print(e);
+      debugPrint("error in getUserEventsFromFriends: $e");
       return null;
     }
   }
@@ -56,8 +55,7 @@ class UserEvents extends StateNotifier<UserEventState> {
       }
       return res;
     } catch (e) {
-      print("error");
-      print(e);
+      debugPrint("error in getOtherUserEvents: $e");
       return null;
     }
   }

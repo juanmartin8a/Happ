@@ -1,0 +1,3 @@
+query LocationDetailsFromCoords($coords: CoordinatesInput!) {
+  locationDetailsFromCoords(coords: $coords)
+}

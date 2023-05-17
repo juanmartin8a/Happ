@@ -10,9 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/screens/home.dart';
 import 'package:happ_client/src/utils/getUserIdFromFBIDToken.dart';
 
-// final userAccessProvider =
-//     StateNotifierProvider<UserAccessController, UserAccessState>((ref) => UserAccessController());
-
 class Wrapper extends ConsumerStatefulWidget {
   const Wrapper({Key? key}) : super(key: key);
 
@@ -85,9 +82,6 @@ class WrapperState extends ConsumerState<Wrapper> {
       claims = parseJwt(token);
     }
     int userId = claims["id"];
-
-    // print(userId);
-    // print(claims[]);
 
     Map<String, dynamic> userJson = {
       "id": userId,

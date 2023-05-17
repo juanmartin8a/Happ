@@ -7,7 +7,6 @@ import 'package:happ_client/src/riverpod/scanPass/scanPassState.dart';
 import 'package:happ_client/src/screens/events/scan/widgets/processPassDialog.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:uuid/uuid.dart';
 
 class ScanScreen extends ConsumerStatefulWidget {
   final int eventId;

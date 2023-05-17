@@ -10,14 +10,9 @@ import 'package:happ_client/src/screens/events/class/eventAndInviteParams.dart';
 import 'package:happ_client/src/screens/main/widgets/otherInvitations.dart';
 
 class AcceptButton extends ConsumerStatefulWidget {
-  // final GetUserEventsFromFriends$Query$EventInviteRes$Event event;
-  // final GetUserEventsFromFriends$Query$EventInviteRes$InvitedUserInfo userInfo;
   final GetUserEventsFromFriends$Query$PaginatedEventResults$EventInviteRes inviteRes;
   const AcceptButton({
     required this.inviteRes,
-    // required this.event,
-    // required this.userInfo,
-
     super.key
   });
 
@@ -48,22 +43,6 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
     isHost = userInfo.isHost;
     isConfirmed = userInfo.isConfirmed;
   }
-
-  // If accepted, change invite list
-  
-  // accept button does the following:
-  // if user not confirm then accept
-  // if user confirmed and guest, then see pass
-  // if user confirmed and host, then scan
-  // if user confirmed and creator, then scan
-
-  // Three actions:
-  // accept
-  // see pass
-  // scan
-
-  // Add another class to AcceptInvitationProvider (for "see pass")
-  // For scan just push to another screen
 
   @override
   Widget build(BuildContext context) {
@@ -131,12 +110,6 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
 
     String buttonTextString = "";
 
-    // If is creator then "Scan"
-    // If is not creator neither host, then "Accept"
-    // If accepted then "See pass"
-    // If host then "Accept"
-    // If accepted then "Scan"
-
     if (isCreator) {
       buttonTextString = "Scan";
     } else if (isHost) {
@@ -161,12 +134,7 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
           } else if (isConfirmed == false) {
             ref.read(acceptInvitationProvider.notifier).acceptInvitation(event.id);
           } else if (isConfirmed && isHost) {
-            // final inviteRes = EventTypesConverter().convertOtherInviteResToFriendsInviteRes(invite);
-            // final event = EventTypesConverter().convertEventToFriendsEvent(invite.event);
-            // final invitedBy = EventTypesConverter().convertOtherInvitedByToFriendsinvitedBy(invite.invitedBy);
-            // final userInfo = EventTypesConverter().convertOtherUserInfoToFriendsUserInfo(invite.invitedUserInfo);
             context.push('/scan-pass', extra: InviteGuestsScreenParams(
-                // event: event, invitedBy: invitedBy, userInfo: userInfo
                 eventId: event.id,
               )
             );
@@ -177,12 +145,7 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
         height: 45,
         width: MediaQuery.of(context).size.width * 0.5,
         decoration: BoxDecoration(
-          // color: Colors.greenAccent[700],
-          // color: Color(0xFFFFF017),
-          // color: Color(0xFFFF7F50),
-          // color: Colors.yellow,
           color: Colors.black,
-          // color: Colors.deepPurpleAccent[400],
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
@@ -206,11 +169,9 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
           : Text(
             buttonTextString,
             style: const TextStyle(
-              // color: Colors.grey[800]!,
               color: Colors.white,
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              // height: 1
             )
           ),
         )

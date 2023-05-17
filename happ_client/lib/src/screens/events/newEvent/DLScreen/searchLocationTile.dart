@@ -64,7 +64,6 @@ class SearchLocationTile extends ConsumerWidget {
       key: Key("place_id_${tile.placeId}"),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8),
-        // padding: EdgeInsets.zero,
         child: widget,
       )
     );

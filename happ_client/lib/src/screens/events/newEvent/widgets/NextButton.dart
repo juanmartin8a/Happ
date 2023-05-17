@@ -9,9 +9,6 @@ import 'package:happ_client/src/screens/events/newEvent/widgets/loadingDialog.da
 import 'package:http/http.dart';
 import 'package:latlong2/latlong.dart' as latLng;
 
-// final newEventCompleteProvider =
-//   StateNotifierProvider<NewEventCompleteController, NewEventCompleteState>((ref) => NewEventCompleteController());
-
 class NextButton extends ConsumerStatefulWidget {
   final int page;
   final Function animateToPage;
@@ -57,7 +54,6 @@ class _NextButtonState extends ConsumerState<NextButton> {
       if (state.eventId != null) eventId = state.eventId;
     }
 
-    // check if is empty
     Color buttonColor;
     String text;
 
@@ -128,7 +124,6 @@ class _NextButtonState extends ConsumerState<NextButton> {
               color: Colors.white,
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              // height: 1
             )
           ),
         )

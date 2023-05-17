@@ -12,28 +12,9 @@ class Search extends StatelessWidget {
       color: Colors.transparent,
       child: Container(
         color: Colors.white.withOpacity(1.0),
-        // padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Column(
           children: [
             SizedBox(height: statusBar),
-            // Container(
-            //   height: 20,
-            //   // padding: EdgeInsets.only(top: statusBar),
-            //   child: Center(
-            //     // alignment: Alignment.centerLeft,
-            //     child: Text(
-            //       "Search for users",
-            //       style: TextStyle(
-            //         // fontFamily: "Roboto",
-            //         // fontStyle: FontStyle.,
-            //         color: Colors.grey[800],
-            //         fontSize: 15,
-            //         fontWeight: FontWeight.w700,
-            //         height: 1
-            //       )
-            //     ),
-            //   )
-            // ),
             const SearchBar(),
             const Expanded(
               child: SearchResults()

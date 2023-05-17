@@ -26,6 +26,7 @@ import (
 	awsParameterStore "happ/utils/aws/awsParams"
 	"happ/utils/aws/awsS3"
 	firebaseUtils "happ/utils/firebase"
+	googleMapsUtils "happ/utils/googleMaps"
 	"happ/utils/inputHandlers"
 	meilisearchUtils "happ/utils/meilisearch"
 	"happ/utils/newEventUtils"
@@ -2835,6 +2836,75 @@ func (r *queryResolver) SearchForUsersToAddAsGuests(ctx context.Context, search 
 	}
 
 	return users, nil
+}
+
+// SearchLocation is the resolver for the searchLocation field.
+func (r *queryResolver) SearchLocation(ctx context.Context, search string) ([]*model.LocationAutoCompletePrediction, error) {
+	res, err := googleMapsUtils.LocationAutocomplete(ctx, search)
+	if err != nil {
+		log.Printf("Error while calling LocationAutocomplete(): %s", err)
+		return nil, err
+	}
+
+	var autocompletePrediction []*model.LocationAutoCompletePrediction
+
+	for _, prediction := range *res {
+		predictionVal := &model.LocationAutoCompletePrediction{
+			PlaceID:     prediction.PlaceID,
+			Description: prediction.Description,
+		}
+		autocompletePrediction = append(autocompletePrediction, predictionVal)
+	}
+
+	return autocompletePrediction, nil
+}
+
+// LocationDetails is the resolver for the locationDetails field.
+func (r *queryResolver) LocationDetails(ctx context.Context, placeID string) (*model.Coordinates, error) {
+	res, err := googleMapsUtils.LocationDetails(ctx, placeID)
+	if err != nil {
+		log.Printf("Error while calling LocationDetails(): %s", err)
+		return nil, err
+	}
+
+	geocodingRes := *res
+
+	coords := &model.Coordinates{
+		Latitude:  geocodingRes[0].Geometry.Location.Lat,
+		Longitude: geocodingRes[0].Geometry.Location.Lng,
+	}
+
+	return coords, nil
+}
+
+// LocationDetailsFromCoords is the resolver for the locationDetailsFromCoords field.
+func (r *queryResolver) LocationDetailsFromCoords(ctx context.Context, coords model.CoordinatesInput) (string, error) {
+	res, err := googleMapsUtils.LocationDetailsFromCoords(ctx, coords)
+	if err != nil {
+		log.Printf("Error while calling LocationDetails(): %s", err)
+		return "", err
+	}
+
+	geocodingRes := *res
+
+	name := ""
+	for _, result := range geocodingRes {
+		hasPlusCode := false
+		if len(result.AddressComponents) > 0 {
+			for _, t := range result.AddressComponents[0].Types {
+				if t == "plus_code" {
+					hasPlusCode = true
+					break
+				}
+			}
+		}
+		if !hasPlusCode {
+			name = result.FormattedAddress
+			break
+		}
+	}
+
+	return name, nil
 }
 
 // FollowState is the resolver for the followState field.

@@ -30,18 +30,6 @@ class _SearchFUTAAGInviteTileState extends ConsumerState<SearchFUTAAGInviteTile>
 
   @override
   Widget build(BuildContext context) {
-    // ref.listen(addNewGuestsSelectProvider, (prev, next) {
-    //   if (next is AddNewGuestsRemoveState) {
-    //     if (next.userId == widget.user.id) {
-    //       if (isSelected) {
-    //         setState(() {
-    //           isSelected = false;
-    //         });
-    //       }
-    //     }
-    //   }
-    // });
-    // final toro = ref.read(currentUserProvider);
     return GestureDetector(
       onTap: () {
         if (isSelected) {
@@ -102,7 +90,7 @@ class _SearchFUTAAGInviteTileState extends ConsumerState<SearchFUTAAGInviteTile>
                 )
               ),
             ),
-            if (widget.user.id != ref.read(currentUserProvider))
+            if (widget.user.id != ref.read(currentUserProvider)!.id)
             isSelected 
             ? Container(
               height: 24,

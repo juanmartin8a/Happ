@@ -94,16 +94,6 @@ class InviteLoadingDialog extends ConsumerWidget {
                               height: 1
                             )
                           ),
-                          // const SizedBox(height: 1),
-                          // Text(
-                          //   "May take a few seconds",
-                          //   style: TextStyle(
-                          //     fontSize: 14,
-                          //     fontWeight: FontWeight.w400,
-                          //     color: Colors.grey[500],
-                          //     // height: 1.5
-                          //   ),
-                          // ),
                           Spacer(),
                           SizedBox(
                             height: 40,
@@ -143,9 +133,6 @@ class InviteLoadingDialog extends ConsumerWidget {
                           ),
                           GestureDetector(
                             onTap: () {
-                              // if (widgetColor == Colors.greenAccent[700]) {
-                              //   func(0, newEventId: eventId);
-                              // } else {
                               if (comesFromAddNewGuests) {
                                 ref.invalidate(addGuestsProvider);
                               }
@@ -153,7 +140,6 @@ class InviteLoadingDialog extends ConsumerWidget {
                               if (!comesFromAddNewGuests) {
                                 func(0, callRefresh: true);
                               }
-                              // }
                             },
                             child: const Padding(
                               padding: EdgeInsets.only(bottom: 12),

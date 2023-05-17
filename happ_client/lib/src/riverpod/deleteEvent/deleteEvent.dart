@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/repos/eventRepo.dart';
 import 'package:happ_client/src/riverpod/deleteEvent/deleteEventState.dart';
@@ -18,8 +19,7 @@ class DeleteEvent extends StateNotifier<DeleteEventState> {
       // await Future.delayed(Duration(milliseconds: 5000));
       // state = DeleteEventDoneState(res: true, eventId: eventId);
     } catch(e) {
-      print("errorrrrr");
-      print(e);
+      debugPrint("error in deleteEvent: $e");
       state = DeleteEventErrorState();
     }
   }

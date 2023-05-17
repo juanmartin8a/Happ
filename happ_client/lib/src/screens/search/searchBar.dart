@@ -38,7 +38,7 @@ class _SearchBarState extends ConsumerState<SearchBar> with AutomaticKeepAliveCl
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    print("called");
+    
     return SizedBox(
       height: 45,
       child: Center(

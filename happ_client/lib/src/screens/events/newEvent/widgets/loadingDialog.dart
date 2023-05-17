@@ -35,10 +35,6 @@ class LoadingDialog extends ConsumerWidget {
       color: Colors.transparent,
       child: Stack(
         children: [
-          // GestureDetector(
-          //   onTap: () => Navigator.pop(context),
-          //   child: Container(color: Colors.black26)
-          // ),
           Container(color: Colors.black26),
           Center(
             child: ClipRRect(
