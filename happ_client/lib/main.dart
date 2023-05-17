@@ -30,8 +30,8 @@ void main() async {
   final firebaseAuth = FirebaseAuth.instance;
 
   final HttpLink httpLink = HttpLink(
-    'http://localhost:8080/query',
-    // 'https://api.happ.rsvp/query'
+    // 'http://localhost:8080/query',
+    'https://api.happ.rsvp/query'
   );
 
   final AuthLink authLink = AuthLink(
