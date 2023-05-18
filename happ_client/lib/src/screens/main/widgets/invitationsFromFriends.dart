@@ -193,7 +193,7 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
           ),
         )
         : SizedBox(
-          height: 252,
+          height: 239,
           child: ListView(
             scrollDirection: Axis.horizontal,
             physics: const AlwaysScrollableScrollPhysics(),
@@ -238,9 +238,9 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
                                 .replaceAll(Characters(' '), Characters('\u{000A0}'))
                                 .toString(),
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.grey[800],
+                                  color: Colors.grey[600],
                                   height: 1
                                 ),
                                 softWrap: false,
@@ -250,7 +250,7 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
                             ),
                           ],
                         ),
-                        const SizedBox(height:4),
+                        const SizedBox(height:2),
                         AspectRatio(
                           aspectRatio: 4/3,
                           child: ClipRRect(
@@ -263,9 +263,11 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          invite.event.name,
+                          Characters(invite.event.name)
+                          .replaceAll(Characters(' '), Characters('\u{000A0}'))
+                          .toString(),
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: Colors.grey[800],
                             height: 1
@@ -274,7 +276,7 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Builder(
                           builder: (context) {
                             String date = "";
@@ -291,7 +293,7 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
                             return Text(
                               date,
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.w500,
                                 color: Colors.grey[600],
                                 height: 1
@@ -300,7 +302,7 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
                           }
                         ),
                         if (invite.friends.isNotEmpty)
-                        const SizedBox(height: 5.5),
+                        const SizedBox(height: 8 - 2.5),
                         if (invite.friends.isNotEmpty)
                         SizedBox(
                           width: MediaQuery.of(context).size.width,
@@ -384,7 +386,7 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
                             ],
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                       ],
                     )
                   ),
@@ -393,7 +395,7 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
               if (isLoading)
               Container(
                 width: 80,
-                height: 252,
+                height: 239,
                 padding: const EdgeInsets.only(top: 21, left: 4, right: 4,),
 
                 child: const Align(

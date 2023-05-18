@@ -89,7 +89,6 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
                           padding: const EdgeInsets.only(
                             right: 8,
                             left: 8,
-                            // bottom: MediaQuery.of(context).viewInsets.bottom,
                           ),
                           key: nameGlobalKey,
                           width: MediaQuery.of(context).size.width,
@@ -100,6 +99,7 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
                             textAlignVertical: TextAlignVertical.center,
                             keyboardAppearance: Brightness.dark,
                             autofocus: false,
+                            maxLength: 40,
                             style: TextStyle(
                               color: Colors.grey[800]!,
                               fontSize: 19,
@@ -109,6 +109,7 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
                             decoration: InputDecoration(
                               isCollapsed: true,
                               alignLabelWithHint: true,
+                              counterText: "",
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.zero,
                               hintText: 'Event Name',
@@ -148,6 +149,7 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
                             textAlignVertical: TextAlignVertical.center,
                             keyboardAppearance: Brightness.dark,
                             autofocus: false,
+                            maxLength: 200,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -157,6 +159,7 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
                             decoration: InputDecoration(
                               isCollapsed: true,
                               alignLabelWithHint: true,
+                              counterText: "",
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.zero,
                               hintText: 'Description',

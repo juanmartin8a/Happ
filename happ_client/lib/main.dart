@@ -30,8 +30,8 @@ void main() async {
   final firebaseAuth = FirebaseAuth.instance;
 
   final HttpLink httpLink = HttpLink(
-    // 'http://localhost:8080/query',
-    'https://api.happ.rsvp/query'
+    'http://localhost:8080/query',
+    // 'https://api.happ.rsvp/query'
   );
 
   final AuthLink authLink = AuthLink(
@@ -77,8 +77,8 @@ class MyApp extends ConsumerWidget {
         routeInformationProvider: _router.routeInformationProvider,
         routeInformationParser: _router.routeInformationParser,
         routerDelegate: _router.routerDelegate,
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          // primarySwatch: Colors.blue,
           fontFamily: "Inter",
           // appBarTheme: const AppBarTheme(
           //   foregroundColor: Colors.black,

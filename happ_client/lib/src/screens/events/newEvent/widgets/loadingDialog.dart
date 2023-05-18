@@ -117,7 +117,7 @@ class LoadingDialog extends ConsumerWidget {
                               if (widgetColor == const Color.fromARGB(255, 1, 228, 96)) {
                                 func(2, newEventId: eventId);
                               } else {
-                                func(0);
+                                func(0, callRefresh: true);
                               }
                               Navigator.pop(context);
                             },

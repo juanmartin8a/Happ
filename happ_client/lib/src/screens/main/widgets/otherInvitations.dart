@@ -199,8 +199,7 @@ class _OtherInvitationsState extends ConsumerState<OtherInvitations> {
           ),
         )
         : SizedBox(
-          height: 252,
-          // color: Colors.red,
+          height: 239,
           child: ListView(
             scrollDirection: Axis.horizontal,
             controller: scrollController,
@@ -395,6 +394,7 @@ class _OtherInvitationsState extends ConsumerState<OtherInvitations> {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 4),
                       ],
                     )
                   ),
@@ -403,7 +403,7 @@ class _OtherInvitationsState extends ConsumerState<OtherInvitations> {
               if (isLoading)
               Container(
                 width: 80,
-                height: 252,
+                height: 239,
                 padding: const EdgeInsets.only(top: 21, left: 4, right: 4,),
 
                 child: const Align(

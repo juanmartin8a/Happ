@@ -187,7 +187,7 @@ class _EventState extends ConsumerState<Event> {
                               .replaceAll(Characters(' '), Characters('\u{000A0}'))
                               .toString(),
                             style: TextStyle(
-                              fontSize: event.name.length <= 22 ? 19 : 16,
+                              fontSize: event.name.length <= 35 ? event.name.length <= 22 ? 19 : 16 : 15,
                               fontWeight: FontWeight.w700,
                               color: Colors.grey[800],
                               height: 1
@@ -204,10 +204,12 @@ class _EventState extends ConsumerState<Event> {
                               DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(event.eventDate));
                               DateTime dateTimeNow = DateTime.now();
     
+                              String formattedTime = DateFormat.jm().format(dateTime); // This will give you time in AM/PM format
+
                               if (dateTimeNow.year == dateTime.year) {
-                                date ="${DateFormat.EEEE().format(dateTime)}, ${DateFormat.MMMM().format(dateTime)} ${dateTime.day}";
+                                date = "${DateFormat.EEEE().format(dateTime)}, ${DateFormat.MMMM().format(dateTime)} ${dateTime.day}, $formattedTime";
                               } else {
-                                date ="${DateFormat.EEEE().format(dateTime)}, ${DateFormat.MMMM().format(dateTime)}  ${dateTime.day}, ${dateTime.year}";
+                                date = "${DateFormat.EEEE().format(dateTime)}, ${DateFormat.MMMM().format(dateTime)} ${dateTime.day}, ${dateTime.year}, $formattedTime";
                               }
     
                               return Text(

@@ -70,6 +70,7 @@ class _NewEventState extends ConsumerState<NewEvent> {
             children: [
               NPDScreen(key: Key("NPD_$uuidKey"), height: pageViewHeight),
               Builder(
+                key: Key("newEvent_builder_$uuidKey"),
                 builder: (BuildContext context) {
                   return DLScreen(latitude: latitude, longitude: longitude, height: pageViewHeight, context: context, key: Key("DL_$uuidKey"));
                 },

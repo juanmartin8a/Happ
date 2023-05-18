@@ -144,6 +144,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                             textInputAction: TextInputAction.done,
                             textAlignVertical: TextAlignVertical.center,
                             keyboardAppearance: Brightness.dark,
+                            maxLength: 40,
                             style: TextStyle(
                               color: Colors.grey[800]!,
                               fontSize: 19,
@@ -154,6 +155,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                               isCollapsed: true,
                               alignLabelWithHint: true,
                               border: InputBorder.none,
+                              counterText: "",
                               contentPadding: EdgeInsets.zero,
                               hintText: 'Event Name',
                               hintStyle: TextStyle(
@@ -192,11 +194,10 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                             left: 12,
                           ),
                           child: TextFormField(
-                            // expands: true,
                             maxLines: null,
                             controller: descriptionController,
                             textInputAction: TextInputAction.done,
-                            // textAlign: TextAlign.center,
+                            maxLength: 200,
                             textAlignVertical: TextAlignVertical.center,
                             keyboardAppearance: Brightness.dark,
                             style: TextStyle(
@@ -207,7 +208,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
                             ),
                             decoration: InputDecoration(
                               isCollapsed: true,
-                              // alignLabelWithHint: true,
+                              counterText: "",
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.zero,
                               hintText: 'Description',
