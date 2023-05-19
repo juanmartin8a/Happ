@@ -45,9 +45,11 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Happ needs camera access to scan invitations.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Happ wants to access your location.</string>
+	<string>Happ wants to always access your location.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Happ wants to access your location when the app is open.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Happ wants to access your location.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Happ needs access to your photos.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

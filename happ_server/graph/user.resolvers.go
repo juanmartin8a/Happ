@@ -780,7 +780,14 @@ func (r *mutationResolver) NewEvent(ctx context.Context, input model.NewEventInp
 		uuidString := uuid.String()
 		key := "eventPictures/" + strconv.Itoa(i) + "-" + uuidString + ".jpg"
 
-		eventPics = append(eventPics, "https://d3pvchlba3rmqp.cloudfront.net/"+key)
+		var fullKey string
+		if config.C.AppEnv == "prod" {
+			fullKey = "https://di7aab2ls1mmt.cloudfront.net/" + key
+		} else if config.C.AppEnv == "dev" {
+			fullKey = "https://d3pvchlba3rmqp.cloudfront.net/" + key
+		}
+
+		eventPics = append(eventPics, fullKey)
 
 		file := bytes.NewReader(content)
 		uploadRes := awsS3.UploadToS3(key, file)
@@ -801,7 +808,14 @@ func (r *mutationResolver) NewEvent(ctx context.Context, input model.NewEventInp
 		uuidString := uuid.String()
 		key := "lightEventPictures/" + strconv.Itoa(i) + "-" + uuidString + ".jpg"
 
-		lightEventPics = append(lightEventPics, "https://d3pvchlba3rmqp.cloudfront.net/"+key)
+		var fullKey string
+		if config.C.AppEnv == "prod" {
+			fullKey = "https://di7aab2ls1mmt.cloudfront.net/" + key
+		} else if config.C.AppEnv == "dev" {
+			fullKey = "https://d3pvchlba3rmqp.cloudfront.net/" + key
+		}
+
+		lightEventPics = append(lightEventPics, fullKey)
 
 		file := bytes.NewReader(content)
 		uploadRes := awsS3.UploadToS3(key, file)
@@ -1218,7 +1232,14 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 				uuidString := uuid.String()
 				key := "eventPictures/" + strconv.Itoa(index) + "-" + uuidString + ".jpg"
 
-				eventPics[index] = "https://d3pvchlba3rmqp.cloudfront.net/" + key
+				var fullKey string
+				if config.C.AppEnv == "prod" {
+					fullKey = "https://di7aab2ls1mmt.cloudfront.net/" + key
+				} else if config.C.AppEnv == "dev" {
+					fullKey = "https://d3pvchlba3rmqp.cloudfront.net/" + key
+				}
+
+				eventPics[index] = fullKey
 
 				file := bytes.NewReader(content)
 				uploadRes := awsS3.UploadToS3(key, file)
@@ -1251,7 +1272,14 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 				uuidString := uuid.String()
 				key := "eventPictures/" + strconv.Itoa(len(eventPics)) + "-" + uuidString + ".jpg"
 
-				eventPics = append(eventPics, "https://d3pvchlba3rmqp.cloudfront.net/"+key)
+				var fullKey string
+				if config.C.AppEnv == "prod" {
+					fullKey = "https://di7aab2ls1mmt.cloudfront.net/" + key
+				} else if config.C.AppEnv == "dev" {
+					fullKey = "https://d3pvchlba3rmqp.cloudfront.net/" + key
+				}
+
+				eventPics = append(eventPics, fullKey)
 
 				file := bytes.NewReader(content)
 				uploadRes := awsS3.UploadToS3(key, file)
@@ -1277,7 +1305,14 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 				uuidString := uuid.String()
 				key := "lightEventPictures/" + strconv.Itoa(index) + "-" + uuidString + ".jpg"
 
-				lightEventPics[index] = "https://d3pvchlba3rmqp.cloudfront.net/" + key
+				var fullKey string
+				if config.C.AppEnv == "prod" {
+					fullKey = "https://di7aab2ls1mmt.cloudfront.net/" + key
+				} else if config.C.AppEnv == "dev" {
+					fullKey = "https://d3pvchlba3rmqp.cloudfront.net/" + key
+				}
+
+				lightEventPics[index] = fullKey
 
 				file := bytes.NewReader(content)
 				uploadRes := awsS3.UploadToS3(key, file)
@@ -1310,7 +1345,14 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 				uuidString := uuid.String()
 				key := "lightEventPictures/" + strconv.Itoa(len(lightEventPics)) + "-" + uuidString + ".jpg"
 
-				lightEventPics = append(lightEventPics, "https://d3pvchlba3rmqp.cloudfront.net/"+key)
+				var fullKey string
+				if config.C.AppEnv == "prod" {
+					fullKey = "https://di7aab2ls1mmt.cloudfront.net/" + key
+				} else if config.C.AppEnv == "dev" {
+					fullKey = "https://d3pvchlba3rmqp.cloudfront.net/" + key
+				}
+
+				lightEventPics = append(lightEventPics, fullKey)
 
 				file := bytes.NewReader(content)
 				uploadRes := awsS3.UploadToS3(key, file)
@@ -1325,7 +1367,15 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 			newObjectKeys := make([]string, len(objectsToDelete))
 			for i, objectToDelete := range objectsToDelete {
 				objectToDeleteFullString := objectToDelete
-				newObjectKeys[i] = strings.ReplaceAll(objectToDeleteFullString, "https://d3pvchlba3rmqp.cloudfront.net/", "")
+
+				var cloudfrontDistribution string
+				if config.C.AppEnv == "prod" {
+					cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
+				} else if config.C.AppEnv == "dev" {
+					cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
+				}
+
+				newObjectKeys[i] = strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, "")
 			}
 
 			deleteEventPicsRes := awsS3.DeleteFromS3(newObjectKeys)

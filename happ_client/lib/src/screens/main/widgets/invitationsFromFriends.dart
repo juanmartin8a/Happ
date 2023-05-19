@@ -257,7 +257,8 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
                             borderRadius: BorderRadius.circular(20),
                             child: Image.network(
                               invite.event.lightEventPics[0],
-                              fit: BoxFit.cover
+                              fit: BoxFit.cover,
+                              // color: Colors.grey[200]
                             ),
                           )
                         ),
