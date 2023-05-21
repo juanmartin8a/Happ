@@ -580,7 +580,7 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 
 	_, err = tx.Device.Delete().
 		Where(
-			device.UserID(0),
+			device.UserID(*userId),
 		).
 		Exec(ctx)
 	if err != nil {

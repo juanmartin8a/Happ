@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/gestures.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -15,6 +17,7 @@ import 'package:happ_client/src/riverpod/signIn/signIn.dart';
 import 'package:happ_client/src/riverpod/signIn/signInState.dart';
 import 'package:happ_client/src/utils/widgets/loader.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Auth extends ConsumerStatefulWidget {
   const Auth({super.key});
@@ -27,6 +30,8 @@ class _AuthState extends ConsumerState<Auth> {
 
   bool isGoogleLoading = false;
   bool isAppleLoading = false;
+
+  bool isTermsConfirmed = false;
 
   @override
   void dispose() {
@@ -87,8 +92,9 @@ class _AuthState extends ConsumerState<Auth> {
           ),
           GestureDetector(
             onTap: () {
-              // signInWithGoogle();
-              signInWithApple();
+              if (isTermsConfirmed) {
+                signInWithApple();
+              }
             },
             child: Container(
               width: MediaQuery.of(context).size.width * 0.8,
@@ -133,7 +139,9 @@ class _AuthState extends ConsumerState<Auth> {
           ),
           GestureDetector(
             onTap: () {
-              signInWithGoogle();
+              if (isTermsConfirmed) {
+                signInWithGoogle();
+              }
             },
             child: Container(
               width: MediaQuery.of(context).size.width * 0.8,
@@ -170,6 +178,93 @@ class _AuthState extends ConsumerState<Auth> {
                   ),
                 ],
               )
+            ),
+          ),
+          const SizedBox(
+            height: 24
+          ),
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            // height: 50,
+            child: Row(
+              // mainAxisAlignment: MainAxisAlignment.start,
+              // crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isTermsConfirmed = !isTermsConfirmed;
+                    });
+                  },
+                  child: SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: Container(
+                      // color: Colors.red,
+                      decoration: BoxDecoration(
+                        color: isTermsConfirmed ? Colors.greenAccent[700]! : null,
+                        borderRadius: BorderRadius.circular(6),
+                        border: !isTermsConfirmed ? Border.all(width: 1.5, color: Colors.grey[500]!) : null
+                      ),
+                      child: isTermsConfirmed 
+                      ? const Center(
+                        child: Icon(
+                          FluentIcons.checkmark_12_regular,
+                          color: Colors.white,
+                          size: 18
+                        )
+                      ) : null,
+                    )
+                  )
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: RichText(
+                    // textAlign: TextAlign.center,
+                    text: TextSpan(
+                      text: "I have read and agree to the ",
+                      style: TextStyle(
+                        fontFamily: "Inter",
+                        color: Colors.grey[800],
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: "Terms of Use ",
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              launchUrl(
+                                Uri.parse('https://www.happ.rsvp/legal/terms-of-use')
+                              );
+                            },
+                        ),
+                        const TextSpan(text: "and the "),
+                        TextSpan(
+                          text: "Privacy Policy", 
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              launchUrl(
+                                Uri.parse('https://www.happ.rsvp/legal/privacy-policy')
+                              );
+                            },
+                        ),
+                        const TextSpan(text: "."),
+                      ]
+                    )
+                  ),
+                ),
+              ],
             ),
           ),
           const Spacer(),
@@ -213,7 +308,7 @@ class _AuthState extends ConsumerState<Auth> {
       setState(() {
         isGoogleLoading = false;
       });
-      print('Error occurred during Google sign-in: $error');
+      debugPrint('Error occurred during Google sign-in: $error');
     }
   }
 
@@ -265,7 +360,7 @@ class _AuthState extends ConsumerState<Auth> {
       setState(() {
         isAppleLoading = false;
       });
-      print('Error occurred during Google sign-in: $e');
+      debugPrint('Error occurred during Google sign-in: $e');
     }
   }
 }
