@@ -244,7 +244,7 @@ class _AuthState extends ConsumerState<Auth> {
                               );
                             },
                         ),
-                        const TextSpan(text: "and the "),
+                        const TextSpan(text: "and "),
                         TextSpan(
                           text: "Privacy Policy", 
                           style: const TextStyle(

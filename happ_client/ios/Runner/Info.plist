@@ -43,15 +43,15 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Happ needs camera access to scan invitations.</string>
+	<string>Happ needs to access the camera to scan invitations.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Happ wants to always access your location.</string>
+	<string>Happ wants to access your location to assist you in finding the locations of events.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Happ wants to access your location when the app is open.</string>
+	<string>Happ wants to access your location when the app is open to assist you in finding the locations of events.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Happ wants to access your location.</string>
+	<string>Happ wants to access your location to assist you in finding the locations of events.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Happ needs access to your photos.</string>
+	<string>Happ needs access to your Photo Library to let you select and upload pictures to your event.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
