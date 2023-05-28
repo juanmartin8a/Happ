@@ -2001,13 +2001,13 @@ func (r *queryResolver) GetUserEvents(ctx context.Context, limit int, idsList []
 
 	var realLimit int
 
-	if len(idsList) == 0 {
-		realLimit = 10
-	} else {
-		realLimit = 25
-	}
+	// if len(idsList) == 0 {
+	// 	realLimit = 10
+	// } else {
+	// 	realLimit = 25
+	// }
 
-	realLimit = limit
+	realLimit = 10
 
 	realLimitPlusOne := realLimit + 1
 
@@ -2594,7 +2594,7 @@ func (r *queryResolver) GetEventGuests(ctx context.Context, eventID int, limit i
 	var realLimit int
 
 	if len(idsList) == 0 {
-		realLimit = 10
+		realLimit = 8
 	} else {
 		realLimit = 25
 	}
@@ -2955,6 +2955,157 @@ func (r *queryResolver) LocationDetailsFromCoords(ctx context.Context, coords mo
 	}
 
 	return name, nil
+}
+
+// MutualFriends is the resolver for the mutualFriends field.
+func (r *queryResolver) MutualFriends(ctx context.Context, id int, limit int, idsList []int) (*model.PaginatedEventUsersResults, error) {
+	userId, authErr := utils.IsAuth(ctx)
+	if authErr != nil {
+		return nil, authErr
+	}
+
+	realLimit := 25
+
+	realLimitPlusOne := realLimit + 1
+
+	var users []*ent.User
+
+	var stringIdsList []string
+
+	for _, id := range idsList {
+		stringIdsList = append(stringIdsList, strconv.Itoa(id))
+	}
+
+	var args []interface{}
+	args = append(args, *userId)
+
+	args = append(args, *userId)
+	args = append(args, id)
+
+	args = append(args, *userId)
+	args = append(args, id)
+
+	var params []string
+	for _, id := range stringIdsList {
+		// convert id to int and append to args
+		intId, err := strconv.Atoi(id)
+		if err != nil {
+			return nil, err // handle error
+		}
+		args = append(args, intId)
+		params = append(params, "?")
+	}
+
+	// join params with commas
+	placeholders := strings.Join(params, ",")
+
+	args = append(args, realLimitPlusOne)
+
+	query := `
+	SELECT u.*, IF(f3.follower_id IS NOT NULL, 1, 0) as follows_current_user FROM users u
+
+	LEFT JOIN follows f3
+	ON f3.user_id = ?
+	AND f3.follower_id = u.id
+	AND f3.valid = true
+
+	WHERE EXISTS (
+		SELECT 1 
+		FROM follows f
+		WHERE f.user_id = u.id
+		AND f.follower_id IN (?, ?)
+		AND f.valid = true
+	)
+	`
+
+	if len(placeholders) > 0 {
+		query += fmt.Sprintf("AND u.id NOT IN (?,?,%s) ", placeholders)
+	}
+
+	query += `
+		ORDER BY follows_current_user DESC
+		LIMIT ?
+	`
+
+	res, err := r.client.QueryContext(ctx, query, args...)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	for res.Next() {
+		var id int
+		var name string
+		var username string
+		var email string
+		var fuid string
+		var created_at time.Time
+		var updated_at time.Time
+		var profile_pic string
+		var follows_current_user bool
+
+		if err := res.Scan(
+			&id,
+			&name,
+			&username,
+			&email,
+			&created_at,
+			&updated_at,
+			&profile_pic,
+			&fuid,
+			&follows_current_user,
+		); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		event := ent.User{
+			ID:         id,
+			Name:       name,
+			Username:   username,
+			Email:      email,
+			CreatedAt:  created_at,
+			UpdatedAt:  updated_at,
+			ProfilePic: profile_pic,
+			FUID:       fuid,
+		}
+
+		users = append(users, &event)
+	}
+
+	res.Close()
+
+	if len(users) < realLimit {
+		realLimit = len(users)
+	}
+
+	return &model.PaginatedEventUsersResults{
+		Users:   users[0:realLimit],
+		HasMore: len(users) == realLimitPlusOne,
+	}, nil
+}
+
+// GetFollowState is the resolver for the getFollowState field.
+func (r *queryResolver) GetFollowState(ctx context.Context, id int) (bool, error) {
+	userId, authErr := utils.IsAuth(ctx)
+	if authErr != nil {
+		return false, authErr
+	}
+
+	res, err := r.client.Follow.Query().
+		Where(
+			follow.And(
+				follow.FollowerID(*userId),
+				follow.UserID(id),
+			),
+		).
+		Select(follow.FieldValid).
+		Bool(ctx)
+	if err == nil {
+		return res, nil
+	}
+
+	return false, nil
 }
 
 // FollowState is the resolver for the followState field.

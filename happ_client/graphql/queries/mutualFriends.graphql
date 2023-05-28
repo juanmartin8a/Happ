@@ -1,0 +1,11 @@
+query MutualFriends($id: Int! $limit: Int!, $idsList: [Int!]!) {
+  mutualFriends(id: $id, limit: $limit, idsList: $idsList) {
+    users {
+      id
+      username
+      name
+      profilePic
+    }
+    hasMore
+  }
+}

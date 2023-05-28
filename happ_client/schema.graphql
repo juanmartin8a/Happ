@@ -197,6 +197,14 @@ type Query {
   locationDetailsFromCoords (
     coords: CoordinatesInput!
   ): String!,
+  mutualFriends(
+    id: Int!,
+    limit: Int!,
+    idsList: [Int!]!
+  ): PaginatedEventUsersResults!,
+  getFollowState(
+    id: Int!,
+  ): Boolean!,
 }
 
 type Mutation {

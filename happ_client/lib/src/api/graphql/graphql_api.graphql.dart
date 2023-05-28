@@ -721,6 +721,65 @@ class UserFromId$Query extends JsonSerializable with EquatableMixin {
 }
 
 @JsonSerializable(explicitToJson: true)
+class MutualFriends$Query$PaginatedEventUsersResults$User
+    extends JsonSerializable with EquatableMixin {
+  MutualFriends$Query$PaginatedEventUsersResults$User();
+
+  factory MutualFriends$Query$PaginatedEventUsersResults$User.fromJson(
+          Map<String, dynamic> json) =>
+      _$MutualFriends$Query$PaginatedEventUsersResults$UserFromJson(json);
+
+  late int id;
+
+  late String username;
+
+  late String name;
+
+  late String profilePic;
+
+  @override
+  List<Object?> get props => [id, username, name, profilePic];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$MutualFriends$Query$PaginatedEventUsersResults$UserToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class MutualFriends$Query$PaginatedEventUsersResults extends JsonSerializable
+    with EquatableMixin {
+  MutualFriends$Query$PaginatedEventUsersResults();
+
+  factory MutualFriends$Query$PaginatedEventUsersResults.fromJson(
+          Map<String, dynamic> json) =>
+      _$MutualFriends$Query$PaginatedEventUsersResultsFromJson(json);
+
+  late List<MutualFriends$Query$PaginatedEventUsersResults$User> users;
+
+  late bool hasMore;
+
+  @override
+  List<Object?> get props => [users, hasMore];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$MutualFriends$Query$PaginatedEventUsersResultsToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class MutualFriends$Query extends JsonSerializable with EquatableMixin {
+  MutualFriends$Query();
+
+  factory MutualFriends$Query.fromJson(Map<String, dynamic> json) =>
+      _$MutualFriends$QueryFromJson(json);
+
+  late MutualFriends$Query$PaginatedEventUsersResults mutualFriends;
+
+  @override
+  List<Object?> get props => [mutualFriends];
+  @override
+  Map<String, dynamic> toJson() => _$MutualFriends$QueryToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
 class LocationDetails$Query$EventCoordinates extends JsonSerializable
     with EquatableMixin {
   LocationDetails$Query$EventCoordinates();
@@ -1575,6 +1634,21 @@ class GetUserOtherEvents$Query extends JsonSerializable with EquatableMixin {
 }
 
 @JsonSerializable(explicitToJson: true)
+class GetFollowState$Query extends JsonSerializable with EquatableMixin {
+  GetFollowState$Query();
+
+  factory GetFollowState$Query.fromJson(Map<String, dynamic> json) =>
+      _$GetFollowState$QueryFromJson(json);
+
+  late bool getFollowState;
+
+  @override
+  List<Object?> get props => [getFollowState];
+  @override
+  Map<String, dynamic> toJson() => _$GetFollowState$QueryToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
 class SearchUsers$Query$User extends JsonSerializable with EquatableMixin {
   SearchUsers$Query$User();
 
@@ -1610,6 +1684,43 @@ class SearchUsers$Query extends JsonSerializable with EquatableMixin {
   List<Object?> get props => [searchUsers];
   @override
   Map<String, dynamic> toJson() => _$SearchUsers$QueryToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class LocationDetailsFromCoords$Query extends JsonSerializable
+    with EquatableMixin {
+  LocationDetailsFromCoords$Query();
+
+  factory LocationDetailsFromCoords$Query.fromJson(Map<String, dynamic> json) =>
+      _$LocationDetailsFromCoords$QueryFromJson(json);
+
+  late String locationDetailsFromCoords;
+
+  @override
+  List<Object?> get props => [locationDetailsFromCoords];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$LocationDetailsFromCoords$QueryToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class CoordinatesInput extends JsonSerializable with EquatableMixin {
+  CoordinatesInput({
+    required this.latitude,
+    required this.longitude,
+  });
+
+  factory CoordinatesInput.fromJson(Map<String, dynamic> json) =>
+      _$CoordinatesInputFromJson(json);
+
+  late double latitude;
+
+  late double longitude;
+
+  @override
+  List<Object?> get props => [latitude, longitude];
+  @override
+  Map<String, dynamic> toJson() => _$CoordinatesInputToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -1669,43 +1780,6 @@ class GetEventGuests$Query extends JsonSerializable with EquatableMixin {
   List<Object?> get props => [getEventGuests];
   @override
   Map<String, dynamic> toJson() => _$GetEventGuests$QueryToJson(this);
-}
-
-@JsonSerializable(explicitToJson: true)
-class LocationDetailsFromCoords$Query extends JsonSerializable
-    with EquatableMixin {
-  LocationDetailsFromCoords$Query();
-
-  factory LocationDetailsFromCoords$Query.fromJson(Map<String, dynamic> json) =>
-      _$LocationDetailsFromCoords$QueryFromJson(json);
-
-  late String locationDetailsFromCoords;
-
-  @override
-  List<Object?> get props => [locationDetailsFromCoords];
-  @override
-  Map<String, dynamic> toJson() =>
-      _$LocationDetailsFromCoords$QueryToJson(this);
-}
-
-@JsonSerializable(explicitToJson: true)
-class CoordinatesInput extends JsonSerializable with EquatableMixin {
-  CoordinatesInput({
-    required this.latitude,
-    required this.longitude,
-  });
-
-  factory CoordinatesInput.fromJson(Map<String, dynamic> json) =>
-      _$CoordinatesInputFromJson(json);
-
-  late double latitude;
-
-  late double longitude;
-
-  @override
-  List<Object?> get props => [latitude, longitude];
-  @override
-  Map<String, dynamic> toJson() => _$CoordinatesInputToJson(this);
 }
 
 enum PictureAction {
@@ -3171,6 +3245,157 @@ class UserFromIdQuery
   @override
   UserFromId$Query parse(Map<String, dynamic> json) =>
       UserFromId$Query.fromJson(json);
+}
+
+@JsonSerializable(explicitToJson: true)
+class MutualFriendsArguments extends JsonSerializable with EquatableMixin {
+  MutualFriendsArguments({
+    required this.id,
+    required this.limit,
+    required this.idsList,
+  });
+
+  @override
+  factory MutualFriendsArguments.fromJson(Map<String, dynamic> json) =>
+      _$MutualFriendsArgumentsFromJson(json);
+
+  late int id;
+
+  late int limit;
+
+  late List<int> idsList;
+
+  @override
+  List<Object?> get props => [id, limit, idsList];
+  @override
+  Map<String, dynamic> toJson() => _$MutualFriendsArgumentsToJson(this);
+}
+
+final MUTUAL_FRIENDS_QUERY_DOCUMENT_OPERATION_NAME = 'MutualFriends';
+final MUTUAL_FRIENDS_QUERY_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+    type: OperationType.query,
+    name: NameNode(value: 'MutualFriends'),
+    variableDefinitions: [
+      VariableDefinitionNode(
+        variable: VariableNode(name: NameNode(value: 'id')),
+        type: NamedTypeNode(
+          name: NameNode(value: 'Int'),
+          isNonNull: true,
+        ),
+        defaultValue: DefaultValueNode(value: null),
+        directives: [],
+      ),
+      VariableDefinitionNode(
+        variable: VariableNode(name: NameNode(value: 'limit')),
+        type: NamedTypeNode(
+          name: NameNode(value: 'Int'),
+          isNonNull: true,
+        ),
+        defaultValue: DefaultValueNode(value: null),
+        directives: [],
+      ),
+      VariableDefinitionNode(
+        variable: VariableNode(name: NameNode(value: 'idsList')),
+        type: ListTypeNode(
+          type: NamedTypeNode(
+            name: NameNode(value: 'Int'),
+            isNonNull: true,
+          ),
+          isNonNull: true,
+        ),
+        defaultValue: DefaultValueNode(value: null),
+        directives: [],
+      ),
+    ],
+    directives: [],
+    selectionSet: SelectionSetNode(selections: [
+      FieldNode(
+        name: NameNode(value: 'mutualFriends'),
+        alias: null,
+        arguments: [
+          ArgumentNode(
+            name: NameNode(value: 'id'),
+            value: VariableNode(name: NameNode(value: 'id')),
+          ),
+          ArgumentNode(
+            name: NameNode(value: 'limit'),
+            value: VariableNode(name: NameNode(value: 'limit')),
+          ),
+          ArgumentNode(
+            name: NameNode(value: 'idsList'),
+            value: VariableNode(name: NameNode(value: 'idsList')),
+          ),
+        ],
+        directives: [],
+        selectionSet: SelectionSetNode(selections: [
+          FieldNode(
+            name: NameNode(value: 'users'),
+            alias: null,
+            arguments: [],
+            directives: [],
+            selectionSet: SelectionSetNode(selections: [
+              FieldNode(
+                name: NameNode(value: 'id'),
+                alias: null,
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              ),
+              FieldNode(
+                name: NameNode(value: 'username'),
+                alias: null,
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              ),
+              FieldNode(
+                name: NameNode(value: 'name'),
+                alias: null,
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              ),
+              FieldNode(
+                name: NameNode(value: 'profilePic'),
+                alias: null,
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              ),
+            ]),
+          ),
+          FieldNode(
+            name: NameNode(value: 'hasMore'),
+            alias: null,
+            arguments: [],
+            directives: [],
+            selectionSet: null,
+          ),
+        ]),
+      )
+    ]),
+  )
+]);
+
+class MutualFriendsQuery
+    extends GraphQLQuery<MutualFriends$Query, MutualFriendsArguments> {
+  MutualFriendsQuery({required this.variables});
+
+  @override
+  final DocumentNode document = MUTUAL_FRIENDS_QUERY_DOCUMENT;
+
+  @override
+  final String operationName = MUTUAL_FRIENDS_QUERY_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final MutualFriendsArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  MutualFriends$Query parse(Map<String, dynamic> json) =>
+      MutualFriends$Query.fromJson(json);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -4661,6 +4886,76 @@ class GetUserOtherEventsQuery extends GraphQLQuery<GetUserOtherEvents$Query,
 }
 
 @JsonSerializable(explicitToJson: true)
+class GetFollowStateArguments extends JsonSerializable with EquatableMixin {
+  GetFollowStateArguments({required this.id});
+
+  @override
+  factory GetFollowStateArguments.fromJson(Map<String, dynamic> json) =>
+      _$GetFollowStateArgumentsFromJson(json);
+
+  late int id;
+
+  @override
+  List<Object?> get props => [id];
+  @override
+  Map<String, dynamic> toJson() => _$GetFollowStateArgumentsToJson(this);
+}
+
+final GET_FOLLOW_STATE_QUERY_DOCUMENT_OPERATION_NAME = 'GetFollowState';
+final GET_FOLLOW_STATE_QUERY_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+    type: OperationType.query,
+    name: NameNode(value: 'GetFollowState'),
+    variableDefinitions: [
+      VariableDefinitionNode(
+        variable: VariableNode(name: NameNode(value: 'id')),
+        type: NamedTypeNode(
+          name: NameNode(value: 'Int'),
+          isNonNull: true,
+        ),
+        defaultValue: DefaultValueNode(value: null),
+        directives: [],
+      )
+    ],
+    directives: [],
+    selectionSet: SelectionSetNode(selections: [
+      FieldNode(
+        name: NameNode(value: 'getFollowState'),
+        alias: null,
+        arguments: [
+          ArgumentNode(
+            name: NameNode(value: 'id'),
+            value: VariableNode(name: NameNode(value: 'id')),
+          )
+        ],
+        directives: [],
+        selectionSet: null,
+      )
+    ]),
+  )
+]);
+
+class GetFollowStateQuery
+    extends GraphQLQuery<GetFollowState$Query, GetFollowStateArguments> {
+  GetFollowStateQuery({required this.variables});
+
+  @override
+  final DocumentNode document = GET_FOLLOW_STATE_QUERY_DOCUMENT;
+
+  @override
+  final String operationName = GET_FOLLOW_STATE_QUERY_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final GetFollowStateArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  GetFollowState$Query parse(Map<String, dynamic> json) =>
+      GetFollowState$Query.fromJson(json);
+}
+
+@JsonSerializable(explicitToJson: true)
 class SearchUsersArguments extends JsonSerializable with EquatableMixin {
   SearchUsersArguments({
     required this.search,
@@ -4782,6 +5077,81 @@ class SearchUsersQuery
   @override
   SearchUsers$Query parse(Map<String, dynamic> json) =>
       SearchUsers$Query.fromJson(json);
+}
+
+@JsonSerializable(explicitToJson: true)
+class LocationDetailsFromCoordsArguments extends JsonSerializable
+    with EquatableMixin {
+  LocationDetailsFromCoordsArguments({required this.coords});
+
+  @override
+  factory LocationDetailsFromCoordsArguments.fromJson(
+          Map<String, dynamic> json) =>
+      _$LocationDetailsFromCoordsArgumentsFromJson(json);
+
+  late CoordinatesInput coords;
+
+  @override
+  List<Object?> get props => [coords];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$LocationDetailsFromCoordsArgumentsToJson(this);
+}
+
+final LOCATION_DETAILS_FROM_COORDS_QUERY_DOCUMENT_OPERATION_NAME =
+    'LocationDetailsFromCoords';
+final LOCATION_DETAILS_FROM_COORDS_QUERY_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+    type: OperationType.query,
+    name: NameNode(value: 'LocationDetailsFromCoords'),
+    variableDefinitions: [
+      VariableDefinitionNode(
+        variable: VariableNode(name: NameNode(value: 'coords')),
+        type: NamedTypeNode(
+          name: NameNode(value: 'CoordinatesInput'),
+          isNonNull: true,
+        ),
+        defaultValue: DefaultValueNode(value: null),
+        directives: [],
+      )
+    ],
+    directives: [],
+    selectionSet: SelectionSetNode(selections: [
+      FieldNode(
+        name: NameNode(value: 'locationDetailsFromCoords'),
+        alias: null,
+        arguments: [
+          ArgumentNode(
+            name: NameNode(value: 'coords'),
+            value: VariableNode(name: NameNode(value: 'coords')),
+          )
+        ],
+        directives: [],
+        selectionSet: null,
+      )
+    ]),
+  )
+]);
+
+class LocationDetailsFromCoordsQuery extends GraphQLQuery<
+    LocationDetailsFromCoords$Query, LocationDetailsFromCoordsArguments> {
+  LocationDetailsFromCoordsQuery({required this.variables});
+
+  @override
+  final DocumentNode document = LOCATION_DETAILS_FROM_COORDS_QUERY_DOCUMENT;
+
+  @override
+  final String operationName =
+      LOCATION_DETAILS_FROM_COORDS_QUERY_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final LocationDetailsFromCoordsArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  LocationDetailsFromCoords$Query parse(Map<String, dynamic> json) =>
+      LocationDetailsFromCoords$Query.fromJson(json);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -4933,79 +5303,4 @@ class GetEventGuestsQuery
   @override
   GetEventGuests$Query parse(Map<String, dynamic> json) =>
       GetEventGuests$Query.fromJson(json);
-}
-
-@JsonSerializable(explicitToJson: true)
-class LocationDetailsFromCoordsArguments extends JsonSerializable
-    with EquatableMixin {
-  LocationDetailsFromCoordsArguments({required this.coords});
-
-  @override
-  factory LocationDetailsFromCoordsArguments.fromJson(
-          Map<String, dynamic> json) =>
-      _$LocationDetailsFromCoordsArgumentsFromJson(json);
-
-  late CoordinatesInput coords;
-
-  @override
-  List<Object?> get props => [coords];
-  @override
-  Map<String, dynamic> toJson() =>
-      _$LocationDetailsFromCoordsArgumentsToJson(this);
-}
-
-final LOCATION_DETAILS_FROM_COORDS_QUERY_DOCUMENT_OPERATION_NAME =
-    'LocationDetailsFromCoords';
-final LOCATION_DETAILS_FROM_COORDS_QUERY_DOCUMENT = DocumentNode(definitions: [
-  OperationDefinitionNode(
-    type: OperationType.query,
-    name: NameNode(value: 'LocationDetailsFromCoords'),
-    variableDefinitions: [
-      VariableDefinitionNode(
-        variable: VariableNode(name: NameNode(value: 'coords')),
-        type: NamedTypeNode(
-          name: NameNode(value: 'CoordinatesInput'),
-          isNonNull: true,
-        ),
-        defaultValue: DefaultValueNode(value: null),
-        directives: [],
-      )
-    ],
-    directives: [],
-    selectionSet: SelectionSetNode(selections: [
-      FieldNode(
-        name: NameNode(value: 'locationDetailsFromCoords'),
-        alias: null,
-        arguments: [
-          ArgumentNode(
-            name: NameNode(value: 'coords'),
-            value: VariableNode(name: NameNode(value: 'coords')),
-          )
-        ],
-        directives: [],
-        selectionSet: null,
-      )
-    ]),
-  )
-]);
-
-class LocationDetailsFromCoordsQuery extends GraphQLQuery<
-    LocationDetailsFromCoords$Query, LocationDetailsFromCoordsArguments> {
-  LocationDetailsFromCoordsQuery({required this.variables});
-
-  @override
-  final DocumentNode document = LOCATION_DETAILS_FROM_COORDS_QUERY_DOCUMENT;
-
-  @override
-  final String operationName =
-      LOCATION_DETAILS_FROM_COORDS_QUERY_DOCUMENT_OPERATION_NAME;
-
-  @override
-  final LocationDetailsFromCoordsArguments variables;
-
-  @override
-  List<Object?> get props => [document, operationName, variables];
-  @override
-  LocationDetailsFromCoords$Query parse(Map<String, dynamic> json) =>
-      LocationDetailsFromCoords$Query.fromJson(json);
 }

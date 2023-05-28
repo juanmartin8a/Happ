@@ -6,6 +6,8 @@ import 'package:happ_client/src/screens/events/invitation/eventInvitation.dart';
 import 'package:happ_client/src/screens/events/guestList/guestList.dart';
 import 'package:happ_client/src/screens/events/guestList/inviteGuestsScreen.dart';
 import 'package:happ_client/src/screens/events/scan/scanScreen.dart';
+import 'package:happ_client/src/screens/profile/class/profileParams.dart';
+import 'package:happ_client/src/screens/profile/profile.dart';
 import 'package:happ_client/src/screens/search/class/SearchUserInviteResParams.dart';
 import 'package:happ_client/src/screens/events/updateEvent/updateEvent.dart';
 import 'package:happ_client/src/utils/getUserIdFromFBIDToken.dart';
@@ -30,7 +32,8 @@ void main() async {
   final firebaseAuth = FirebaseAuth.instance;
 
   final HttpLink httpLink = HttpLink(
-    'https://api.happ.rsvp/query'
+    'http://localhost:8080/query'
+    // 'https://api.happ.rsvp/query'
   );
 
   final AuthLink authLink = AuthLink(
@@ -186,6 +189,18 @@ class MyApp extends ConsumerWidget {
           return ScanScreen(
             eventId: params.eventId,
             key: Key("scan_screen_${params.eventId}")
+          );
+        }
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (BuildContext context, GoRouterState state) {
+
+          ProfileParams params = state.extra as ProfileParams;
+          
+          return Profile(
+            user: params.user,
+            key: Key("profie_screen_${params.user.id}")
           );
         }
       ),

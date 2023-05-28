@@ -97,7 +97,7 @@ class UserOptions {
   }
 
   MutationOptions addOrRemoveUserMutationOptions(int followUserId, bool isFollow) {
-    MutationOptions  mutationOptions = MutationOptions(
+    MutationOptions mutationOptions = MutationOptions(
       document: AddOrRemoveUserMutation(
         variables: AddOrRemoveUserArguments(
           followUserId: followUserId,
@@ -115,7 +115,7 @@ class UserOptions {
   }
 
   MutationOptions saveDeviceMutationOptions(String token) {
-    MutationOptions  mutationOptions = MutationOptions(
+    MutationOptions mutationOptions = MutationOptions(
       document: SaveDeviceMutation(
         variables: SaveDeviceArguments(
           token: token
@@ -131,12 +131,28 @@ class UserOptions {
   }
 
   MutationOptions deleteUser() {
-    MutationOptions  mutationOptions = MutationOptions(
+    MutationOptions mutationOptions = MutationOptions(
       document: DeleteUserMutation().document,
       fetchPolicy: FetchPolicy.noCache
     );
 
     return mutationOptions;
+  }
+
+  QueryOptions getFollowStateQueryOptions(
+    int id
+  ) {
+    QueryOptions queryOptions = QueryOptions(
+      document: GetFollowStateQuery(
+        variables: GetFollowStateArguments(id: id)
+      ).document,
+      variables: {
+        "id": id
+      },
+      fetchPolicy: FetchPolicy.noCache
+    );
+
+    return queryOptions;
   }
 
 }

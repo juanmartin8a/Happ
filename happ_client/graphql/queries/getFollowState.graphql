@@ -1,0 +1,3 @@
+query GetFollowState($id: Int!) {
+  getFollowState(id: $id)
+}

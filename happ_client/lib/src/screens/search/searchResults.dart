@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/search/searchState.dart';
+import 'package:happ_client/src/screens/profile/class/profileParams.dart';
+import 'package:happ_client/src/screens/profile/profile.dart';
 import 'package:happ_client/src/screens/search/searchBar.dart';
 import 'package:happ_client/src/screens/search/widgets/searchUserTile.dart';
 
@@ -112,7 +115,18 @@ class _SearchResultsState extends ConsumerState<SearchResults> {
         }
 
         int searchUserResIndex = i - 1;
-        return SearchUserTile(users: searchUsersRes, user: searchUsersRes[searchUserResIndex]);
+        return GestureDetector(
+          onTap: () {
+            // print("Hello there");
+            // final inviteRes = EventTypesConverter().convertOtherInviteResToFriendsInviteRes(invite);
+            final user = ProfileUserData.fromSearchUsersQueryUser(searchUsersRes[searchUserResIndex]);
+            context.push('/profile', extra: ProfileParams(
+                user: user,
+              )
+            );
+          },
+          child: SearchUserTile(users: searchUsersRes, user: searchUsersRes[searchUserResIndex])
+        );
       }
     );
   }

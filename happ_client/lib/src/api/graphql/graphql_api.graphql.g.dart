@@ -519,6 +519,54 @@ Map<String, dynamic> _$UserFromId$QueryToJson(UserFromId$Query instance) =>
       'userFromId': instance.userFromId?.toJson(),
     };
 
+MutualFriends$Query$PaginatedEventUsersResults$User
+    _$MutualFriends$Query$PaginatedEventUsersResults$UserFromJson(
+            Map<String, dynamic> json) =>
+        MutualFriends$Query$PaginatedEventUsersResults$User()
+          ..id = json['id'] as int
+          ..username = json['username'] as String
+          ..name = json['name'] as String
+          ..profilePic = json['profilePic'] as String;
+
+Map<String, dynamic>
+    _$MutualFriends$Query$PaginatedEventUsersResults$UserToJson(
+            MutualFriends$Query$PaginatedEventUsersResults$User instance) =>
+        <String, dynamic>{
+          'id': instance.id,
+          'username': instance.username,
+          'name': instance.name,
+          'profilePic': instance.profilePic,
+        };
+
+MutualFriends$Query$PaginatedEventUsersResults
+    _$MutualFriends$Query$PaginatedEventUsersResultsFromJson(
+            Map<String, dynamic> json) =>
+        MutualFriends$Query$PaginatedEventUsersResults()
+          ..users = (json['users'] as List<dynamic>)
+              .map((e) =>
+                  MutualFriends$Query$PaginatedEventUsersResults$User.fromJson(
+                      e as Map<String, dynamic>))
+              .toList()
+          ..hasMore = json['hasMore'] as bool;
+
+Map<String, dynamic> _$MutualFriends$Query$PaginatedEventUsersResultsToJson(
+        MutualFriends$Query$PaginatedEventUsersResults instance) =>
+    <String, dynamic>{
+      'users': instance.users.map((e) => e.toJson()).toList(),
+      'hasMore': instance.hasMore,
+    };
+
+MutualFriends$Query _$MutualFriends$QueryFromJson(Map<String, dynamic> json) =>
+    MutualFriends$Query()
+      ..mutualFriends = MutualFriends$Query$PaginatedEventUsersResults.fromJson(
+          json['mutualFriends'] as Map<String, dynamic>);
+
+Map<String, dynamic> _$MutualFriends$QueryToJson(
+        MutualFriends$Query instance) =>
+    <String, dynamic>{
+      'mutualFriends': instance.mutualFriends.toJson(),
+    };
+
 LocationDetails$Query$EventCoordinates
     _$LocationDetails$Query$EventCoordinatesFromJson(
             Map<String, dynamic> json) =>
@@ -1200,6 +1248,16 @@ Map<String, dynamic> _$GetUserOtherEvents$QueryToJson(
       'getUserOtherEvents': instance.getUserOtherEvents.toJson(),
     };
 
+GetFollowState$Query _$GetFollowState$QueryFromJson(
+        Map<String, dynamic> json) =>
+    GetFollowState$Query()..getFollowState = json['getFollowState'] as bool;
+
+Map<String, dynamic> _$GetFollowState$QueryToJson(
+        GetFollowState$Query instance) =>
+    <String, dynamic>{
+      'getFollowState': instance.getFollowState,
+    };
+
 SearchUsers$Query$User _$SearchUsers$Query$UserFromJson(
         Map<String, dynamic> json) =>
     SearchUsers$Query$User()
@@ -1229,6 +1287,29 @@ SearchUsers$Query _$SearchUsers$QueryFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SearchUsers$QueryToJson(SearchUsers$Query instance) =>
     <String, dynamic>{
       'searchUsers': instance.searchUsers.map((e) => e.toJson()).toList(),
+    };
+
+LocationDetailsFromCoords$Query _$LocationDetailsFromCoords$QueryFromJson(
+        Map<String, dynamic> json) =>
+    LocationDetailsFromCoords$Query()
+      ..locationDetailsFromCoords = json['locationDetailsFromCoords'] as String;
+
+Map<String, dynamic> _$LocationDetailsFromCoords$QueryToJson(
+        LocationDetailsFromCoords$Query instance) =>
+    <String, dynamic>{
+      'locationDetailsFromCoords': instance.locationDetailsFromCoords,
+    };
+
+CoordinatesInput _$CoordinatesInputFromJson(Map<String, dynamic> json) =>
+    CoordinatesInput(
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+    );
+
+Map<String, dynamic> _$CoordinatesInputToJson(CoordinatesInput instance) =>
+    <String, dynamic>{
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
     };
 
 GetEventGuests$Query$PaginatedEventUsersResults$User
@@ -1279,29 +1360,6 @@ Map<String, dynamic> _$GetEventGuests$QueryToJson(
         GetEventGuests$Query instance) =>
     <String, dynamic>{
       'getEventGuests': instance.getEventGuests.toJson(),
-    };
-
-LocationDetailsFromCoords$Query _$LocationDetailsFromCoords$QueryFromJson(
-        Map<String, dynamic> json) =>
-    LocationDetailsFromCoords$Query()
-      ..locationDetailsFromCoords = json['locationDetailsFromCoords'] as String;
-
-Map<String, dynamic> _$LocationDetailsFromCoords$QueryToJson(
-        LocationDetailsFromCoords$Query instance) =>
-    <String, dynamic>{
-      'locationDetailsFromCoords': instance.locationDetailsFromCoords,
-    };
-
-CoordinatesInput _$CoordinatesInputFromJson(Map<String, dynamic> json) =>
-    CoordinatesInput(
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
-    );
-
-Map<String, dynamic> _$CoordinatesInputToJson(CoordinatesInput instance) =>
-    <String, dynamic>{
-      'latitude': instance.latitude,
-      'longitude': instance.longitude,
     };
 
 SaveDeviceArguments _$SaveDeviceArgumentsFromJson(Map<String, dynamic> json) =>
@@ -1464,6 +1522,22 @@ Map<String, dynamic> _$UserFromIdArgumentsToJson(
       'id': instance.id,
     };
 
+MutualFriendsArguments _$MutualFriendsArgumentsFromJson(
+        Map<String, dynamic> json) =>
+    MutualFriendsArguments(
+      id: json['id'] as int,
+      limit: json['limit'] as int,
+      idsList: (json['idsList'] as List<dynamic>).map((e) => e as int).toList(),
+    );
+
+Map<String, dynamic> _$MutualFriendsArgumentsToJson(
+        MutualFriendsArguments instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'limit': instance.limit,
+      'idsList': instance.idsList,
+    };
+
 LocationDetailsArguments _$LocationDetailsArgumentsFromJson(
         Map<String, dynamic> json) =>
     LocationDetailsArguments(
@@ -1570,6 +1644,18 @@ Map<String, dynamic> _$GetUserOtherEventsArgumentsToJson(
       'idsList': instance.idsList,
     };
 
+GetFollowStateArguments _$GetFollowStateArgumentsFromJson(
+        Map<String, dynamic> json) =>
+    GetFollowStateArguments(
+      id: json['id'] as int,
+    );
+
+Map<String, dynamic> _$GetFollowStateArgumentsToJson(
+        GetFollowStateArguments instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+    };
+
 SearchUsersArguments _$SearchUsersArgumentsFromJson(
         Map<String, dynamic> json) =>
     SearchUsersArguments(
@@ -1582,6 +1668,18 @@ Map<String, dynamic> _$SearchUsersArgumentsToJson(
     <String, dynamic>{
       'search': instance.search,
       'userSearching': instance.userSearching,
+    };
+
+LocationDetailsFromCoordsArguments _$LocationDetailsFromCoordsArgumentsFromJson(
+        Map<String, dynamic> json) =>
+    LocationDetailsFromCoordsArguments(
+      coords: CoordinatesInput.fromJson(json['coords'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$LocationDetailsFromCoordsArgumentsToJson(
+        LocationDetailsFromCoordsArguments instance) =>
+    <String, dynamic>{
+      'coords': instance.coords.toJson(),
     };
 
 GetEventGuestsArguments _$GetEventGuestsArgumentsFromJson(
@@ -1598,16 +1696,4 @@ Map<String, dynamic> _$GetEventGuestsArgumentsToJson(
       'eventId': instance.eventId,
       'limit': instance.limit,
       'idsList': instance.idsList,
-    };
-
-LocationDetailsFromCoordsArguments _$LocationDetailsFromCoordsArgumentsFromJson(
-        Map<String, dynamic> json) =>
-    LocationDetailsFromCoordsArguments(
-      coords: CoordinatesInput.fromJson(json['coords'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$LocationDetailsFromCoordsArgumentsToJson(
-        LocationDetailsFromCoordsArguments instance) =>
-    <String, dynamic>{
-      'coords': instance.coords.toJson(),
     };

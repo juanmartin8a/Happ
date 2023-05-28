@@ -136,11 +136,13 @@ type ComplexityRoot struct {
 	Query struct {
 		GetEventGuests              func(childComplexity int, eventID int, limit int, idsList []int) int
 		GetEventHosts               func(childComplexity int, eventID int, limit int, idsList []int) int
+		GetFollowState              func(childComplexity int, id int) int
 		GetUserEvents               func(childComplexity int, limit int, idsList []int) int
 		GetUserEventsFromFriends    func(childComplexity int, limit int, idsList []int) int
 		GetUserOtherEvents          func(childComplexity int, limit int, idsList []int) int
 		LocationDetails             func(childComplexity int, placeID string) int
 		LocationDetailsFromCoords   func(childComplexity int, coords model.CoordinatesInput) int
+		MutualFriends               func(childComplexity int, id int, limit int, idsList []int) int
 		SearchForUsersToAddAsGuests func(childComplexity int, search string, eventID int) int
 		SearchLocation              func(childComplexity int, search string) int
 		SearchUsers                 func(childComplexity int, search string, userSearching int) int
@@ -207,6 +209,8 @@ type QueryResolver interface {
 	SearchLocation(ctx context.Context, search string) ([]*model.LocationAutoCompletePrediction, error)
 	LocationDetails(ctx context.Context, placeID string) (*model.Coordinates, error)
 	LocationDetailsFromCoords(ctx context.Context, coords model.CoordinatesInput) (string, error)
+	MutualFriends(ctx context.Context, id int, limit int, idsList []int) (*model.PaginatedEventUsersResults, error)
+	GetFollowState(ctx context.Context, id int) (bool, error)
 }
 type UserResolver interface {
 	FollowState(ctx context.Context, obj *ent.User) (bool, error)
@@ -656,6 +660,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetEventHosts(childComplexity, args["eventId"].(int), args["limit"].(int), args["idsList"].([]int)), true
 
+	case "Query.getFollowState":
+		if e.complexity.Query.GetFollowState == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getFollowState_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetFollowState(childComplexity, args["id"].(int)), true
+
 	case "Query.getUserEvents":
 		if e.complexity.Query.GetUserEvents == nil {
 			break
@@ -715,6 +731,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.LocationDetailsFromCoords(childComplexity, args["coords"].(model.CoordinatesInput)), true
+
+	case "Query.mutualFriends":
+		if e.complexity.Query.MutualFriends == nil {
+			break
+		}
+
+		args, err := ec.field_Query_mutualFriends_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MutualFriends(childComplexity, args["id"].(int), args["limit"].(int), args["idsList"].([]int)), true
 
 	case "Query.searchForUsersToAddAsGuests":
 		if e.complexity.Query.SearchForUsersToAddAsGuests == nil {
@@ -1125,6 +1153,14 @@ type Query {
   locationDetailsFromCoords (
     coords: CoordinatesInput!
   ): String!,
+  mutualFriends(
+    id: Int!,
+    limit: Int!,
+    idsList: [Int!]!
+  ): PaginatedEventUsersResults!,
+  getFollowState(
+    id: Int!,
+  ): Boolean!,
 }
 
 type Mutation {
@@ -1504,6 +1540,21 @@ func (ec *executionContext) field_Query_getEventHosts_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getFollowState_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getUserEventsFromFriends_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1603,6 +1654,39 @@ func (ec *executionContext) field_Query_locationDetails_args(ctx context.Context
 		}
 	}
 	args["placeID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_mutualFriends_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	var arg2 []int
+	if tmp, ok := rawArgs["idsList"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idsList"))
+		arg2, err = ec.unmarshalNInt2ᚕintᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["idsList"] = arg2
 	return args, nil
 }
 
@@ -4995,6 +5079,122 @@ func (ec *executionContext) fieldContext_Query_locationDetailsFromCoords(ctx con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_locationDetailsFromCoords_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_mutualFriends(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_mutualFriends(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MutualFriends(rctx, fc.Args["id"].(int), fc.Args["limit"].(int), fc.Args["idsList"].([]int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PaginatedEventUsersResults)
+	fc.Result = res
+	return ec.marshalNPaginatedEventUsersResults2ᚖhappᚋgraphᚋmodelᚐPaginatedEventUsersResults(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_mutualFriends(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "users":
+				return ec.fieldContext_PaginatedEventUsersResults_users(ctx, field)
+			case "hasMore":
+				return ec.fieldContext_PaginatedEventUsersResults_hasMore(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PaginatedEventUsersResults", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_mutualFriends_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getFollowState(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getFollowState(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetFollowState(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getFollowState(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getFollowState_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -8694,6 +8894,52 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_locationDetailsFromCoords(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "mutualFriends":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_mutualFriends(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getFollowState":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getFollowState(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

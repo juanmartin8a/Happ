@@ -1,4 +1,3 @@
-
 import 'package:happ_client/src/api/graphql/graphql_api.graphql.dart';
 import 'package:happ_client/src/client/client.dart';
 import 'package:happ_client/src/utils/user/userOptions.dart';
@@ -115,6 +114,22 @@ class UserRepo {
       throw (result.exception as OperationException);
     } else {
       return DeleteUser$Mutation.fromJson(
+        result.data!
+      );
+    }
+  }
+
+  Future<GetFollowState$Query> getFollowState(
+    int id
+  ) async {
+    final result = await client.query(
+      UserOptions().getFollowStateQueryOptions(id)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return GetFollowState$Query.fromJson(
         result.data!
       );
     }
