@@ -2964,7 +2964,7 @@ func (r *queryResolver) MutualFriends(ctx context.Context, id int, limit int, id
 		return nil, authErr
 	}
 
-	realLimit := 25
+	realLimit := 15
 
 	realLimitPlusOne := realLimit + 1
 
@@ -3002,7 +3002,7 @@ func (r *queryResolver) MutualFriends(ctx context.Context, id int, limit int, id
 	args = append(args, realLimitPlusOne)
 
 	query := `
-	SELECT u.*, IF(f3.follower_id IS NOT NULL, 1, 0) as follows_current_user FROM users u
+	SELECT u.*, IF(f3.follower_id IS NOT NULL, 1, 0) follows_current_user FROM users u
 
 	LEFT JOIN follows f3
 	ON f3.user_id = ?
@@ -3011,15 +3011,20 @@ func (r *queryResolver) MutualFriends(ctx context.Context, id int, limit int, id
 
 	WHERE EXISTS (
 		SELECT 1 
-		FROM follows f
-		WHERE f.user_id = u.id
-		AND f.follower_id IN (?, ?)
-		AND f.valid = true
+			FROM follows f1
+			JOIN follows f2
+				ON f1.user_id = f2.user_id
+				AND f1.valid = true
+				AND f2.valid = true
+			WHERE f1.user_id = u.id
+				AND f1.follower_id = ?
+				AND f2.follower_id = ?
 	)
+	AND u.id NOT IN (?,?)
 	`
 
 	if len(placeholders) > 0 {
-		query += fmt.Sprintf("AND u.id NOT IN (?,?,%s) ", placeholders)
+		query += fmt.Sprintf("AND u.id NOT IN (%s) ", placeholders)
 	}
 
 	query += `

@@ -135,4 +135,22 @@ class UserRepo {
     }
   }
 
+  Future<MutualFriends$Query> getMutualFriends(
+    int id,
+    int limit,
+    List<int> idsList
+  ) async {
+    final result = await client.query(
+      UserOptions().mutualFriendsQueryOptions(id, limit, idsList)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return MutualFriends$Query.fromJson(
+        result.data!
+      );
+    }
+  }
+
 }

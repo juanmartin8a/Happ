@@ -155,4 +155,28 @@ class UserOptions {
     return queryOptions;
   }
 
+  QueryOptions mutualFriendsQueryOptions(
+    int id,
+    int limit,
+    List<int> idsList
+  ) {
+    QueryOptions queryOptions = QueryOptions(
+      document: MutualFriendsQuery(
+        variables: MutualFriendsArguments(
+          id: id,
+          limit: limit,
+          idsList: idsList
+        )
+      ).document,
+      variables: {
+        "id": id,
+        "limit": limit,
+        "idsList": idsList
+      },
+      fetchPolicy: FetchPolicy.noCache
+    );
+
+    return queryOptions;
+  }
+
 }
