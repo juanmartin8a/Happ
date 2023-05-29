@@ -3014,11 +3014,11 @@ func (r *queryResolver) MutualFriends(ctx context.Context, id int, limit int, id
 			FROM follows f1
 			JOIN follows f2
 				ON f1.user_id = f2.user_id
-				AND f1.valid = true
-				AND f2.valid = true
 			WHERE f1.user_id = u.id
 				AND f1.follower_id = ?
 				AND f2.follower_id = ?
+				AND f1.valid = true
+        AND f2.valid = true
 	)
 	AND u.id NOT IN (?,?)
 	`
