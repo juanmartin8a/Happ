@@ -121,6 +121,7 @@ type ComplexityRoot struct {
 		ScanPass                  func(childComplexity int, eventID int, cypherText string) int
 		SignIn                    func(childComplexity int, input model.SignInInput) int
 		UpdateEvent               func(childComplexity int, input model.UpdateEventInput, eventID int) int
+		UpdateUser                func(childComplexity int, input model.UpdateUserInput) int
 	}
 
 	PaginatedEventResults struct {
@@ -134,6 +135,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		AddedMe                     func(childComplexity int, limit int, idsList []int) int
 		GetEventGuests              func(childComplexity int, eventID int, limit int, idsList []int) int
 		GetEventHosts               func(childComplexity int, eventID int, limit int, idsList []int) int
 		GetFollowState              func(childComplexity int, id int) int
@@ -143,6 +145,7 @@ type ComplexityRoot struct {
 		LocationDetails             func(childComplexity int, placeID string) int
 		LocationDetailsFromCoords   func(childComplexity int, coords model.CoordinatesInput) int
 		MutualFriends               func(childComplexity int, id int, limit int, idsList []int) int
+		MyFriends                   func(childComplexity int, limit int, idsList []int) int
 		SearchForUsersToAddAsGuests func(childComplexity int, search string, eventID int) int
 		SearchLocation              func(childComplexity int, search string) int
 		SearchUsers                 func(childComplexity int, search string, userSearching int) int
@@ -154,6 +157,11 @@ type ComplexityRoot struct {
 	SignInResponse struct {
 		IsNew func(childComplexity int) int
 		User  func(childComplexity int) int
+	}
+
+	UpdateUserResponse struct {
+		Errors func(childComplexity int) int
+		User   func(childComplexity int) int
 	}
 
 	User struct {
@@ -194,6 +202,7 @@ type MutationResolver interface {
 	ScanPass(ctx context.Context, eventID int, cypherText string) (*bool, error)
 	LeaveEvent(ctx context.Context, eventID int) (*bool, error)
 	SaveDevice(ctx context.Context, token string) (*bool, error)
+	UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.UpdateUserResponse, error)
 }
 type QueryResolver interface {
 	User(ctx context.Context, username string) (*ent.User, error)
@@ -211,6 +220,8 @@ type QueryResolver interface {
 	LocationDetailsFromCoords(ctx context.Context, coords model.CoordinatesInput) (string, error)
 	MutualFriends(ctx context.Context, id int, limit int, idsList []int) (*model.PaginatedEventUsersResults, error)
 	GetFollowState(ctx context.Context, id int) (bool, error)
+	MyFriends(ctx context.Context, limit int, idsList []int) (*model.PaginatedEventUsersResults, error)
+	AddedMe(ctx context.Context, limit int, idsList []int) (*model.PaginatedEventUsersResults, error)
 }
 type UserResolver interface {
 	FollowState(ctx context.Context, obj *ent.User) (bool, error)
@@ -608,6 +619,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateEvent(childComplexity, args["input"].(model.UpdateEventInput), args["eventId"].(int)), true
 
+	case "Mutation.updateUser":
+		if e.complexity.Mutation.UpdateUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(model.UpdateUserInput)), true
+
 	case "PaginatedEventResults.events":
 		if e.complexity.PaginatedEventResults.Events == nil {
 			break
@@ -635,6 +658,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PaginatedEventUsersResults.Users(childComplexity), true
+
+	case "Query.addedMe":
+		if e.complexity.Query.AddedMe == nil {
+			break
+		}
+
+		args, err := ec.field_Query_addedMe_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AddedMe(childComplexity, args["limit"].(int), args["idsList"].([]int)), true
 
 	case "Query.getEventGuests":
 		if e.complexity.Query.GetEventGuests == nil {
@@ -744,6 +779,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.MutualFriends(childComplexity, args["id"].(int), args["limit"].(int), args["idsList"].([]int)), true
 
+	case "Query.myFriends":
+		if e.complexity.Query.MyFriends == nil {
+			break
+		}
+
+		args, err := ec.field_Query_myFriends_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MyFriends(childComplexity, args["limit"].(int), args["idsList"].([]int)), true
+
 	case "Query.searchForUsersToAddAsGuests":
 		if e.complexity.Query.SearchForUsersToAddAsGuests == nil {
 			break
@@ -830,6 +877,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SignInResponse.User(childComplexity), true
 
+	case "UpdateUserResponse.errors":
+		if e.complexity.UpdateUserResponse.Errors == nil {
+			break
+		}
+
+		return e.complexity.UpdateUserResponse.Errors(childComplexity), true
+
+	case "UpdateUserResponse.user":
+		if e.complexity.UpdateUserResponse.User == nil {
+			break
+		}
+
+		return e.complexity.UpdateUserResponse.User(childComplexity), true
+
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
 			break
@@ -900,6 +961,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSignInInput,
 		ec.unmarshalInputUpdateEventInput,
 		ec.unmarshalInputUpdatePictureInput,
+		ec.unmarshalInputUpdateUserInput,
 	)
 	first := true
 
@@ -1066,6 +1128,12 @@ input UpdateEventInput {
   longitude: Float,
 }
 
+input UpdateUserInput {
+  profilePic: Upload
+  name: String
+  username: String
+}
+
 input UpdatePictureInput {
   index: Int!
   file: Upload
@@ -1085,6 +1153,11 @@ type SignInResponse {
 
 type CreateEventResponse {
   event: Event
+  errors: [ErrorResponse!]
+}
+
+type UpdateUserResponse {
+  user: User
   errors: [ErrorResponse!]
 }
 
@@ -1161,6 +1234,14 @@ type Query {
   getFollowState(
     id: Int!,
   ): Boolean!,
+  myFriends(
+    limit: Int!,
+    idsList: [Int!]!
+  ): PaginatedEventUsersResults!,
+  addedMe(
+    limit: Int!,
+    idsList: [Int!]!
+  ): PaginatedEventUsersResults!,
 }
 
 type Mutation {
@@ -1208,6 +1289,9 @@ type Mutation {
   saveDevice(
     token: String!
   ): Boolean
+  updateUser(
+    input: UpdateUserInput!,
+  ): UpdateUserResponse!,
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -1459,6 +1543,21 @@ func (ec *executionContext) field_Mutation_updateEvent_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UpdateUserInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateUserInput2happᚋgraphᚋmodelᚐUpdateUserInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1471,6 +1570,30 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_addedMe_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 []int
+	if tmp, ok := rawArgs["idsList"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idsList"))
+		arg1, err = ec.unmarshalNInt2ᚕintᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["idsList"] = arg1
 	return args, nil
 }
 
@@ -1687,6 +1810,30 @@ func (ec *executionContext) field_Query_mutualFriends_args(ctx context.Context, 
 		}
 	}
 	args["idsList"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_myFriends_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 []int
+	if tmp, ok := rawArgs["idsList"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idsList"))
+		arg1, err = ec.unmarshalNInt2ᚕintᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["idsList"] = arg1
 	return args, nil
 }
 
@@ -4059,6 +4206,67 @@ func (ec *executionContext) fieldContext_Mutation_saveDevice(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateUser(rctx, fc.Args["input"].(model.UpdateUserInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.UpdateUserResponse)
+	fc.Result = res
+	return ec.marshalNUpdateUserResponse2ᚖhappᚋgraphᚋmodelᚐUpdateUserResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "user":
+				return ec.fieldContext_UpdateUserResponse_user(ctx, field)
+			case "errors":
+				return ec.fieldContext_UpdateUserResponse_errors(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UpdateUserResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PaginatedEventResults_events(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedEventResults) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PaginatedEventResults_events(ctx, field)
 	if err != nil {
@@ -5201,6 +5409,128 @@ func (ec *executionContext) fieldContext_Query_getFollowState(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_myFriends(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_myFriends(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MyFriends(rctx, fc.Args["limit"].(int), fc.Args["idsList"].([]int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PaginatedEventUsersResults)
+	fc.Result = res
+	return ec.marshalNPaginatedEventUsersResults2ᚖhappᚋgraphᚋmodelᚐPaginatedEventUsersResults(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_myFriends(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "users":
+				return ec.fieldContext_PaginatedEventUsersResults_users(ctx, field)
+			case "hasMore":
+				return ec.fieldContext_PaginatedEventUsersResults_hasMore(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PaginatedEventUsersResults", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_myFriends_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_addedMe(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_addedMe(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AddedMe(rctx, fc.Args["limit"].(int), fc.Args["idsList"].([]int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PaginatedEventUsersResults)
+	fc.Result = res
+	return ec.marshalNPaginatedEventUsersResults2ᚖhappᚋgraphᚋmodelᚐPaginatedEventUsersResults(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_addedMe(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "users":
+				return ec.fieldContext_PaginatedEventUsersResults_users(ctx, field)
+			case "hasMore":
+				return ec.fieldContext_PaginatedEventUsersResults_hasMore(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PaginatedEventUsersResults", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_addedMe_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -5425,6 +5755,112 @@ func (ec *executionContext) fieldContext_SignInResponse_isNew(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UpdateUserResponse_user(ctx context.Context, field graphql.CollectedField, obj *model.UpdateUserResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UpdateUserResponse_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖhappᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UpdateUserResponse_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdateUserResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "followState":
+				return ec.fieldContext_User_followState(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_User_updatedAt(ctx, field)
+			case "profilePic":
+				return ec.fieldContext_User_profilePic(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UpdateUserResponse_errors(ctx context.Context, field graphql.CollectedField, obj *model.UpdateUserResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UpdateUserResponse_errors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Errors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ErrorResponse)
+	fc.Result = res
+	return ec.marshalOErrorResponse2ᚕᚖhappᚋgraphᚋmodelᚐErrorResponseᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UpdateUserResponse_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdateUserResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "field":
+				return ec.fieldContext_ErrorResponse_field(ctx, field)
+			case "message":
+				return ec.fieldContext_ErrorResponse_message(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorResponse", field.Name)
 		},
 	}
 	return fc, nil
@@ -7909,6 +8345,53 @@ func (ec *executionContext) unmarshalInputUpdatePictureInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, obj interface{}) (model.UpdateUserInput, error) {
+	var it model.UpdateUserInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"profilePic", "name", "username"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "profilePic":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profilePic"))
+			data, err := ec.unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProfilePic = data
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "username":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -8517,6 +9000,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_saveDevice(ctx, field)
 			})
 
+		case "updateUser":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateUser(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8953,6 +9445,52 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "myFriends":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_myFriends(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "addedMe":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_addedMe(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -8993,6 +9531,35 @@ func (ec *executionContext) _SignInResponse(ctx context.Context, sel ast.Selecti
 		case "isNew":
 
 			out.Values[i] = ec._SignInResponse_isNew(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var updateUserResponseImplementors = []string{"UpdateUserResponse"}
+
+func (ec *executionContext) _UpdateUserResponse(ctx context.Context, sel ast.SelectionSet, obj *model.UpdateUserResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateUserResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateUserResponse")
+		case "user":
+
+			out.Values[i] = ec._UpdateUserResponse_user(ctx, field, obj)
+
+		case "errors":
+
+			out.Values[i] = ec._UpdateUserResponse_errors(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -9842,6 +10409,25 @@ func (ec *executionContext) unmarshalNUpdateEventInput2happᚋgraphᚋmodelᚐUp
 func (ec *executionContext) unmarshalNUpdatePictureInput2ᚖhappᚋgraphᚋmodelᚐUpdatePictureInput(ctx context.Context, v interface{}) (*model.UpdatePictureInput, error) {
 	res, err := ec.unmarshalInputUpdatePictureInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateUserInput2happᚋgraphᚋmodelᚐUpdateUserInput(ctx context.Context, v interface{}) (model.UpdateUserInput, error) {
+	res, err := ec.unmarshalInputUpdateUserInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUpdateUserResponse2happᚋgraphᚋmodelᚐUpdateUserResponse(ctx context.Context, sel ast.SelectionSet, v model.UpdateUserResponse) graphql.Marshaler {
+	return ec._UpdateUserResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUpdateUserResponse2ᚖhappᚋgraphᚋmodelᚐUpdateUserResponse(ctx context.Context, sel ast.SelectionSet, v *model.UpdateUserResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UpdateUserResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx context.Context, v interface{}) ([]*graphql.Upload, error) {

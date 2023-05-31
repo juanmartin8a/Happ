@@ -114,6 +114,17 @@ type UpdatePictureInput struct {
 	Action PictureAction   `json:"action"`
 }
 
+type UpdateUserInput struct {
+	ProfilePic *graphql.Upload `json:"profilePic,omitempty"`
+	Name       *string         `json:"name,omitempty"`
+	Username   *string         `json:"username,omitempty"`
+}
+
+type UpdateUserResponse struct {
+	User   *ent.User        `json:"user,omitempty"`
+	Errors []*ErrorResponse `json:"errors,omitempty"`
+}
+
 type PictureAction string
 
 const (

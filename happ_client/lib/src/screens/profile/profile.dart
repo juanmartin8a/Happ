@@ -1,4 +1,5 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +14,7 @@ import 'package:happ_client/src/riverpod/profile/mutualFriends/mutualFriendsStat
 import 'package:happ_client/src/screens/profile/widgets/addRemoveButton.dart';
 import 'package:happ_client/src/screens/profile/widgets/horizontalUserTile.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
+import 'package:happ_client/src/utils/widgets/loader.dart';
 import 'package:uuid/uuid.dart';
 
 class ProfileUserData {
@@ -32,14 +34,18 @@ class ProfileUserData {
     profilePic = user.profilePic;
   }
 
-  ProfileUserData.fromIdUsernameNameAndProfilePic(dynamic user) {
+  ProfileUserData.fromUserData(dynamic user) {
 
     final userJSON = user.toJson();
 
     id = userJSON["id"];
     username = userJSON["username"];
     name = userJSON["name"];
-    followState = null;
+    if (userJSON["followState"] != null) {
+      followState = userJSON["followState"];
+    } else {
+      followState = null;
+    }
     profilePic = userJSON["profilePic"];
   }
 }
@@ -70,7 +76,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
   List<MutualFriends$Query$PaginatedEventUsersResults$User> users = [];
   List<int> userIds = [];
 
-  bool isLoading = false;
+  bool isLoading = true;
   bool hasMore = true; 
 
   @override
@@ -139,6 +145,286 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
       }
     });
 
+    Widget? notCurrentUserWidget = null;
+    Widget? currentUserWidget = null;
+
+    if (id != ref.read(currentUserProvider)!.id) {
+      notCurrentUserWidget = Column(
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              "Mutual Friends",
+              style: TextStyle(
+                color: Colors.grey[800]!,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                height: 1
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          if (isLoading && users.isEmpty)
+          Container(
+            height: 80,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: const Loader(radius: 8)
+              ),
+            ),
+          ),
+
+          if (users.isNotEmpty)
+          SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: 157,
+            // padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: ListView.builder(
+              itemCount: users.length + 2,
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.zero,
+              itemBuilder: (context, index) {
+                if (index == 0 || index == (users.length + 2) - 1) {
+                  return const SizedBox(width: 12);
+                }
+    
+                int realIndex = index - 1;
+    
+                return HorizontalUserTile(
+                  followState: true,
+                  name: users[realIndex].name,
+                  profilePic: users[realIndex].profilePic,
+                  username: users[realIndex].username,
+                  id: users[realIndex].id,
+                  key: Key("mutualUser/from:$id+to:${users[realIndex].id}"),
+                );
+              }
+            )
+          ),
+          if (users.isEmpty && !isLoading)
+          Container(
+            height: 80,
+            // color: Colors.red,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child:
+                RichText(
+                  textAlign: TextAlign.center,
+                  
+                  text: TextSpan(
+                    text: "No mutual friends yet :)",
+                    style: TextStyle(
+                      fontFamily: "Inter",
+                      color: Colors.grey[800],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    children: const <TextSpan>[
+                      // TextSpan(text: '', style: TextStyle(fontSize: 18)),
+                    ]
+                  )
+                )
+              ),
+            )
+          )
+        ],
+      );
+    } else {
+      currentUserWidget = Column(
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              "Friends",
+              style: TextStyle(
+                color: Colors.grey[800]!,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                height: 1
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          if (isLoading && users.isEmpty)
+          Container(
+            height: 80,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: const Loader(radius: 8)
+              ),
+            ),
+          ),
+
+          if (users.isNotEmpty)
+          SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: 157,
+            // padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: ListView.builder(
+              itemCount: users.length + 2,
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.zero,
+              itemBuilder: (context, index) {
+                if (index == 0 || index == (users.length + 2) - 1) {
+                  return const SizedBox(width: 12);
+                }
+    
+                int realIndex = index - 1;
+    
+                return HorizontalUserTile(
+                  followState: true,
+                  name: users[realIndex].name,
+                  profilePic: users[realIndex].profilePic,
+                  username: users[realIndex].username,
+                  id: users[realIndex].id,
+                  key: Key("mutualUser/from:$id+to:${users[realIndex].id}"),
+                );
+              }
+            )
+          ),
+          if (users.isEmpty && !isLoading)
+          Container(
+            height: 80,
+            // color: Colors.red,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child:
+                RichText(
+                  textAlign: TextAlign.center,
+                  
+                  text: TextSpan(
+                    text: "No friends yet :)",
+                    style: TextStyle(
+                      fontFamily: "Inter",
+                      color: Colors.grey[800],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    children: const <TextSpan>[
+                      // TextSpan(text: '', style: TextStyle(fontSize: 18)),
+                    ]
+                  )
+                )
+              ),
+            )
+          ),
+          const SizedBox(height: 24),
+          Container(
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              "Added Me",
+              style: TextStyle(
+                color: Colors.grey[800]!,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                height: 1
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          if (isLoading && users.isEmpty)
+          Container(
+            height: 80,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: const Loader(radius: 8)
+              ),
+            ),
+          ),
+
+          if (users.isNotEmpty)
+          SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: 157,
+            // padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: ListView.builder(
+              itemCount: users.length + 2,
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.zero,
+              itemBuilder: (context, index) {
+                if (index == 0 || index == (users.length + 2) - 1) {
+                  return const SizedBox(width: 12);
+                }
+    
+                int realIndex = index - 1;
+    
+                return HorizontalUserTile(
+                  followState: true,
+                  name: users[realIndex].name,
+                  profilePic: users[realIndex].profilePic,
+                  username: users[realIndex].username,
+                  id: users[realIndex].id,
+                  key: Key("mutualUser/from:$id+to:${users[realIndex].id}"),
+                );
+              }
+            )
+          ),
+          if (users.isEmpty && !isLoading)
+          Container(
+            height: 80,
+            // color: Colors.red,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child:
+                RichText(
+                  textAlign: TextAlign.center,
+                  
+                  text: TextSpan(
+                    text: "No friends yet :)",
+                    style: TextStyle(
+                      fontFamily: "Inter",
+                      color: Colors.grey[800],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    children: const <TextSpan>[
+                      // TextSpan(text: '', style: TextStyle(fontSize: 18)),
+                    ]
+                  )
+                )
+              ),
+            )
+          )
+        ],
+      );
+    }
+
 
     return Material(
       color: Colors.white,
@@ -159,9 +445,11 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                 child: Align(
                   alignment: Alignment.center,
                   child: Row(
+                    mainAxisSize: MainAxisSize.max,
                     // crossAxisAlignment: CrossAxisAlignment.stretch,
                     
                     children: [
+                      if (id != ref.read(currentUserProvider)!.id)
                       GestureDetector(
                         onTap: () {
                           Navigator.pop(context);
@@ -176,16 +464,34 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                         )
                       ),
                       Center(
-                        child: Text(
-                          username,
-                          style: TextStyle(
-                            color: Colors.grey[800]!,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            left: id == ref.read(currentUserProvider)!.id ? 12 : 0,
+                          ),
+                          child: Text(
+                            // username,
+                            "juanmartin8a",
+                            style: TextStyle(
+                              color: Colors.grey[800]!,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700
+                            ),
                           ),
                         ),
                       ),
                       const Spacer(),
+                      if (id == ref.read(currentUserProvider)!.id)
+                       Center(
+                        child: Container(
+                          height: 45,
+                          padding: const EdgeInsets.only(right: 12, left: 12),
+                          child: const Icon(
+                            EvaIcons.menu,
+                            color: Colors.black,
+                            size: 28
+                          )
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -202,120 +508,259 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                       const SizedBox(
                         height: 24
                       ),
-                      Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          shape: BoxShape.circle,
-                          // borderRadius: BorderRadius.circular(100),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              spreadRadius: 3,
-                              blurRadius: 7,
+                      // Container(
+                      //   width: 90,
+                      //   height: 90,
+                      //   decoration: BoxDecoration(
+                      //     color: Colors.grey[300],
+                      //     shape: BoxShape.circle,
+                      //     // borderRadius: BorderRadius.circular(100),
+                      //     boxShadow: [
+                      //       BoxShadow(
+                      //         color: Colors.black.withOpacity(0.2),
+                      //         spreadRadius: 2,
+                      //         blurRadius: 6,
+                      //       ),
+                      //     ],
+                      //   ),
+                      //   child: ClipRRect(
+                      //     borderRadius: BorderRadius.circular(100),
+                      //     child: Image.network(
+                      //       widget.user.profilePic,
+                      //       fit: BoxFit.cover,
+                      //     ),
+                      //   ),
+                      // ),
+                      // const SizedBox(
+                      //   height: 12
+                      // ),
+                      
+                      // Container(
+                      //   padding: const EdgeInsets.symmetric(horizontal: 24),
+                      //   child: Text(
+                      //     // widget.user.name,
+                      //     "Juan Martin",
+                      //     style: TextStyle(
+                      //       color: Colors.grey[800]!,
+                      //       fontSize: 18,
+                      //       fontWeight: FontWeight.w700,
+                      //       height: 1,
+                      //     ),
+                      //   )
+                      // ),
+                      // const SizedBox(
+                      //   height: 12
+                      // ),
+                      // GestureDetector(
+                      //   onTap: () {
+                      //     if (id != ref.read(currentUserProvider)!.id) {
+                      //       if (followState != null) {
+                      //         ref.read(addOrRemoveUserProvider("userId:$id").notifier).addOrRemoveUser(id, !followState!);
+                      //         isLoading = false;
+                      //       }
+                      //     }
+                      //   },
+                      //   child: Container(
+                      //     height: 36,
+                      //     // width: 80,
+                      //     width: 150,
+                      //     decoration: BoxDecoration(
+                      //       color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
+                      //       // border: Border.all(color: Colors.grey[800]!, width: 2),
+                      //       borderRadius: BorderRadius.circular(20)
+                      //       // shape: BoxShape.circle
+                      //     ),
+                      //     child: Center(
+                      //       child: Text(
+                      //         id != ref.read(currentUserProvider)!.id
+                      //         ? isInitLoading ? "" : followState! ? "Added" : "Add"
+                      //         : "Edit",
+                      //         style: TextStyle(
+                      //           color: followState! ? Colors.grey[800] : Colors.white,
+                      //           fontSize: 14,
+                      //           fontWeight: FontWeight.w600,
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 90,
+                              height: 90,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                shape: BoxShape.circle,
+                                // borderRadius: BorderRadius.circular(100),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    spreadRadius: 2,
+                                    blurRadius: 6,
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(100),
+                                child: Image.network(
+                                  widget.user.profilePic,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 12
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  // widget.user.name,
+                                  "Juan Martin Zabala",
+                                  style: TextStyle(
+                                    color: Colors.grey[800]!,
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 6
+                                ),
+                                Text(
+                                  // widget.user.name,
+                                  "juanmartin8a",
+                                  style: TextStyle(
+                                    color: Colors.grey[600]!,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    height: 1,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 12
+                                ),
+                                // GestureDetector(
+                                //   onTap: () {
+                                //     if (id != ref.read(currentUserProvider)!.id) {
+                                //       if (followState != null) {
+                                //         ref.read(addOrRemoveUserProvider("userId:$id").notifier).addOrRemoveUser(id, !followState!);
+                                //         isLoading = false;
+                                //       }
+                                //     }
+                                //   },
+                                //   child: Container(
+                                //     height: 30,
+                                //     width: MediaQuery.of(context).size.width - (90 + 36),
+                                //     decoration: BoxDecoration(
+                                //       color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
+                                //       // border: Border.all(color: Colors.grey[800]!, width: 2),
+                                //       borderRadius: BorderRadius.circular(20)
+                                //       // shape: BoxShape.circle
+                                //     ),
+                                //     child: Center(
+                                //       child: Text(
+                                //         id != ref.read(currentUserProvider)!.id
+                                //         ? isInitLoading ? "" : followState! ? "Added" : "Add"
+                                //         : "Edit",
+                                //         style: TextStyle(
+                                //           color: followState! ? Colors.grey[800] : Colors.white,
+                                //           fontSize: 14,
+                                //           fontWeight: FontWeight.w600,
+                                //         ),
+                                //       ),
+                                //     ),
+                                //   ),
+                                // ),
+                              ],
                             ),
                           ],
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(100),
-                          child: Image.network(
-                            widget.user.profilePic,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
                       ),
-                      const SizedBox(
-                        height: 16
-                      ),
+                      // Container(
+                      //   width: 90,
+                      //   height: 90,
+                      //   decoration: BoxDecoration(
+                      //     color: Colors.grey[300],
+                      //     shape: BoxShape.circle,
+                      //     // borderRadius: BorderRadius.circular(100),
+                      //     boxShadow: [
+                      //       BoxShadow(
+                      //         color: Colors.black.withOpacity(0.2),
+                      //         spreadRadius: 2,
+                      //         blurRadius: 6,
+                      //       ),
+                      //     ],
+                      //   ),
+                      //   child: ClipRRect(
+                      //     borderRadius: BorderRadius.circular(100),
+                      //     child: Image.network(
+                      //       widget.user.profilePic,
+                      //       fit: BoxFit.cover,
+                      //     ),
+                      //   ),
+                      // ),
+                      // const SizedBox(
+                      //   height: 12
+                      // ),
                       
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
-                          widget.user.name,
-                          style: TextStyle(
-                            color: Colors.grey[800]!,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            height: 1,
-                          ),
-                        )
-                      ),
+                      // Container(
+                      //   padding: const EdgeInsets.symmetric(horizontal: 24),
+                      //   child: Text(
+                      //     // widget.user.name,
+                      //     "Juan Martin",
+                      //     style: TextStyle(
+                      //       color: Colors.grey[800]!,
+                      //       fontSize: 18,
+                      //       fontWeight: FontWeight.w700,
+                      //       height: 1,
+                      //     ),
+                      //   )
+                      // ),
                       const SizedBox(
                         height: 24
                       ),
                       GestureDetector(
                         onTap: () {
-                          if (followState != null) {
-                            ref.read(addOrRemoveUserProvider("userId:$id").notifier).addOrRemoveUser(id, !followState!);
+                          if (id != ref.read(currentUserProvider)!.id) {
+                            if (followState != null) {
+                              ref.read(addOrRemoveUserProvider("userId:$id").notifier).addOrRemoveUser(id, !followState!);
+                              isLoading = false;
+                            }
                           }
                         },
                         child: Container(
-                          height: 35,
+                          height: 36,
                           // width: 80,
                           width: MediaQuery.of(context).size.width - 24,
                           decoration: BoxDecoration(
-                            color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200] : Colors.black,
+                            color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
                             // border: Border.all(color: Colors.grey[800]!, width: 2),
-                            borderRadius: BorderRadius.circular(50)
+                            borderRadius: BorderRadius.circular(20)
                             // shape: BoxShape.circle
                           ),
                           child: Center(
                             child: Text(
-                              isInitLoading ? "" : followState! ? "Added" : "Add",
+                              id != ref.read(currentUserProvider)!.id
+                              ? isInitLoading ? "" : followState! ? "Added" : "Add"
+                              : "Edit",
                               style: TextStyle(
                                 color: followState! ? Colors.grey[800] : Colors.white,
-                                fontSize: 15,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      Container(
-                        width: MediaQuery.of(context).size.width,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          "Mutual Friends",
-                          style: TextStyle(
-                            color: Colors.grey[800]!,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            height: 1
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        height: 157,
-                        // padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child:  users.isNotEmpty
-                        ? ListView.builder(
-                          itemCount: users.length + 2,
-                          shrinkWrap: true,
-                          scrollDirection: Axis.horizontal,
-                          padding: EdgeInsets.zero,
-                          itemBuilder: (context, index) {
-                            if (index == 0 || index == (users.length + 2) - 1) {
-                              return const SizedBox(width: 12);
-                            }
-                
-                            int realIndex = index - 1;
-                
-                            return HorizontalUserTile(
-                              followState: true,
-                              name: users[realIndex].name,
-                              profilePic: users[realIndex].profilePic,
-                              username: users[realIndex].username,
-                              id: users[realIndex].id,
-                              key: Key("mutualUser/from:$id+to:${users[realIndex].id}"),
-                            );
-                          }
-                        )
-                        : Container()
-                      ),
+                      const SizedBox(height: 36),
+                      if (id != ref.read(currentUserProvider)!.id)
+                      notCurrentUserWidget!,
+                      if (id == ref.read(currentUserProvider)!.id)
+                      currentUserWidget!,
                     ],
                   ),
                 )

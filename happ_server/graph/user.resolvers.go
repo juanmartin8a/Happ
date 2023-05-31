@@ -1943,6 +1943,77 @@ func (r *mutationResolver) SaveDevice(ctx context.Context, token string) (*bool,
 	return &value, nil
 }
 
+// UpdateUser is the resolver for the updateUser field.
+func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.UpdateUserResponse, error) {
+	userId, authErr := utils.IsAuth(ctx)
+	if authErr != nil {
+		return nil, authErr
+	}
+
+	var errors []*model.ErrorResponse
+
+	currentUser, err := r.client.User.Query().
+		Where(
+			user.ID(*userId),
+		).
+		Only(ctx)
+	if err != nil {
+		log.Println("could not get current user from DB on UpdateUser()")
+		return nil, err
+	}
+
+	updateUser := currentUser.Update()
+
+	if input.ProfilePic != nil {
+
+		content, err := io.ReadAll(input.ProfilePic.File)
+		if err != nil {
+			log.Println("could not read profile picture to update")
+			return nil, fmt.Errorf("could not read profile picture to update")
+		}
+
+		uuid := uuid.New()
+		uuidString := uuid.String()
+		key := "userProfilePics/" + strconv.Itoa(*userId) + ".jpg"
+		fileVersion := "?v=" + uuidString
+
+		var fullKey string
+		if config.C.AppEnv == "prod" {
+			fullKey = "https://di7aab2ls1mmt.cloudfront.net/" + key + fileVersion
+		} else if config.C.AppEnv == "dev" {
+			fullKey = "https://d3pvchlba3rmqp.cloudfront.net/" + key + fileVersion
+		}
+
+		file := bytes.NewReader(content)
+		uploadRes := awsS3.UploadToS3(key, file)
+		if !uploadRes {
+			log.Println("could not update user, try again later")
+			return nil, fmt.Errorf("could not update user, try again later")
+		}
+
+		updateUser = updateUser.SetProfilePic(fullKey)
+	}
+
+	if input.Name != nil {
+		updateUser = updateUser.SetName(*input.Name)
+	}
+
+	if input.Username != nil {
+		updateUser = updateUser.SetUsername(*input.Username)
+	}
+
+	updatedUser, err := updateUser.Save(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("could not create event, try again later")
+	}
+
+	return &model.UpdateUserResponse{
+		User:   updatedUser,
+		Errors: errors,
+	}, nil
+}
+
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, username string) (*ent.User, error) {
 	return r.client.User.Query().Where(user.Username(username)).Only(ctx)
@@ -3111,6 +3182,266 @@ func (r *queryResolver) GetFollowState(ctx context.Context, id int) (bool, error
 	}
 
 	return false, nil
+}
+
+// MyFriends is the resolver for the myFriends field.
+func (r *queryResolver) MyFriends(ctx context.Context, limit int, idsList []int) (*model.PaginatedEventUsersResults, error) {
+	userId, authErr := utils.IsAuth(ctx)
+	if authErr != nil {
+		return nil, authErr
+	}
+
+	realLimit := 15
+
+	realLimitPlusOne := realLimit + 1
+
+	var users []*ent.User
+
+	var stringIdsList []string
+
+	for _, id := range idsList {
+		stringIdsList = append(stringIdsList, strconv.Itoa(id))
+	}
+
+	var args []interface{}
+	args = append(args, *userId)
+
+	args = append(args, *userId)
+
+	args = append(args, *userId)
+
+	var params []string
+	for _, id := range stringIdsList {
+		// convert id to int and append to args
+		intId, err := strconv.Atoi(id)
+		if err != nil {
+			return nil, err // handle error
+		}
+		args = append(args, intId)
+		params = append(params, "?")
+	}
+
+	// join params with commas
+	placeholders := strings.Join(params, ",")
+
+	args = append(args, realLimitPlusOne)
+
+	query := `
+	SELECT u.*, IF(f3.follower_id IS NOT NULL, 1, 0) follows_current_user FROM users u
+
+	LEFT JOIN follows f3
+	ON f3.user_id = ?
+	AND f3.follower_id = u.id
+	AND f3.valid = true
+
+	WHERE EXISTS (
+		SELECT 1 
+			FROM follows f
+			WHERE f.user_id = u.id
+				AND f.follower_id = ?
+				AND f.valid = true
+	)
+	AND u.id != ?
+	`
+
+	if len(placeholders) > 0 {
+		query += fmt.Sprintf("AND u.id NOT IN (%s) ", placeholders)
+	}
+
+	query += `
+		ORDER BY follows_current_user DESC
+		LIMIT ?
+	`
+
+	res, err := r.client.QueryContext(ctx, query, args...)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	for res.Next() {
+		var id int
+		var name string
+		var username string
+		var email string
+		var fuid string
+		var created_at time.Time
+		var updated_at time.Time
+		var profile_pic string
+		var follows_current_user bool
+
+		if err := res.Scan(
+			&id,
+			&name,
+			&username,
+			&email,
+			&created_at,
+			&updated_at,
+			&profile_pic,
+			&fuid,
+			&follows_current_user,
+		); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		event := ent.User{
+			ID:         id,
+			Name:       name,
+			Username:   username,
+			Email:      email,
+			CreatedAt:  created_at,
+			UpdatedAt:  updated_at,
+			ProfilePic: profile_pic,
+			FUID:       fuid,
+		}
+
+		users = append(users, &event)
+	}
+
+	res.Close()
+
+	if len(users) < realLimit {
+		realLimit = len(users)
+	}
+
+	return &model.PaginatedEventUsersResults{
+		Users:   users[0:realLimit],
+		HasMore: len(users) == realLimitPlusOne,
+	}, nil
+}
+
+// AddedMe is the resolver for the addedMe field.
+func (r *queryResolver) AddedMe(ctx context.Context, limit int, idsList []int) (*model.PaginatedEventUsersResults, error) {
+	userId, authErr := utils.IsAuth(ctx)
+	if authErr != nil {
+		return nil, authErr
+	}
+
+	realLimit := 15
+
+	realLimitPlusOne := realLimit + 1
+
+	var users []*ent.User
+
+	var stringIdsList []string
+
+	for _, id := range idsList {
+		stringIdsList = append(stringIdsList, strconv.Itoa(id))
+	}
+
+	var args []interface{}
+	args = append(args, *userId)
+
+	args = append(args, *userId)
+	// args = append(args, id) <-- changed this
+
+	args = append(args, *userId)
+	// args = append(args, id)
+
+	var params []string
+	for _, id := range stringIdsList {
+		// convert id to int and append to args
+		intId, err := strconv.Atoi(id)
+		if err != nil {
+			return nil, err // handle error
+		}
+		args = append(args, intId)
+		params = append(params, "?")
+	}
+
+	// join params with commas
+	placeholders := strings.Join(params, ",")
+
+	args = append(args, realLimitPlusOne)
+
+	query := `
+	SELECT u.*, IF(f3.follower_id IS NOT NULL, 1, 0) follows_current_user FROM users u
+
+	LEFT JOIN follows f3
+	ON f3.user_id = ?
+	AND f3.follower_id = u.id
+	AND f3.valid = true
+
+	WHERE EXISTS (
+		SELECT 1 
+			FROM follows f1
+			JOIN follows f2
+				ON f1.user_id = f2.user_id
+			WHERE f1.user_id = u.id
+				AND f1.follower_id = ?
+				AND f2.follower_id = ?
+				AND f1.valid = true
+        AND f2.valid = true
+	)
+	AND u.id NOT IN (?,?)
+	`
+
+	if len(placeholders) > 0 {
+		query += fmt.Sprintf("AND u.id NOT IN (%s) ", placeholders)
+	}
+
+	query += `
+		ORDER BY follows_current_user DESC
+		LIMIT ?
+	`
+
+	res, err := r.client.QueryContext(ctx, query, args...)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	for res.Next() {
+		var id int
+		var name string
+		var username string
+		var email string
+		var fuid string
+		var created_at time.Time
+		var updated_at time.Time
+		var profile_pic string
+		var follows_current_user bool
+
+		if err := res.Scan(
+			&id,
+			&name,
+			&username,
+			&email,
+			&created_at,
+			&updated_at,
+			&profile_pic,
+			&fuid,
+			&follows_current_user,
+		); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		event := ent.User{
+			ID:         id,
+			Name:       name,
+			Username:   username,
+			Email:      email,
+			CreatedAt:  created_at,
+			UpdatedAt:  updated_at,
+			ProfilePic: profile_pic,
+			FUID:       fuid,
+		}
+
+		users = append(users, &event)
+	}
+
+	res.Close()
+
+	if len(users) < realLimit {
+		realLimit = len(users)
+	}
+
+	return &model.PaginatedEventUsersResults{
+		Users:   users[0:realLimit],
+		HasMore: len(users) == realLimitPlusOne,
+	}, nil
 }
 
 // FollowState is the resolver for the followState field.

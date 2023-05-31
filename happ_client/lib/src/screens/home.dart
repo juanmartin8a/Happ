@@ -3,24 +3,26 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/repos/userRepo.dart';
+import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
 import 'package:happ_client/src/screens/events/newEvent.dart';
 import 'package:happ_client/src/screens/main/main.dart';
+import 'package:happ_client/src/screens/profile/profile.dart';
 import 'package:happ_client/src/screens/search/search.dart';
-import 'package:happ_client/src/screens/settings/settings.dart';
 import 'package:happ_client/src/utils/widgets/screenTabWrapper.dart';
 import 'package:hive/hive.dart';
 
-class Home extends StatefulWidget {
+class Home extends ConsumerStatefulWidget {
   const Home({
     Key? key
   }) : super(key: key);
 
   @override
-  State<Home> createState() => _HomeState();
+  _HomeState createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
+class _HomeState extends ConsumerState<Home> with SingleTickerProviderStateMixin {
 
   late TabController _tabController;
 
@@ -48,33 +50,48 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 child: TabBarView(
                   controller: _tabController,
                   viewportFraction: 1.03,
-                  children: const [
-                    FractionallySizedBox(
+                  children: [
+                    const FractionallySizedBox(
                       widthFactor: 1 / 1.03,
                       child: ScreenTabWrapper(
                         key: Key("homeTab"),
                         child: MainScreen(),
                       ),
                     ),
-                    FractionallySizedBox(
+                    const FractionallySizedBox(
                       widthFactor: 1 / 1.03,
                       child: ScreenTabWrapper(
                         key: Key("searchTab"),
                         child: Search(key: Key("search")),
                       )
                     ),
-                    FractionallySizedBox(
+                    const FractionallySizedBox(
                       widthFactor: 1 / 1.03,                                                                      
                       child: ScreenTabWrapper(
                         key: Key("newEventTab"),
                         child: NewEvent(),
                       )
                     ),
+                    // FractionallySizedBox(
+                    //   widthFactor: 1 / 1.03,
+                    //   child: ScreenTabWrapper(
+                    //     key: Key("settings Tab"),
+                    //     child: Settings()
+                    //   ),
+                    // ),
                     FractionallySizedBox(
                       widthFactor: 1 / 1.03,
                       child: ScreenTabWrapper(
-                        key: Key("settings Tab"),
-                        child: Settings()
+                        key: const Key("profileTab"),
+                        child: Builder(
+                          builder: (context) {
+                            final user = ProfileUserData.fromUserData(ref.read(currentUserProvider)!);
+                            return Profile(
+                              user: user,
+                              key: const Key("currentUserProfile")
+                            );
+                          }
+                        )
                       ),
                     ),
                   ]
@@ -141,10 +158,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             builder: (context, child) {
                               return Tab(
                                 child: Icon(
-                                  // _tabController.index == 3
-                                  // ? FluentIcons.settings_16_filled
-                                  // : FluentIcons.settings_16_regular,
-                                  EvaIcons.menu,
+                                  _tabController.index == 3
+                                  ? FluentIcons.person_16_filled
+                                  : FluentIcons.person_16_regular,
+                                  // EvaIcons.profile,
                                   size: 30,
                                   color: _tabController.index == 3 ? Colors.black : Colors.grey[850]
                                 ),
