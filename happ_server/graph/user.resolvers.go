@@ -219,8 +219,8 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 
 		preUsername := inputHandlers.ProcessString(name)
 
-		if len(preUsername) > 25 {
-			preUsername = preUsername[:25]
+		if len(preUsername) > 30 {
+			preUsername = preUsername[:30]
 		}
 
 		username = preUsername
@@ -239,8 +239,8 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 			// preUsername = reg.ReplaceAllString(name, "")
 			preUsername := inputHandlers.ProcessString(name)
 
-			if len(preUsername) > 25 {
-				preUsername = preUsername[:25]
+			if len(preUsername) > 30 {
+				preUsername = preUsername[:30]
 			}
 
 			username = preUsername
@@ -460,6 +460,8 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 						}
 						return false, err
 					}
+
+					// delete event pictures
 
 					// Send event cancel notifications
 					eventsToCancel = append(eventsToCancel, EventToCancel{
@@ -1208,6 +1210,8 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 		updateEvent = updateEvent.SetDescription(*input.Description)
 	}
 
+	var objectsToDelete []string
+
 	if input.EventPics != nil {
 		var eventPics []string
 		var lightEventPics []string
@@ -1215,7 +1219,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 		eventPics = event.EventPics
 		lightEventPics = event.LightEventPics
 
-		var objectsToDelete []string
+		// var objectsToDelete []string
 
 		for _, pic := range input.EventPics {
 			index := pic.Index
@@ -1362,27 +1366,27 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 			}
 		}
 
-		if len(objectsToDelete) > 0 {
+		// if len(objectsToDelete) > 0 {
 
-			newObjectKeys := make([]string, len(objectsToDelete))
-			for i, objectToDelete := range objectsToDelete {
-				objectToDeleteFullString := objectToDelete
+		// 	newObjectKeys := make([]string, len(objectsToDelete))
+		// 	for i, objectToDelete := range objectsToDelete {
+		// 		objectToDeleteFullString := objectToDelete
 
-				var cloudfrontDistribution string
-				if config.C.AppEnv == "prod" {
-					cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
-				} else if config.C.AppEnv == "dev" {
-					cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
-				}
+		// 		var cloudfrontDistribution string
+		// 		if config.C.AppEnv == "prod" {
+		// 			cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
+		// 		} else if config.C.AppEnv == "dev" {
+		// 			cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
+		// 		}
 
-				newObjectKeys[i] = strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, "")
-			}
+		// 		newObjectKeys[i] = strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, "")
+		// 	}
 
-			deleteEventPicsRes := awsS3.DeleteFromS3(newObjectKeys)
-			if !deleteEventPicsRes {
-				return nil, fmt.Errorf("could not delete previous image from aws s3")
-			}
-		}
+		// 	deleteEventPicsRes := awsS3.DeleteFromS3(newObjectKeys)
+		// 	if !deleteEventPicsRes {
+		// 		return nil, fmt.Errorf("could not delete previous image from aws s3")
+		// 	}
+		// }
 
 		updateEvent = updateEvent.SetEventPics(eventPics).SetLightEventPics(lightEventPics)
 	}
@@ -1412,6 +1416,28 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 		log.Println(err)
 		// return error could not create event
 		return nil, fmt.Errorf("could not create event, try again later")
+	}
+
+	if len(objectsToDelete) > 0 {
+		newObjectKeys := make([]string, len(objectsToDelete))
+		for i, objectToDelete := range objectsToDelete {
+			objectToDeleteFullString := objectToDelete
+
+			var cloudfrontDistribution string
+			if config.C.AppEnv == "prod" {
+				cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
+			} else if config.C.AppEnv == "dev" {
+				cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
+			}
+
+			newObjectKeys[i] = strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, "")
+		}
+
+		deleteEventPicsRes := awsS3.DeleteFromS3(newObjectKeys)
+		if !deleteEventPicsRes {
+			log.Printf("could not delete event pictures from S3: %s", newObjectKeys)
+			// return nil, fmt.Errorf("could not delete previous image from aws s3")
+		}
 	}
 
 	if input.EventDate != nil || input.EventPlace != nil || (input.Latitude != nil && input.Longitude != nil) {
@@ -1964,48 +1990,165 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 
 	updateUser := currentUser.Update()
 
+	var newProfilePicKey *string
+
+	if input.Name != nil {
+
+		if len(*input.Name) == 0 {
+			errors = append(errors, &model.ErrorResponse{
+				Field:   "name",
+				Message: "Name cannot be empty.",
+			})
+		}
+
+		updateUser = updateUser.SetName(*input.Name)
+	}
+
+	if input.Username != nil {
+
+		if len(*input.Username) > 30 {
+			errors = append(errors, &model.ErrorResponse{
+				Field:   "username",
+				Message: "Username can't have more than 30 characters",
+			})
+		} else {
+
+			valid := inputHandlers.IsValidUsername(*input.Username)
+
+			if !valid {
+
+				log.Println("username is not valid")
+				errors = append(errors, &model.ErrorResponse{
+					Field:   "username",
+					Message: "Username can only contain lowercase letters, numbers, periods (.), and underscores (_). No Spaces.",
+				})
+
+			} else {
+
+				_, err := r.client.User.Query().
+					Where(
+						user.Username(*input.Username),
+					).
+					Select(user.FieldID).
+					Int(ctx)
+
+				if err == nil || (err != nil && !ent.IsNotFound(err)) {
+					if err == nil {
+						log.Println("Error updating user: username is taken")
+						errors = append(errors, &model.ErrorResponse{
+							Field:   "username",
+							Message: "Username is taken.",
+						})
+					} else {
+						log.Println("Error updating user: error searching for user with input.Username")
+
+						return nil, err
+					}
+
+				} else {
+					updateUser = updateUser.SetUsername(*input.Username)
+				}
+			}
+		}
+	}
+
 	if input.ProfilePic != nil {
 
 		content, err := io.ReadAll(input.ProfilePic.File)
 		if err != nil {
 			log.Println("could not read profile picture to update")
+
 			return nil, fmt.Errorf("could not read profile picture to update")
 		}
 
 		uuid := uuid.New()
 		uuidString := uuid.String()
-		key := "userProfilePics/" + strconv.Itoa(*userId) + ".jpg"
-		fileVersion := "?v=" + uuidString
+		key := "userProfilePics/" + strconv.Itoa(*userId) + "_" + uuidString + ".jpg"
+		// fileVersion := "?v=" + uuidString
 
-		var fullKey string
+		var preNewProfilePicKey string
 		if config.C.AppEnv == "prod" {
-			fullKey = "https://di7aab2ls1mmt.cloudfront.net/" + key + fileVersion
+			preNewProfilePicKey = "https://di7aab2ls1mmt.cloudfront.net/" + key // + fileVersion
+			newProfilePicKey = &preNewProfilePicKey
 		} else if config.C.AppEnv == "dev" {
-			fullKey = "https://d3pvchlba3rmqp.cloudfront.net/" + key + fileVersion
+			preNewProfilePicKey = "https://d3pvchlba3rmqp.cloudfront.net/" + key // + fileVersion
+			newProfilePicKey = &preNewProfilePicKey
 		}
 
 		file := bytes.NewReader(content)
 		uploadRes := awsS3.UploadToS3(key, file)
 		if !uploadRes {
 			log.Println("could not update user, try again later")
+
 			return nil, fmt.Errorf("could not update user, try again later")
 		}
 
-		updateUser = updateUser.SetProfilePic(fullKey)
+		updateUser = updateUser.SetProfilePic(*newProfilePicKey)
 	}
 
-	if input.Name != nil {
-		updateUser = updateUser.SetName(*input.Name)
+	if len(errors) > 0 {
+		return &model.UpdateUserResponse{
+			User:   nil,
+			Errors: errors,
+		}, nil
 	}
 
-	if input.Username != nil {
-		updateUser = updateUser.SetUsername(*input.Username)
+	if input.ProfilePic != nil || input.Name != nil || input.Username != nil {
+		res := meilisearchUtils.UpdateMeiliUser(
+			*userId, input.Username, input.Name, newProfilePicKey,
+		)
+
+		if !res {
+			log.Println("Error updating user: meilisearch user update failed")
+			return nil, err
+		}
 	}
 
 	updatedUser, err := updateUser.Save(ctx)
 	if err != nil {
-		log.Println(err)
-		return nil, fmt.Errorf("could not create event, try again later")
+		log.Printf("Error updating user .Save(): %s", err)
+
+		if input.ProfilePic != nil {
+			keyFromS3ToDelete := []string{*newProfilePicKey}
+
+			deleteEventPicsRes := awsS3.DeleteFromS3(keyFromS3ToDelete)
+			if !deleteEventPicsRes {
+				log.Printf("could not delete profile picture from S3: %s", keyFromS3ToDelete)
+			}
+		}
+
+		var meiliOldUsername *string
+		var meiliOldName *string
+		var meiliOldPicture *string
+
+		if input.Username != nil {
+			meiliOldUsername = &currentUser.Username
+		}
+		if input.Name != nil {
+			meiliOldName = &currentUser.Name
+		}
+		if input.ProfilePic != nil {
+			meiliOldPicture = &currentUser.ProfilePic
+		}
+
+		res := meilisearchUtils.UpdateMeiliUser(
+			*userId, meiliOldUsername, meiliOldName, meiliOldPicture,
+		)
+
+		if !res {
+			log.Printf("Error maintaing consistent state while updating user. .Save() failed, meilisearch rollback failed for user: %s", strconv.Itoa(*userId))
+		}
+
+		return nil, fmt.Errorf("error while updating user")
+	}
+
+	if input.ProfilePic != nil {
+		keyFromS3ToDelete := []string{currentUser.ProfilePic}
+
+		deleteEventPicsRes := awsS3.DeleteFromS3(keyFromS3ToDelete)
+		if !deleteEventPicsRes {
+			log.Printf("could not delete profile picture from S3: %s", keyFromS3ToDelete)
+		}
 	}
 
 	return &model.UpdateUserResponse{

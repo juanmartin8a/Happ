@@ -28,6 +28,37 @@ func AddUserToMeili(user *ent.User) bool {
 	return err == nil
 }
 
+func UpdateMeiliUser(
+	userId int,
+	username *string,
+	name *string,
+	profilePic *string,
+) bool {
+	index, _ := GetMeiliUsersIndex()
+
+	document := map[string]interface{}{
+		"id": userId,
+	}
+
+	if username != nil {
+		document["username"] = *username
+	}
+
+	if name != nil {
+		document["name"] = *name
+	}
+
+	if profilePic != nil {
+		document["profilePic"] = *profilePic
+	}
+
+	documents := []map[string]interface{}{document}
+
+	_, err := index.UpdateDocuments(documents)
+
+	return err == nil
+}
+
 func RemoveUserFromMeili(userId int) bool {
 	index, isHealthy := GetMeiliUsersIndex()
 	if !isHealthy {

@@ -6,7 +6,7 @@ import (
 )
 
 func IsValidCharacter(r rune) bool {
-	return unicode.IsLetter(r) || unicode.IsNumber(r) || r == '.' || r == '_'
+	return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '.' || r == '_'
 }
 
 func ProcessString(input string) string {
@@ -19,4 +19,13 @@ func ProcessString(input string) string {
 		return -1
 	}, noSpaces)
 	return filtered
+}
+
+func IsValidUsername(s string) bool {
+	for _, r := range s {
+		if unicode.IsSpace(r) || !unicode.IsLower(r) && !unicode.IsDigit(r) && r != '.' && r != '_' {
+			return false
+		}
+	}
+	return true
 }
