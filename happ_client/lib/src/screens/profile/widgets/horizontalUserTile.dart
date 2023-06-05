@@ -52,24 +52,31 @@ class _HorizontalUserTileState extends ConsumerState<HorizontalUserTile> {
     });
     
     return Container(
-      width: 108,
-      margin: const EdgeInsets.only(),
-      padding: const EdgeInsets.all(6),
+      width: 118,
+      // width: 85,
+      // margin: const EdgeInsets.only(),
+      margin: const EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+      decoration: BoxDecoration(
+        // color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(width: 2, color: Colors.grey[200]!)
+      ),
       child: Column(
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: 70,
+            height: 70,
             decoration: BoxDecoration(
               color: Colors.grey[300],
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  spreadRadius: 1,
-                  blurRadius: 4,
-                ),
-              ],
+              // boxShadow: [
+              //   BoxShadow(
+              //     color: Colors.black.withOpacity(0.2),
+              //     spreadRadius: 1,
+              //     blurRadius: 4,
+              //   ),
+              // ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(100),
@@ -86,7 +93,7 @@ class _HorizontalUserTileState extends ConsumerState<HorizontalUserTile> {
             .toString(),
             style: TextStyle(
               color: Colors.grey[800],
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
               height: 1
             ),
@@ -101,7 +108,7 @@ class _HorizontalUserTileState extends ConsumerState<HorizontalUserTile> {
             .toString(),
             style: TextStyle(
               color: Colors.grey[600],
-              fontSize: 13,
+              fontSize: 11,
               fontWeight: FontWeight.w500,
               height: 1
             ),

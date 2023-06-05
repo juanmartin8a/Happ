@@ -368,6 +368,8 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 	var eventsToCancel []EventToCancel
 	var eventsToUpdate []EventToUpdate
 
+	var keysFromS3ToDelete []string
+
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return false, err
@@ -461,7 +463,20 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 						return false, err
 					}
 
-					// delete event pictures
+					allEventPics := append(event.LightEventPics, event.EventPics...)
+
+					for _, pic := range allEventPics {
+						objectToDeleteFullString := pic
+
+						var cloudfrontDistribution string
+						if config.C.AppEnv == "prod" {
+							cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
+						} else if config.C.AppEnv == "dev" {
+							cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
+						}
+
+						keysFromS3ToDelete = append(keysFromS3ToDelete, strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, ""))
+					}
 
 					// Send event cancel notifications
 					eventsToCancel = append(eventsToCancel, EventToCancel{
@@ -593,10 +608,21 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 		return false, err
 	}
 
-	_, err = tx.User.Delete().
+	userToDelete, err := tx.User.Query().
 		Where(
 			user.ID(*userId),
 		).
+		Only(ctx)
+	if err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			err = fmt.Errorf("%w: %v", err, rerr)
+			return false, err
+		}
+		return false, err
+	}
+
+	err = tx.User.
+		DeleteOne(userToDelete).
 		Exec(ctx)
 	if err != nil {
 		if rerr := tx.Rollback(); rerr != nil {
@@ -604,6 +630,21 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 			return false, err
 		}
 		return false, err
+	}
+
+	objectToDeleteFullString := userToDelete.ProfilePic
+
+	if !strings.Contains(objectToDeleteFullString, "blueLobster") &&
+		(strings.HasPrefix(objectToDeleteFullString, "https://di7aab2ls1mmt.cloudfront.net/") ||
+			strings.HasPrefix(objectToDeleteFullString, "https://d3pvchlba3rmqp.cloudfront.net/")) {
+		var cloudfrontDistribution string
+		if config.C.AppEnv == "prod" {
+			cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
+		} else if config.C.AppEnv == "dev" {
+			cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
+		}
+
+		keysFromS3ToDelete = append(keysFromS3ToDelete, strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, ""))
 	}
 
 	ok := meilisearchUtils.RemoveUserFromMeili(*userId)
@@ -622,6 +663,13 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 	err = firebaseUtils.AuthClient.DeleteUser(ctx, *firebaseUID)
 	if err != nil {
 		log.Printf("Error while deleting user from firebase: %s", err)
+	}
+
+	if len(keysFromS3ToDelete) > 0 {
+		deleteEventPicsRes := awsS3.DeleteFromS3(keysFromS3ToDelete)
+		if !deleteEventPicsRes {
+			log.Printf("could not delete event pictures and profile pic from S3: %s", keysFromS3ToDelete)
+		}
 	}
 
 	for _, eventData := range eventsToCancel {
@@ -1505,6 +1553,16 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID int) (*bool,
 		return nil, authErr
 	}
 
+	eventData, err := r.client.Event.Query().
+		Where(
+			event.ID(eventID),
+		).
+		Only(ctx)
+	if err != nil {
+		log.Printf("error while getting event on DeleteEvent(): %s", err)
+		return nil, err
+	}
+
 	eventUser, err := r.client.EventUser.Query().
 		Where(
 			eventuser.And(
@@ -1563,11 +1621,33 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID int) (*bool,
 	}
 
 	err = r.client.Event.
-		DeleteOneID(eventID).
+		DeleteOne(eventData).
 		Exec(ctx)
 	if err != nil {
-		log.Printf("error while deleting th")
+		log.Printf("error while deleting event")
 		return nil, err
+	}
+
+	var keysFromS3ToDelete []string
+
+	allEventPics := append(eventData.LightEventPics, eventData.EventPics...)
+
+	for _, pic := range allEventPics {
+		objectToDeleteFullString := pic
+
+		var cloudfrontDistribution string
+		if config.C.AppEnv == "prod" {
+			cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
+		} else if config.C.AppEnv == "dev" {
+			cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
+		}
+
+		keysFromS3ToDelete = append(keysFromS3ToDelete, strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, ""))
+	}
+
+	deleteEventPicsRes := awsS3.DeleteFromS3(keysFromS3ToDelete)
+	if !deleteEventPicsRes {
+		log.Printf("could not delete profile picture from S3: %s", keysFromS3ToDelete)
 	}
 
 	if allGuestsErr == nil && eventErr == nil && affectedRows > 0 {
@@ -2109,7 +2189,20 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 		log.Printf("Error updating user .Save(): %s", err)
 
 		if input.ProfilePic != nil {
-			keyFromS3ToDelete := []string{*newProfilePicKey}
+			// keyFromS3ToDelete := []string{*newProfilePicKey}
+
+			var keyFromS3ToDelete []string
+
+			objectToDeleteFullString := *newProfilePicKey
+
+			var cloudfrontDistribution string
+			if config.C.AppEnv == "prod" {
+				cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
+			} else if config.C.AppEnv == "dev" {
+				cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
+			}
+
+			keyFromS3ToDelete = append(keyFromS3ToDelete, strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, ""))
 
 			deleteEventPicsRes := awsS3.DeleteFromS3(keyFromS3ToDelete)
 			if !deleteEventPicsRes {
@@ -2143,12 +2236,30 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 	}
 
 	if input.ProfilePic != nil {
-		keyFromS3ToDelete := []string{currentUser.ProfilePic}
 
-		deleteEventPicsRes := awsS3.DeleteFromS3(keyFromS3ToDelete)
-		if !deleteEventPicsRes {
-			log.Printf("could not delete profile picture from S3: %s", keyFromS3ToDelete)
+		objectToDeleteFullString := currentUser.ProfilePic
+
+		if !strings.Contains(objectToDeleteFullString, "blueLobster") &&
+			(strings.HasPrefix(objectToDeleteFullString, "https://di7aab2ls1mmt.cloudfront.net/") ||
+				strings.HasPrefix(objectToDeleteFullString, "https://d3pvchlba3rmqp.cloudfront.net/")) {
+
+			var keyFromS3ToDelete []string
+
+			var cloudfrontDistribution string
+			if config.C.AppEnv == "prod" {
+				cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
+			} else if config.C.AppEnv == "dev" {
+				cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
+			}
+
+			keyFromS3ToDelete = append(keyFromS3ToDelete, strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, ""))
+
+			deleteEventPicsRes := awsS3.DeleteFromS3(keyFromS3ToDelete)
+			if !deleteEventPicsRes {
+				log.Printf("could not delete profile picture from S3: %s", keyFromS3ToDelete)
+			}
 		}
+
 	}
 
 	return &model.UpdateUserResponse{

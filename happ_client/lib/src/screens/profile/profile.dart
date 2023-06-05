@@ -3,6 +3,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addRemove/addRemove.dart';
 import 'package:happ_client/src/riverpod/addRemove/addRemoveState.dart';
@@ -183,19 +184,20 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
           if (users.isNotEmpty)
           SizedBox(
             width: MediaQuery.of(context).size.width,
-            height: 157,
+            height: 168,
             // padding: const EdgeInsets.symmetric(horizontal: 24),
             child: ListView.builder(
-              itemCount: users.length + 2,
+              itemCount: users.length + 7,
               shrinkWrap: true,
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.zero,
               itemBuilder: (context, index) {
-                if (index == 0 || index == (users.length + 2) - 1) {
-                  return const SizedBox(width: 12);
+                if (index == 0 || index == (users.length + 7) - 1) {
+                  return const SizedBox(width: 8);
                 }
     
-                int realIndex = index - 1;
+                // int realIndex = index - 1;
+                int realIndex = 0;
     
                 return HorizontalUserTile(
                   followState: true,
@@ -432,15 +434,298 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
         bottom: false,
         right: false,
         left: false,
-        top: true,
-        child: Column(
+        top: false,
+        child: Stack(
           // mainAxisSize: MainAxisSize.min,
           children: [
+            Container(
+              color: Colors.transparent,
+              height: MediaQuery.of(context).size.height,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 28 + MediaQuery.of(context).padding.top,
+                    ),
+                    Container(
+                      width: 90,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        shape: BoxShape.circle,
+                        // borderRadius: BorderRadius.circular(100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            spreadRadius: 1,
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100),
+                        child: Image.network(
+                          widget.user.profilePic,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 16
+                    ),
+                    
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        widget.user.name,
+                        // "Juan Martin Zabala",
+                        style: TextStyle(
+                          color: Colors.grey[800]!,
+                          fontSize: 19,
+                          fontWeight: FontWeight.w700,
+                          height: 1,
+                        ),
+                      )
+                    ),
+                    const SizedBox(
+                      height: 3
+                    ),
+                    Text(
+                      username,
+                      // "juanmartin8a",
+                      style: TextStyle(
+                        color: Colors.grey[600]!,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        height: 1,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 16
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        if (id != ref.read(currentUserProvider)!.id) {
+                          if (followState != null) {
+                            ref.read(addOrRemoveUserProvider("userId:$id").notifier).addOrRemoveUser(id, !followState!);
+                            isLoading = false;
+                          }
+                        } else {
+                          context.push('/update-user');
+                        }
+                      },
+                      child: Container(
+                        height: 36,
+                        width: 150,
+                        decoration: BoxDecoration(
+                          color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
+                          // border: Border.all(color: Colors.grey[800]!, width: 2),
+                          borderRadius: BorderRadius.circular(20)
+                          // shape: BoxShape.circle
+                        ),
+                        child: Center(
+                          child: Text(
+                            id != ref.read(currentUserProvider)!.id
+                            ? isInitLoading ? "" : followState! ? "Added" : "Add"
+                            : "Edit",
+                            style: TextStyle(
+                              color: followState! ? Colors.grey[800] : Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 12),
+                    //   child: Row(
+                    //     children: [
+                    //       Container(
+                    //         width: 80,
+                    //         height: 80,
+                    //         decoration: BoxDecoration(
+                    //           color: Colors.grey[300],
+                    //           shape: BoxShape.circle,
+                    //           // borderRadius: BorderRadius.circular(100),
+                    //           // boxShadow: [
+                    //           //   BoxShadow(
+                    //           //     color: Colors.black.withOpacity(0.2),
+                    //           //     spreadRadius: 2,
+                    //           //     blurRadius: 6,
+                    //           //   ),
+                    //           // ],
+                    //         ),
+                    //         child: ClipRRect(
+                    //           borderRadius: BorderRadius.circular(100),
+                    //           child: Image.network(
+                    //             widget.user.profilePic,
+                    //             fit: BoxFit.cover,
+                    //           ),
+                    //         ),
+                    //       ),
+                    //       const SizedBox(
+                    //         width: 12
+                    //       ),
+                    //       Column(
+                    //         crossAxisAlignment: CrossAxisAlignment.start,
+                    //         children: [
+                    //           Text(
+                    //             // widget.user.name,
+                    //             "Juan Martin Zabala",
+                    //             style: TextStyle(
+                    //               color: Colors.grey[800]!,
+                    //               fontSize: 19,
+                    //               fontWeight: FontWeight.w700,
+                    //               height: 1,
+                    //             ),
+                    //           ),
+                    //           const SizedBox(
+                    //             height: 6
+                    //           ),
+                    //           Text(
+                    //             // widget.user.name,
+                    //             "juanmartin8a",
+                    //             style: TextStyle(
+                    //               color: Colors.grey[600]!,
+                    //               fontSize: 15,
+                    //               fontWeight: FontWeight.w500,
+                    //               height: 1,
+                    //             ),
+                    //           ),
+                    //           // const SizedBox(
+                    //           //   height: 12
+                    //           // ),
+                    //           // GestureDetector(
+                    //           //   onTap: () {
+                    //           //     if (id != ref.read(currentUserProvider)!.id) {
+                    //           //       if (followState != null) {
+                    //           //         ref.read(addOrRemoveUserProvider("userId:$id").notifier).addOrRemoveUser(id, !followState!);
+                    //           //         isLoading = false;
+                    //           //       }
+                    //           //     }
+                    //           //   },
+                    //           //   child: Container(
+                    //           //     height: 30,
+                    //           //     width: MediaQuery.of(context).size.width - (90 + 36),
+                    //           //     decoration: BoxDecoration(
+                    //           //       color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
+                    //           //       // border: Border.all(color: Colors.grey[800]!, width: 2),
+                    //           //       borderRadius: BorderRadius.circular(20)
+                    //           //       // shape: BoxShape.circle
+                    //           //     ),
+                    //           //     child: Center(
+                    //           //       child: Text(
+                    //           //         id != ref.read(currentUserProvider)!.id
+                    //           //         ? isInitLoading ? "" : followState! ? "Added" : "Add"
+                    //           //         : "Edit",
+                    //           //         style: TextStyle(
+                    //           //           color: followState! ? Colors.grey[800] : Colors.white,
+                    //           //           fontSize: 14,
+                    //           //           fontWeight: FontWeight.w600,
+                    //           //         ),
+                    //           //       ),
+                    //           //     ),
+                    //           //   ),
+                    //           // ),
+                    //         ],
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // // Container(
+                    //   width: 90,
+                    //   height: 90,
+                    //   decoration: BoxDecoration(
+                    //     color: Colors.grey[300],
+                    //     shape: BoxShape.circle,
+                    //     // borderRadius: BorderRadius.circular(100),
+                    //     boxShadow: [
+                    //       BoxShadow(
+                    //         color: Colors.black.withOpacity(0.2),
+                    //         spreadRadius: 2,
+                    //         blurRadius: 6,
+                    //       ),
+                    //     ],
+                    //   ),
+                    //   child: ClipRRect(
+                    //     borderRadius: BorderRadius.circular(100),
+                    //     child: Image.network(
+                    //       widget.user.profilePic,
+                    //       fit: BoxFit.cover,
+                    //     ),
+                    //   ),
+                    // ),
+                    // const SizedBox(
+                    //   height: 12
+                    // ),
+                    
+                    // Container(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 24),
+                    //   child: Text(
+                    //     // widget.user.name,
+                    //     "Juan Martin",
+                    //     style: TextStyle(
+                    //       color: Colors.grey[800]!,
+                    //       fontSize: 18,
+                    //       fontWeight: FontWeight.w700,
+                    //       height: 1,
+                    //     ),
+                    //   )
+                    // ),
+                    // const SizedBox(
+                    //   height: 24
+                    // ),
+                    // GestureDetector(
+                    //   onTap: () {
+                    //     if (id != ref.read(currentUserProvider)!.id) {
+                    //       if (followState != null) {
+                    //         ref.read(addOrRemoveUserProvider("userId:$id").notifier).addOrRemoveUser(id, !followState!);
+                    //         isLoading = false;
+                    //       }
+                    //     } else {
+                    //       context.push('/update-user');
+                    //     }
+                    //   },
+                    //   child: Container(
+                    //     height: 36,
+                    //     // width: 80,
+                    //     width: MediaQuery.of(context).size.width - 24,
+                    //     decoration: BoxDecoration(
+                    //       color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
+                    //       // border: Border.all(color: Colors.grey[800]!, width: 2),
+                    //       borderRadius: BorderRadius.circular(20)
+                    //       // shape: BoxShape.circle
+                    //     ),
+                    //     child: Center(
+                    //       child: Text(
+                    //         id != ref.read(currentUserProvider)!.id
+                    //         ? isInitLoading ? "" : followState! ? "Added" : "Add"
+                    //         : "Edit",
+                    //         style: TextStyle(
+                    //           color: followState! ? Colors.grey[800] : Colors.white,
+                    //           fontSize: 14,
+                    //           fontWeight: FontWeight.w600,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    const SizedBox(height: 30),
+                    if (id != ref.read(currentUserProvider)!.id)
+                    notCurrentUserWidget!,
+                    if (id == ref.read(currentUserProvider)!.id)
+                    currentUserWidget!,
+                  ],
+                ),
+              )
+            ),
             Align(
               alignment: Alignment.topCenter,
               child: Container(
-                // margin: EdgeInsets.only(top:statusBar, left: 8, right: 8),
-                height: 45,
+                padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top,),
+                height: 45 + MediaQuery.of(context).padding.top,
                 color: Colors.transparent,
                 child: Align(
                   alignment: Alignment.center,
@@ -463,22 +748,22 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                           key: Key("goBack_${widget.user.id}")
                         )
                       ),
-                      Center(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            left: id == ref.read(currentUserProvider)!.id ? 12 : 0,
-                          ),
-                          child: Text(
-                            // username,
-                            "juanmartin8a",
-                            style: TextStyle(
-                              color: Colors.grey[800]!,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700
-                            ),
-                          ),
-                        ),
-                      ),
+                      // Center(
+                      //   child: Padding(
+                      //     padding: EdgeInsets.only(
+                      //       left: id == ref.read(currentUserProvider)!.id ? 12 : 0,
+                      //     ),
+                      //     child: Text(
+                      //       // username,
+                      //       "juanmartin8a",
+                      //       style: TextStyle(
+                      //         color: Colors.grey[800]!,
+                      //         fontSize: 18,
+                      //         fontWeight: FontWeight.w700
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                       const Spacer(),
                       if (id == ref.read(currentUserProvider)!.id)
                        Center(
@@ -497,275 +782,6 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                 ),
               ),
             ),
-            // if (isLoading != true)
-            Expanded(
-              child: Container(
-                color: Colors.transparent,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    children: [
-                      const SizedBox(
-                        height: 24
-                      ),
-                      // Container(
-                      //   width: 90,
-                      //   height: 90,
-                      //   decoration: BoxDecoration(
-                      //     color: Colors.grey[300],
-                      //     shape: BoxShape.circle,
-                      //     // borderRadius: BorderRadius.circular(100),
-                      //     boxShadow: [
-                      //       BoxShadow(
-                      //         color: Colors.black.withOpacity(0.2),
-                      //         spreadRadius: 2,
-                      //         blurRadius: 6,
-                      //       ),
-                      //     ],
-                      //   ),
-                      //   child: ClipRRect(
-                      //     borderRadius: BorderRadius.circular(100),
-                      //     child: Image.network(
-                      //       widget.user.profilePic,
-                      //       fit: BoxFit.cover,
-                      //     ),
-                      //   ),
-                      // ),
-                      // const SizedBox(
-                      //   height: 12
-                      // ),
-                      
-                      // Container(
-                      //   padding: const EdgeInsets.symmetric(horizontal: 24),
-                      //   child: Text(
-                      //     // widget.user.name,
-                      //     "Juan Martin",
-                      //     style: TextStyle(
-                      //       color: Colors.grey[800]!,
-                      //       fontSize: 18,
-                      //       fontWeight: FontWeight.w700,
-                      //       height: 1,
-                      //     ),
-                      //   )
-                      // ),
-                      // const SizedBox(
-                      //   height: 12
-                      // ),
-                      // GestureDetector(
-                      //   onTap: () {
-                      //     if (id != ref.read(currentUserProvider)!.id) {
-                      //       if (followState != null) {
-                      //         ref.read(addOrRemoveUserProvider("userId:$id").notifier).addOrRemoveUser(id, !followState!);
-                      //         isLoading = false;
-                      //       }
-                      //     }
-                      //   },
-                      //   child: Container(
-                      //     height: 36,
-                      //     // width: 80,
-                      //     width: 150,
-                      //     decoration: BoxDecoration(
-                      //       color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
-                      //       // border: Border.all(color: Colors.grey[800]!, width: 2),
-                      //       borderRadius: BorderRadius.circular(20)
-                      //       // shape: BoxShape.circle
-                      //     ),
-                      //     child: Center(
-                      //       child: Text(
-                      //         id != ref.read(currentUserProvider)!.id
-                      //         ? isInitLoading ? "" : followState! ? "Added" : "Add"
-                      //         : "Edit",
-                      //         style: TextStyle(
-                      //           color: followState! ? Colors.grey[800] : Colors.white,
-                      //           fontSize: 14,
-                      //           fontWeight: FontWeight.w600,
-                      //         ),
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 90,
-                              height: 90,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                shape: BoxShape.circle,
-                                // borderRadius: BorderRadius.circular(100),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    spreadRadius: 2,
-                                    blurRadius: 6,
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(100),
-                                child: Image.network(
-                                  widget.user.profilePic,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 12
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  // widget.user.name,
-                                  "Juan Martin Zabala",
-                                  style: TextStyle(
-                                    color: Colors.grey[800]!,
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.w700,
-                                    height: 1,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 6
-                                ),
-                                Text(
-                                  // widget.user.name,
-                                  "juanmartin8a",
-                                  style: TextStyle(
-                                    color: Colors.grey[600]!,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                    height: 1,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 12
-                                ),
-                                // GestureDetector(
-                                //   onTap: () {
-                                //     if (id != ref.read(currentUserProvider)!.id) {
-                                //       if (followState != null) {
-                                //         ref.read(addOrRemoveUserProvider("userId:$id").notifier).addOrRemoveUser(id, !followState!);
-                                //         isLoading = false;
-                                //       }
-                                //     }
-                                //   },
-                                //   child: Container(
-                                //     height: 30,
-                                //     width: MediaQuery.of(context).size.width - (90 + 36),
-                                //     decoration: BoxDecoration(
-                                //       color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
-                                //       // border: Border.all(color: Colors.grey[800]!, width: 2),
-                                //       borderRadius: BorderRadius.circular(20)
-                                //       // shape: BoxShape.circle
-                                //     ),
-                                //     child: Center(
-                                //       child: Text(
-                                //         id != ref.read(currentUserProvider)!.id
-                                //         ? isInitLoading ? "" : followState! ? "Added" : "Add"
-                                //         : "Edit",
-                                //         style: TextStyle(
-                                //           color: followState! ? Colors.grey[800] : Colors.white,
-                                //           fontSize: 14,
-                                //           fontWeight: FontWeight.w600,
-                                //         ),
-                                //       ),
-                                //     ),
-                                //   ),
-                                // ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Container(
-                      //   width: 90,
-                      //   height: 90,
-                      //   decoration: BoxDecoration(
-                      //     color: Colors.grey[300],
-                      //     shape: BoxShape.circle,
-                      //     // borderRadius: BorderRadius.circular(100),
-                      //     boxShadow: [
-                      //       BoxShadow(
-                      //         color: Colors.black.withOpacity(0.2),
-                      //         spreadRadius: 2,
-                      //         blurRadius: 6,
-                      //       ),
-                      //     ],
-                      //   ),
-                      //   child: ClipRRect(
-                      //     borderRadius: BorderRadius.circular(100),
-                      //     child: Image.network(
-                      //       widget.user.profilePic,
-                      //       fit: BoxFit.cover,
-                      //     ),
-                      //   ),
-                      // ),
-                      // const SizedBox(
-                      //   height: 12
-                      // ),
-                      
-                      // Container(
-                      //   padding: const EdgeInsets.symmetric(horizontal: 24),
-                      //   child: Text(
-                      //     // widget.user.name,
-                      //     "Juan Martin",
-                      //     style: TextStyle(
-                      //       color: Colors.grey[800]!,
-                      //       fontSize: 18,
-                      //       fontWeight: FontWeight.w700,
-                      //       height: 1,
-                      //     ),
-                      //   )
-                      // ),
-                      const SizedBox(
-                        height: 24
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          if (id != ref.read(currentUserProvider)!.id) {
-                            if (followState != null) {
-                              ref.read(addOrRemoveUserProvider("userId:$id").notifier).addOrRemoveUser(id, !followState!);
-                              isLoading = false;
-                            }
-                          }
-                        },
-                        child: Container(
-                          height: 36,
-                          // width: 80,
-                          width: MediaQuery.of(context).size.width - 24,
-                          decoration: BoxDecoration(
-                            color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
-                            // border: Border.all(color: Colors.grey[800]!, width: 2),
-                            borderRadius: BorderRadius.circular(20)
-                            // shape: BoxShape.circle
-                          ),
-                          child: Center(
-                            child: Text(
-                              id != ref.read(currentUserProvider)!.id
-                              ? isInitLoading ? "" : followState! ? "Added" : "Add"
-                              : "Edit",
-                              style: TextStyle(
-                                color: followState! ? Colors.grey[800] : Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 36),
-                      if (id != ref.read(currentUserProvider)!.id)
-                      notCurrentUserWidget!,
-                      if (id == ref.read(currentUserProvider)!.id)
-                      currentUserWidget!,
-                    ],
-                  ),
-                )
-              )
-            )
           ],
         ),
       ),

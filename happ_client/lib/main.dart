@@ -8,6 +8,7 @@ import 'package:happ_client/src/screens/events/guestList/inviteGuestsScreen.dart
 import 'package:happ_client/src/screens/events/scan/scanScreen.dart';
 import 'package:happ_client/src/screens/profile/class/profileParams.dart';
 import 'package:happ_client/src/screens/profile/profile.dart';
+import 'package:happ_client/src/screens/profile/updateUser/updateUser.dart';
 import 'package:happ_client/src/screens/search/class/SearchUserInviteResParams.dart';
 import 'package:happ_client/src/screens/events/updateEvent/updateEvent.dart';
 import 'package:happ_client/src/utils/getUserIdFromFBIDToken.dart';
@@ -201,6 +202,18 @@ class MyApp extends ConsumerWidget {
           return Profile(
             user: params.user,
             key: Key("profie_screen_${params.user.id}")
+          );
+        }
+      ),
+      GoRoute(
+        path: '/update-user',
+        builder: (BuildContext context, GoRouterState state) {
+
+          // ProfileParams params = state.extra as ProfileParams;
+          
+          return const UpdateUser(
+            // user: params.user,
+            key: Key("update_user_screen")
           );
         }
       ),
