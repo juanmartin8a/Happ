@@ -1260,6 +1260,19 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 
 	var objectsToDelete []string
 
+	var newObjectsToDeleteIfFailure []string
+
+	rollback := false
+
+	defer func() {
+		if rollback && len(newObjectsToDeleteIfFailure) > 0 {
+			deletePicsRes := awsS3.DeleteFromS3(newObjectsToDeleteIfFailure)
+			if !deletePicsRes {
+				log.Printf("could not delete uploaded pictures from S3 after defer: %s", newObjectsToDeleteIfFailure)
+			}
+		}
+	}()
+
 	if input.EventPics != nil {
 		var eventPics []string
 		var lightEventPics []string
@@ -1277,6 +1290,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 				objectsToDelete = append(objectsToDelete, eventPics[index])
 				content, err := io.ReadAll(pic.File.File)
 				if err != nil {
+					rollback = true
 					return nil, fmt.Errorf("could not read picture #%s", strconv.Itoa(index))
 				}
 
@@ -1296,8 +1310,11 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 				file := bytes.NewReader(content)
 				uploadRes := awsS3.UploadToS3(key, file)
 				if !uploadRes {
+					rollback = true
 					return nil, fmt.Errorf("could not create event, try again later")
 				}
+
+				newObjectsToDeleteIfFailure = append(newObjectsToDeleteIfFailure, key)
 			}
 		}
 
@@ -1317,6 +1334,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 			if action == "ADD" {
 				content, err := io.ReadAll(pic.File.File)
 				if err != nil {
+					rollback = true
 					return nil, fmt.Errorf("could not read picture #%s", strconv.Itoa(len(eventPics)))
 				}
 
@@ -1336,8 +1354,10 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 				file := bytes.NewReader(content)
 				uploadRes := awsS3.UploadToS3(key, file)
 				if !uploadRes {
+					rollback = true
 					return nil, fmt.Errorf("could not create event, try again later")
 				}
+				newObjectsToDeleteIfFailure = append(newObjectsToDeleteIfFailure, key)
 			}
 		}
 
@@ -1350,6 +1370,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 
 				content, err := io.ReadAll(pic.File.File)
 				if err != nil {
+					rollback = true
 					return nil, fmt.Errorf("could not read picture #%s", strconv.Itoa(index))
 				}
 
@@ -1369,8 +1390,10 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 				file := bytes.NewReader(content)
 				uploadRes := awsS3.UploadToS3(key, file)
 				if !uploadRes {
+					rollback = true
 					return nil, fmt.Errorf("could not create event, try again later")
 				}
+				newObjectsToDeleteIfFailure = append(newObjectsToDeleteIfFailure, key)
 			}
 		}
 
@@ -1390,6 +1413,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 			if action == "ADD" {
 				content, err := io.ReadAll(pic.File.File)
 				if err != nil {
+					rollback = true
 					return nil, fmt.Errorf("could not read picture #%s", strconv.Itoa(len(lightEventPics)))
 				}
 
@@ -1409,32 +1433,12 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 				file := bytes.NewReader(content)
 				uploadRes := awsS3.UploadToS3(key, file)
 				if !uploadRes {
+					rollback = true
 					return nil, fmt.Errorf("could not create event, try again later")
 				}
+				newObjectsToDeleteIfFailure = append(newObjectsToDeleteIfFailure, key)
 			}
 		}
-
-		// if len(objectsToDelete) > 0 {
-
-		// 	newObjectKeys := make([]string, len(objectsToDelete))
-		// 	for i, objectToDelete := range objectsToDelete {
-		// 		objectToDeleteFullString := objectToDelete
-
-		// 		var cloudfrontDistribution string
-		// 		if config.C.AppEnv == "prod" {
-		// 			cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
-		// 		} else if config.C.AppEnv == "dev" {
-		// 			cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
-		// 		}
-
-		// 		newObjectKeys[i] = strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, "")
-		// 	}
-
-		// 	deleteEventPicsRes := awsS3.DeleteFromS3(newObjectKeys)
-		// 	if !deleteEventPicsRes {
-		// 		return nil, fmt.Errorf("could not delete previous image from aws s3")
-		// 	}
-		// }
 
 		updateEvent = updateEvent.SetEventPics(eventPics).SetLightEventPics(lightEventPics)
 	}
@@ -1461,6 +1465,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 
 	updatedEvent, err := updateEvent.Save(ctx)
 	if err != nil {
+		rollback = true
 		log.Println(err)
 		// return error could not create event
 		return nil, fmt.Errorf("could not create event, try again later")
@@ -2180,6 +2185,28 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 
 		if !res {
 			log.Println("Error updating user: meilisearch user update failed")
+
+			if input.ProfilePic != nil {
+
+				var keyFromS3ToDelete []string
+
+				objectToDeleteFullString := *newProfilePicKey
+
+				var cloudfrontDistribution string
+				if config.C.AppEnv == "prod" {
+					cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
+				} else if config.C.AppEnv == "dev" {
+					cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
+				}
+
+				keyFromS3ToDelete = append(keyFromS3ToDelete, strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, ""))
+
+				deleteEventPicsRes := awsS3.DeleteFromS3(keyFromS3ToDelete)
+				if !deleteEventPicsRes {
+					log.Printf("could not delete profile picture from S3: %s", keyFromS3ToDelete)
+				}
+			}
+
 			return nil, err
 		}
 	}
