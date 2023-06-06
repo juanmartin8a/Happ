@@ -1782,6 +1782,111 @@ class GetEventGuests$Query extends JsonSerializable with EquatableMixin {
   Map<String, dynamic> toJson() => _$GetEventGuests$QueryToJson(this);
 }
 
+@JsonSerializable(explicitToJson: true)
+class UpdateUser$Mutation$UpdateUserResponse$User extends JsonSerializable
+    with EquatableMixin {
+  UpdateUser$Mutation$UpdateUserResponse$User();
+
+  factory UpdateUser$Mutation$UpdateUserResponse$User.fromJson(
+          Map<String, dynamic> json) =>
+      _$UpdateUser$Mutation$UpdateUserResponse$UserFromJson(json);
+
+  late int id;
+
+  late String username;
+
+  late String name;
+
+  late String profilePic;
+
+  @override
+  List<Object?> get props => [id, username, name, profilePic];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$UpdateUser$Mutation$UpdateUserResponse$UserToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class UpdateUser$Mutation$UpdateUserResponse$ErrorResponse
+    extends JsonSerializable with EquatableMixin {
+  UpdateUser$Mutation$UpdateUserResponse$ErrorResponse();
+
+  factory UpdateUser$Mutation$UpdateUserResponse$ErrorResponse.fromJson(
+          Map<String, dynamic> json) =>
+      _$UpdateUser$Mutation$UpdateUserResponse$ErrorResponseFromJson(json);
+
+  late String field;
+
+  late String message;
+
+  @override
+  List<Object?> get props => [field, message];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$UpdateUser$Mutation$UpdateUserResponse$ErrorResponseToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class UpdateUser$Mutation$UpdateUserResponse extends JsonSerializable
+    with EquatableMixin {
+  UpdateUser$Mutation$UpdateUserResponse();
+
+  factory UpdateUser$Mutation$UpdateUserResponse.fromJson(
+          Map<String, dynamic> json) =>
+      _$UpdateUser$Mutation$UpdateUserResponseFromJson(json);
+
+  UpdateUser$Mutation$UpdateUserResponse$User? user;
+
+  List<UpdateUser$Mutation$UpdateUserResponse$ErrorResponse>? errors;
+
+  @override
+  List<Object?> get props => [user, errors];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$UpdateUser$Mutation$UpdateUserResponseToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class UpdateUser$Mutation extends JsonSerializable with EquatableMixin {
+  UpdateUser$Mutation();
+
+  factory UpdateUser$Mutation.fromJson(Map<String, dynamic> json) =>
+      _$UpdateUser$MutationFromJson(json);
+
+  late UpdateUser$Mutation$UpdateUserResponse updateUser;
+
+  @override
+  List<Object?> get props => [updateUser];
+  @override
+  Map<String, dynamic> toJson() => _$UpdateUser$MutationToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class UpdateUserInput extends JsonSerializable with EquatableMixin {
+  UpdateUserInput({
+    this.profilePic,
+    this.name,
+    this.username,
+  });
+
+  factory UpdateUserInput.fromJson(Map<String, dynamic> json) =>
+      _$UpdateUserInputFromJson(json);
+
+  @JsonKey(
+      fromJson: fromGraphQLUploadNullableToDartMultipartFileNullable,
+      toJson: fromDartMultipartFileNullableToGraphQLUploadNullable)
+  MultipartFile? profilePic;
+
+  String? name;
+
+  String? username;
+
+  @override
+  List<Object?> get props => [profilePic, name, username];
+  @override
+  Map<String, dynamic> toJson() => _$UpdateUserInputToJson(this);
+}
+
 enum PictureAction {
   @JsonValue('ADD')
   add,
@@ -5303,4 +5408,133 @@ class GetEventGuestsQuery
   @override
   GetEventGuests$Query parse(Map<String, dynamic> json) =>
       GetEventGuests$Query.fromJson(json);
+}
+
+@JsonSerializable(explicitToJson: true)
+class UpdateUserArguments extends JsonSerializable with EquatableMixin {
+  UpdateUserArguments({required this.input});
+
+  @override
+  factory UpdateUserArguments.fromJson(Map<String, dynamic> json) =>
+      _$UpdateUserArgumentsFromJson(json);
+
+  late UpdateUserInput input;
+
+  @override
+  List<Object?> get props => [input];
+  @override
+  Map<String, dynamic> toJson() => _$UpdateUserArgumentsToJson(this);
+}
+
+final UPDATE_USER_MUTATION_DOCUMENT_OPERATION_NAME = 'UpdateUser';
+final UPDATE_USER_MUTATION_DOCUMENT = DocumentNode(definitions: [
+  OperationDefinitionNode(
+    type: OperationType.mutation,
+    name: NameNode(value: 'UpdateUser'),
+    variableDefinitions: [
+      VariableDefinitionNode(
+        variable: VariableNode(name: NameNode(value: 'input')),
+        type: NamedTypeNode(
+          name: NameNode(value: 'UpdateUserInput'),
+          isNonNull: true,
+        ),
+        defaultValue: DefaultValueNode(value: null),
+        directives: [],
+      )
+    ],
+    directives: [],
+    selectionSet: SelectionSetNode(selections: [
+      FieldNode(
+        name: NameNode(value: 'updateUser'),
+        alias: null,
+        arguments: [
+          ArgumentNode(
+            name: NameNode(value: 'input'),
+            value: VariableNode(name: NameNode(value: 'input')),
+          )
+        ],
+        directives: [],
+        selectionSet: SelectionSetNode(selections: [
+          FieldNode(
+            name: NameNode(value: 'user'),
+            alias: null,
+            arguments: [],
+            directives: [],
+            selectionSet: SelectionSetNode(selections: [
+              FieldNode(
+                name: NameNode(value: 'id'),
+                alias: null,
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              ),
+              FieldNode(
+                name: NameNode(value: 'username'),
+                alias: null,
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              ),
+              FieldNode(
+                name: NameNode(value: 'name'),
+                alias: null,
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              ),
+              FieldNode(
+                name: NameNode(value: 'profilePic'),
+                alias: null,
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              ),
+            ]),
+          ),
+          FieldNode(
+            name: NameNode(value: 'errors'),
+            alias: null,
+            arguments: [],
+            directives: [],
+            selectionSet: SelectionSetNode(selections: [
+              FieldNode(
+                name: NameNode(value: 'field'),
+                alias: null,
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              ),
+              FieldNode(
+                name: NameNode(value: 'message'),
+                alias: null,
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              ),
+            ]),
+          ),
+        ]),
+      )
+    ]),
+  )
+]);
+
+class UpdateUserMutation
+    extends GraphQLQuery<UpdateUser$Mutation, UpdateUserArguments> {
+  UpdateUserMutation({required this.variables});
+
+  @override
+  final DocumentNode document = UPDATE_USER_MUTATION_DOCUMENT;
+
+  @override
+  final String operationName = UPDATE_USER_MUTATION_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final UpdateUserArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  UpdateUser$Mutation parse(Map<String, dynamic> json) =>
+      UpdateUser$Mutation.fromJson(json);
 }

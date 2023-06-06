@@ -209,11 +209,11 @@ class MyApp extends ConsumerWidget {
         path: '/update-user',
         builder: (BuildContext context, GoRouterState state) {
 
-          // ProfileParams params = state.extra as ProfileParams;
+          ProfileParams params = state.extra as ProfileParams;
           
-          return const UpdateUser(
-            // user: params.user,
-            key: Key("update_user_screen")
+          return UpdateUser(
+            user: params.user,
+            key: const Key("update_user_screen")
           );
         }
       ),

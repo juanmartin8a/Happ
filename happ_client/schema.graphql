@@ -111,6 +111,12 @@ input UpdateEventInput {
   longitude: Float,
 }
 
+input UpdateUserInput {
+  profilePic: Upload
+  name: String
+  username: String
+}
+
 input UpdatePictureInput {
   index: Int!
   file: Upload
@@ -130,6 +136,11 @@ type SignInResponse {
 
 type CreateEventResponse {
   event: Event
+  errors: [ErrorResponse!]
+}
+
+type UpdateUserResponse {
+  user: User
   errors: [ErrorResponse!]
 }
 
@@ -205,6 +216,14 @@ type Query {
   getFollowState(
     id: Int!,
   ): Boolean!,
+  myFriends(
+    limit: Int!,
+    idsList: [Int!]!
+  ): PaginatedEventUsersResults!,
+  addedMe(
+    limit: Int!,
+    idsList: [Int!]!
+  ): PaginatedEventUsersResults!,
 }
 
 type Mutation {
@@ -252,4 +271,7 @@ type Mutation {
   saveDevice(
     token: String!
   ): Boolean
+  updateUser(
+    input: UpdateUserInput!,
+  ): UpdateUserResponse!,
 }

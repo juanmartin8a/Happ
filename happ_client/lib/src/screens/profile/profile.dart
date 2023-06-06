@@ -12,6 +12,9 @@ import 'package:happ_client/src/riverpod/profile/followState/FollowState.dart';
 import 'package:happ_client/src/riverpod/profile/followState/followStateState.dart';
 import 'package:happ_client/src/riverpod/profile/mutualFriends/mutualFriends.dart';
 import 'package:happ_client/src/riverpod/profile/mutualFriends/mutualFriendsState.dart';
+import 'package:happ_client/src/riverpod/updateUser/updateUser.dart';
+import 'package:happ_client/src/riverpod/updateUser/updateUserState.dart';
+import 'package:happ_client/src/screens/profile/class/profileParams.dart';
 import 'package:happ_client/src/screens/profile/widgets/addRemoveButton.dart';
 import 'package:happ_client/src/screens/profile/widgets/horizontalUserTile.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
@@ -69,6 +72,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
   late int id;
   late String username;
   late String name;
+  late String profilePic;
 
   bool isInitLoading = true;
   bool? followState;
@@ -86,6 +90,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
     id = widget.user.id.toInt();
     username = widget.user.username;
     name = widget.user.name;
+    profilePic = widget.user.profilePic;
     if (widget.user.followState != null) {
       isInitLoading = false;
       followState = widget.user.followState;
@@ -122,6 +127,20 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
       }
     });
 
+    if (id == ref.read(currentUserProvider)!.id) {
+      ref.listen(updateUserProvider, (prev, next) {
+        if (next is  UpdateUserDoneState) {
+          if (next.updateUserRes.user != null) {
+            setState(() {
+              username = next.updateUserRes.user!.username;
+              name = next.updateUserRes.user!.name;
+              profilePic = next.updateUserRes.user!.profilePic;
+            });
+          }
+        }
+      });
+    }
+
     if (widget.user.followState == null) {
       ref.listen(profileFollowStateProvider("PROFILE/followState/userId:${widget.user.id}+$uuid"), (prev, next) {
         if (next is FollowStateLoadedState) {
@@ -146,8 +165,8 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
       }
     });
 
-    Widget? notCurrentUserWidget = null;
-    Widget? currentUserWidget = null;
+    Widget? notCurrentUserWidget;
+    Widget? currentUserWidget;
 
     if (id != ref.read(currentUserProvider)!.id) {
       notCurrentUserWidget = Column(
@@ -449,8 +468,8 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                       height: 28 + MediaQuery.of(context).padding.top,
                     ),
                     Container(
-                      width: 90,
-                      height: 90,
+                      width: 100,
+                      height: 100,
                       decoration: BoxDecoration(
                         color: Colors.grey[300],
                         shape: BoxShape.circle,
@@ -466,7 +485,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(100),
                         child: Image.network(
-                          widget.user.profilePic,
+                          profilePic,
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -478,7 +497,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Text(
-                        widget.user.name,
+                        name,
                         // "Juan Martin Zabala",
                         style: TextStyle(
                           color: Colors.grey[800]!,
@@ -512,7 +531,14 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                             isLoading = false;
                           }
                         } else {
-                          context.push('/update-user');
+                          // final user = ProfileUserData.fromSearchUsersQueryUser(searchUsersRes[searchUserResIndex]);
+                          // context.push('/profile', extra: ProfileParams(
+                          //     user: user,
+                          //   )
+                          // );
+                          context.push('/update-user', extra: ProfileParams(
+                            user: widget.user,
+                          ));                        
                         }
                       },
                       child: Container(
@@ -538,180 +564,6 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                         ),
                       ),
                     ),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 12),
-                    //   child: Row(
-                    //     children: [
-                    //       Container(
-                    //         width: 80,
-                    //         height: 80,
-                    //         decoration: BoxDecoration(
-                    //           color: Colors.grey[300],
-                    //           shape: BoxShape.circle,
-                    //           // borderRadius: BorderRadius.circular(100),
-                    //           // boxShadow: [
-                    //           //   BoxShadow(
-                    //           //     color: Colors.black.withOpacity(0.2),
-                    //           //     spreadRadius: 2,
-                    //           //     blurRadius: 6,
-                    //           //   ),
-                    //           // ],
-                    //         ),
-                    //         child: ClipRRect(
-                    //           borderRadius: BorderRadius.circular(100),
-                    //           child: Image.network(
-                    //             widget.user.profilePic,
-                    //             fit: BoxFit.cover,
-                    //           ),
-                    //         ),
-                    //       ),
-                    //       const SizedBox(
-                    //         width: 12
-                    //       ),
-                    //       Column(
-                    //         crossAxisAlignment: CrossAxisAlignment.start,
-                    //         children: [
-                    //           Text(
-                    //             // widget.user.name,
-                    //             "Juan Martin Zabala",
-                    //             style: TextStyle(
-                    //               color: Colors.grey[800]!,
-                    //               fontSize: 19,
-                    //               fontWeight: FontWeight.w700,
-                    //               height: 1,
-                    //             ),
-                    //           ),
-                    //           const SizedBox(
-                    //             height: 6
-                    //           ),
-                    //           Text(
-                    //             // widget.user.name,
-                    //             "juanmartin8a",
-                    //             style: TextStyle(
-                    //               color: Colors.grey[600]!,
-                    //               fontSize: 15,
-                    //               fontWeight: FontWeight.w500,
-                    //               height: 1,
-                    //             ),
-                    //           ),
-                    //           // const SizedBox(
-                    //           //   height: 12
-                    //           // ),
-                    //           // GestureDetector(
-                    //           //   onTap: () {
-                    //           //     if (id != ref.read(currentUserProvider)!.id) {
-                    //           //       if (followState != null) {
-                    //           //         ref.read(addOrRemoveUserProvider("userId:$id").notifier).addOrRemoveUser(id, !followState!);
-                    //           //         isLoading = false;
-                    //           //       }
-                    //           //     }
-                    //           //   },
-                    //           //   child: Container(
-                    //           //     height: 30,
-                    //           //     width: MediaQuery.of(context).size.width - (90 + 36),
-                    //           //     decoration: BoxDecoration(
-                    //           //       color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
-                    //           //       // border: Border.all(color: Colors.grey[800]!, width: 2),
-                    //           //       borderRadius: BorderRadius.circular(20)
-                    //           //       // shape: BoxShape.circle
-                    //           //     ),
-                    //           //     child: Center(
-                    //           //       child: Text(
-                    //           //         id != ref.read(currentUserProvider)!.id
-                    //           //         ? isInitLoading ? "" : followState! ? "Added" : "Add"
-                    //           //         : "Edit",
-                    //           //         style: TextStyle(
-                    //           //           color: followState! ? Colors.grey[800] : Colors.white,
-                    //           //           fontSize: 14,
-                    //           //           fontWeight: FontWeight.w600,
-                    //           //         ),
-                    //           //       ),
-                    //           //     ),
-                    //           //   ),
-                    //           // ),
-                    //         ],
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
-                    // // Container(
-                    //   width: 90,
-                    //   height: 90,
-                    //   decoration: BoxDecoration(
-                    //     color: Colors.grey[300],
-                    //     shape: BoxShape.circle,
-                    //     // borderRadius: BorderRadius.circular(100),
-                    //     boxShadow: [
-                    //       BoxShadow(
-                    //         color: Colors.black.withOpacity(0.2),
-                    //         spreadRadius: 2,
-                    //         blurRadius: 6,
-                    //       ),
-                    //     ],
-                    //   ),
-                    //   child: ClipRRect(
-                    //     borderRadius: BorderRadius.circular(100),
-                    //     child: Image.network(
-                    //       widget.user.profilePic,
-                    //       fit: BoxFit.cover,
-                    //     ),
-                    //   ),
-                    // ),
-                    // const SizedBox(
-                    //   height: 12
-                    // ),
-                    
-                    // Container(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 24),
-                    //   child: Text(
-                    //     // widget.user.name,
-                    //     "Juan Martin",
-                    //     style: TextStyle(
-                    //       color: Colors.grey[800]!,
-                    //       fontSize: 18,
-                    //       fontWeight: FontWeight.w700,
-                    //       height: 1,
-                    //     ),
-                    //   )
-                    // ),
-                    // const SizedBox(
-                    //   height: 24
-                    // ),
-                    // GestureDetector(
-                    //   onTap: () {
-                    //     if (id != ref.read(currentUserProvider)!.id) {
-                    //       if (followState != null) {
-                    //         ref.read(addOrRemoveUserProvider("userId:$id").notifier).addOrRemoveUser(id, !followState!);
-                    //         isLoading = false;
-                    //       }
-                    //     } else {
-                    //       context.push('/update-user');
-                    //     }
-                    //   },
-                    //   child: Container(
-                    //     height: 36,
-                    //     // width: 80,
-                    //     width: MediaQuery.of(context).size.width - 24,
-                    //     decoration: BoxDecoration(
-                    //       color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
-                    //       // border: Border.all(color: Colors.grey[800]!, width: 2),
-                    //       borderRadius: BorderRadius.circular(20)
-                    //       // shape: BoxShape.circle
-                    //     ),
-                    //     child: Center(
-                    //       child: Text(
-                    //         id != ref.read(currentUserProvider)!.id
-                    //         ? isInitLoading ? "" : followState! ? "Added" : "Add"
-                    //         : "Edit",
-                    //         style: TextStyle(
-                    //           color: followState! ? Colors.grey[800] : Colors.white,
-                    //           fontSize: 14,
-                    //           fontWeight: FontWeight.w600,
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
                     const SizedBox(height: 30),
                     if (id != ref.read(currentUserProvider)!.id)
                     notCurrentUserWidget!,

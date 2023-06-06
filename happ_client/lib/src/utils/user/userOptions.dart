@@ -1,5 +1,6 @@
 import 'package:happ_client/src/api/graphql/graphql_api.graphql.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:http/http.dart' as http;
 
 class UserOptions {
 
@@ -177,6 +178,34 @@ class UserOptions {
     );
 
     return queryOptions;
+  }
+
+  MutationOptions updateUserMutatioOptions(
+    http.MultipartFile? profilePic,
+    String? username,
+    String? name,
+  ) {
+    MutationOptions mutationOptions = MutationOptions(
+      document: UpdateUserMutation(
+        variables: UpdateUserArguments(
+          input: UpdateUserInput(
+            name: name,
+            username: username,
+            profilePic: profilePic,
+          )
+        )
+      ).document,
+      variables: {
+        "input": {
+          "name": name,
+          "username": username,
+          "profilePic": profilePic,
+        }
+      },
+      fetchPolicy: FetchPolicy.noCache
+    );
+
+    return mutationOptions;
   }
 
 }

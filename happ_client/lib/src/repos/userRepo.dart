@@ -2,6 +2,7 @@ import 'package:happ_client/src/api/graphql/graphql_api.graphql.dart';
 import 'package:happ_client/src/client/client.dart';
 import 'package:happ_client/src/utils/user/userOptions.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:http/http.dart' as http;
 
 class UserRepo {
 
@@ -149,6 +150,27 @@ class UserRepo {
     } else {
       return MutualFriends$Query.fromJson(
         result.data!
+      );
+    }
+  }
+
+  Future<UpdateUser$Mutation$UpdateUserResponse> updateUser(
+    http.MultipartFile? profilePic,
+    String? username,
+    String? name
+  ) async {
+    final result = await client.mutate(
+      UserOptions().updateUserMutatioOptions(profilePic, username, name)
+    );
+
+    print(result);
+    print("returned ^");
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return UpdateUser$Mutation$UpdateUserResponse.fromJson(
+        (result.data as Map<String, dynamic>)["updateUser"]
       );
     }
   }
