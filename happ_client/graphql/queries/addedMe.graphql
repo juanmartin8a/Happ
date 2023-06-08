@@ -1,0 +1,11 @@
+query AddedMe($limit: Int!, $idsList: [Int!]!) {
+  addedMe(limit: $limit, idsList: $idsList) {
+    users {
+      id
+      username
+      name
+      profilePic
+    }
+    hasMore
+  }
+}

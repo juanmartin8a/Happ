@@ -7,3 +7,14 @@ class ProfileParams {
     required this.user,
   });
 }
+
+class AddedMeParams {
+  final List<AddedMe$Query$PaginatedEventUsersResults$User> addedMeUsers;
+  final bool hasMore;
+  final String uuid;
+  const AddedMeParams({
+    required this.addedMeUsers,
+    required this.hasMore,
+    required this.uuid
+  });
+}

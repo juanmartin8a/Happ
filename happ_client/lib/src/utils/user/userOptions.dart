@@ -208,4 +208,46 @@ class UserOptions {
     return mutationOptions;
   }
 
+  QueryOptions addedMeQueryOptions(
+    int limit,
+    List<int> idsList
+  ) {
+    QueryOptions queryOptions = QueryOptions(
+      document: AddedMeQuery(
+        variables: AddedMeArguments(
+          limit: limit,
+          idsList: idsList
+        )
+      ).document,
+      variables: {
+        "limit": limit,
+        "idsList": idsList
+      },
+      fetchPolicy: FetchPolicy.noCache
+    );
+
+    return queryOptions;
+  }
+
+  QueryOptions myFriendsQueryOptions(
+    int limit,
+    List<int> idsList
+  ) {
+    QueryOptions queryOptions = QueryOptions(
+      document: MyFriendsQuery(
+        variables: MyFriendsArguments(
+          limit: limit,
+          idsList: idsList
+        )
+      ).document,
+      variables: {
+        "limit": limit,
+        "idsList": idsList
+      },
+      fetchPolicy: FetchPolicy.noCache
+    );
+
+    return queryOptions;
+  }
+
 }

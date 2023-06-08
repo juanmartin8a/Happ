@@ -318,7 +318,7 @@ class _UpdateUserState extends ConsumerState<UpdateUser> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Padding(

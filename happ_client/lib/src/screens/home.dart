@@ -88,7 +88,8 @@ class _HomeState extends ConsumerState<Home> with SingleTickerProviderStateMixin
                             final user = ProfileUserData.fromUserData(ref.read(currentUserProvider)!);
                             return Profile(
                               user: user,
-                              key: const Key("currentUserProfile")
+                              key: const Key("currentUserProfile"),
+                              comesFromMain: true,
                             );
                           }
                         )

@@ -1,0 +1,11 @@
+query MyFriends($limit: Int!, $idsList: [Int!]!) {
+  myFriends(limit: $limit, idsList: $idsList) {
+    users {
+      id
+      username
+      name
+      profilePic
+    }
+    hasMore
+  }
+}

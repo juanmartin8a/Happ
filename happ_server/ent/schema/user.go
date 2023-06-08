@@ -43,14 +43,6 @@ func (User) Fields() []ent.Field {
 			Unique(),
 		field.String("profile_pic").
 			NotEmpty(),
-		// MaxLen(255),
-		// field.Time("birthday").
-		// 	SchemaType(map[string]string{
-		// 		dialect.MySQL: "date",
-		// 	}),
-		// field.String("password").
-		// 	NotEmpty().
-		// 	MaxLen(255),
 		field.Time("created_at").
 			Default(time.Now).
 			SchemaType(map[string]string{

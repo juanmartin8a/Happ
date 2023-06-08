@@ -175,4 +175,38 @@ class UserRepo {
     }
   }
 
+  Future<AddedMe$Query> addedMe(
+    int limit,
+    List<int> idsList
+  ) async {
+    final result = await client.query(
+      UserOptions().addedMeQueryOptions(limit, idsList)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return AddedMe$Query.fromJson(
+        result.data!
+      );
+    }
+  }
+
+  Future<MyFriends$Query> myFriends(
+    int limit,
+    List<int> idsList
+  ) async {
+    final result = await client.query(
+      UserOptions().myFriendsQueryOptions(limit, idsList)
+    );
+
+    if (result.hasException) {
+      throw (result.exception as OperationException);
+    } else {
+      return MyFriends$Query.fromJson(
+        result.data!
+      );
+    }
+  }
+
 }

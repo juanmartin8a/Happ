@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"happ/ent"
+	"happ/ent/follow"
 	"happ/ent/user"
 	"happ/utils"
 	"strconv"
@@ -75,15 +76,63 @@ func GetUsers(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	return output
 }
 
+func GetFollowStates(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+
+	client := utils.Client
+	userId, _ := utils.GetUserIdFromHeader(ctx)
+
+	followUserIDs := make([]int, 0, len(keys))
+	for _, key := range keys {
+		keyToInt, _ := strconv.Atoi(key.String())
+		followUserIDs = append(followUserIDs, keyToInt)
+	}
+
+	res, err := client.Follow.Query().
+		Where(
+			follow.And(
+				follow.FollowerID(*userId),
+				follow.UserIDIn(followUserIDs...),
+				follow.Valid(true),
+			),
+		).
+		All(ctx)
+
+	output := make([]*dataloader.Result, len(keys))
+	if err != nil {
+		for i := range output {
+			output[i] = &dataloader.Result{Data: false, Error: nil}
+		}
+		return output
+	}
+
+	followStateByUserId := map[string]bool{}
+	for _, f := range res {
+		followStateByUserId[strconv.Itoa(f.UserID)] = f.Valid
+	}
+
+	for index, userKey := range keys {
+		followState, ok := followStateByUserId[userKey.String()]
+		if ok {
+			output[index] = &dataloader.Result{Data: followState, Error: nil}
+		} else {
+			output[index] = &dataloader.Result{Data: false, Error: nil}
+		}
+	}
+
+	return output
+}
+
 // Loaders wrap your data loaders to inject via middleware
 type Loaders struct {
-	UserLoader *dataloader.Loader
+	UserLoader        *dataloader.Loader
+	FollowStateLoader *dataloader.Loader
 }
 
 // NewLoaders instantiates data loaders for the middleware
 func NewDataLoader() *Loaders {
 	loaders := &Loaders{
-		UserLoader: dataloader.NewBatchedLoader(GetUsers),
+		UserLoader:        dataloader.NewBatchedLoader(GetUsers, dataloader.WithClearCacheOnBatch()),
+		FollowStateLoader: dataloader.NewBatchedLoader(GetFollowStates, dataloader.WithClearCacheOnBatch()),
 	}
 	return loaders
 }
@@ -116,4 +165,14 @@ func GetUser(ctx context.Context, userID string) (*ent.User, error) {
 		return nil, err
 	}
 	return result.(*ent.User), nil
+}
+
+func GetFollowState(ctx context.Context, userID string) (bool, error) {
+	loaders := For(ctx)
+	thunk := loaders.FollowStateLoader.Load(ctx, dataloader.StringKey(userID))
+	result, err := thunk()
+	if err != nil {
+		return false, err
+	}
+	return result.(bool), nil
 }

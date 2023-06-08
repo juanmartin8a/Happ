@@ -9,8 +9,10 @@ import 'package:happ_client/src/screens/events/scan/scanScreen.dart';
 import 'package:happ_client/src/screens/profile/class/profileParams.dart';
 import 'package:happ_client/src/screens/profile/profile.dart';
 import 'package:happ_client/src/screens/profile/updateUser/updateUser.dart';
+import 'package:happ_client/src/screens/profile/widgets/addedMeScreen.dart';
 import 'package:happ_client/src/screens/search/class/SearchUserInviteResParams.dart';
 import 'package:happ_client/src/screens/events/updateEvent/updateEvent.dart';
+import 'package:happ_client/src/screens/settings/settings.dart';
 import 'package:happ_client/src/utils/getUserIdFromFBIDToken.dart';
 import 'package:happ_client/src/wrapper.dart';
 import 'package:flutter/material.dart';
@@ -215,6 +217,40 @@ class MyApp extends ConsumerWidget {
             user: params.user,
             key: const Key("update_user_screen")
           );
+        }
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (BuildContext context, GoRouterState state) {
+
+          return const Settings();
+        }
+      ),
+      GoRoute(
+        path: '/added-me',
+        builder: (BuildContext context, GoRouterState state) {
+
+          AddedMeParams params = state.extra as AddedMeParams;
+
+          return AddedMeScreen(
+            addedMeUsers: params.addedMeUsers,
+            uuid: params.uuid,
+            hasMore: params.hasMore,
+          );
+        }
+      ),
+      GoRoute(
+        path: '/my-friends',
+        builder: (BuildContext context, GoRouterState state) {
+
+          return const Settings();
+        }
+      ),
+      GoRoute(
+        path: '/mutual-friends',
+        builder: (BuildContext context, GoRouterState state) {
+
+          return const Settings();
         }
       ),
     ],

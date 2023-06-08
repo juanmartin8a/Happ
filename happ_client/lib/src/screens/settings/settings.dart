@@ -2,10 +2,12 @@ import "package:eva_icons_flutter/eva_icons_flutter.dart";
 import "package:fluentui_system_icons/fluentui_system_icons.dart";
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:go_router/go_router.dart";
 import "package:happ_client/src/riverpod/firebaseAuthProvider/firebaseAuthProvider.dart";
 import "package:happ_client/src/screens/settings/widgets/loadingDialog.dart";
 import "package:happ_client/src/screens/settings/widgets/settingsTile.dart";
 import "package:happ_client/src/utils/buttons/customGestureDetector.dart";
+import "package:happ_client/src/utils/widgets/floatingActions.dart";
 
 class Settings extends ConsumerStatefulWidget {
   const Settings({super.key});
@@ -26,16 +28,44 @@ class _SettingsState extends ConsumerState<Settings> {
           ),
           SizedBox(
             height: 45,
-            child: Center(
-              child: Text(
-                "More",
-                style: TextStyle(
-                  color: Colors.grey[800],
-                  fontSize: 19,
-                  fontWeight: FontWeight.w700
-                )
-              )
-            )
+            width: MediaQuery.of(context).size.width,
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  // top: (45 - 36) / 2,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: SizedBox(
+                      height: 45,
+                      child: FloatingActions(
+                        icon: EvaIcons.arrowBackOutline,
+                        padding: const EdgeInsets.only(left: 8, right: 8),
+                        // padding:  EdgeInsets.zero,
+                        color: Colors.grey[800]!,
+                        size: 36,
+                        key: const Key("goBack_settings")
+                      ),
+                    )
+                  ),
+                ),
+                SizedBox(
+                  height: 45,
+                  child: Center(
+                    child: Text(
+                      "More",
+                      style: TextStyle(
+                        color: Colors.grey[800],
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700
+                      )
+                    )
+                  )
+                ),
+              ],
+            ),
           ),
           Expanded(
             child: ListView(
@@ -44,6 +74,7 @@ class _SettingsState extends ConsumerState<Settings> {
                 BackgroundChangeOnTapGestureDetector(
                   onTap: () {
                     ref.read(firebaseAuthProvider).signOut();
+                    context.go("/");
                   },
                   key: const Key("signOut_tap"),
                   child: SettingsTile(

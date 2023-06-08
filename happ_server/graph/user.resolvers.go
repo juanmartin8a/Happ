@@ -777,12 +777,19 @@ func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int
 		}, nil
 	}
 
-	err := r.client.Follow.Create().
-		SetFollowerID(*userId).
-		SetUserID(followUserID).
-		SetValid(false).
-		OnConflict().
-		SetValid(false).
+	// err := r.client.Follow.Create().
+	// 	SetFollowerID(*userId).
+	// 	SetUserID(followUserID).
+	// 	SetValid(false).
+	// 	OnConflict().
+	// 	SetValid(false).
+	// 	Exec(ctx)
+
+	_, err := r.client.Follow.Delete().
+		Where(
+			follow.FollowerID(*userId),
+			follow.UserID(followUserID),
+		).
 		Exec(ctx)
 	if err != nil {
 		return &model.AddResponse{
@@ -2056,10 +2063,14 @@ func (r *mutationResolver) SaveDevice(ctx context.Context, token string) (*bool,
 
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.UpdateUserResponse, error) {
-	userId, authErr := utils.IsAuth(ctx)
+	fmt.Println("Called UpdateUser SIIIUUUUU")
+	userIdAndFUID, authErr := utils.IsAuthWithFUID(ctx)
 	if authErr != nil {
 		return nil, authErr
 	}
+
+	userId := userIdAndFUID.UserId
+	firebaseUID := userIdAndFUID.FirebaseUID
 
 	var errors []*model.ErrorResponse
 
@@ -2072,6 +2083,28 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 		log.Println("could not get current user from DB on UpdateUser()")
 		return nil, err
 	}
+
+	// claims := map[string]interface{}{
+	// 	"id":                     newUser.ID,
+	// 	"picture":                picture,
+	// 	"username":               username,
+	// 	"name":                   name,
+	// 	"appleAuthorizationCode": authCode,
+	// }
+	// err = firebaseUtils.AuthClient.SetCustomUserClaims(ctx, *firebaseUID, claims)
+	// if err != nil {
+	// 	rollbackMeilisearchUserToo = true
+	// 	rollback = true
+	// 	return nil, fmt.Errorf("error setting custom claims: %v", err)
+	// }
+
+	firebaseUser, err := firebaseUtils.AuthClient.GetUser(context.Background(), *firebaseUID)
+	if err != nil {
+		log.Printf("error getting firebase user on UpdateUser(): %v\n", err)
+		return nil, err
+	}
+
+	oldClaims := firebaseUser.CustomClaims
 
 	updateUser := currentUser.Update()
 
@@ -2086,10 +2119,26 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 			})
 		}
 
+		if len(*input.Name) > 30 {
+			errors = append(errors, &model.ErrorResponse{
+				Field:   "name",
+				Message: "Name can't have more than 30 characters",
+			})
+		}
+
+		oldClaims["name"] = *input.Name
+
 		updateUser = updateUser.SetName(*input.Name)
 	}
 
 	if input.Username != nil {
+
+		if len(*input.Username) == 0 {
+			errors = append(errors, &model.ErrorResponse{
+				Field:   "username",
+				Message: "Username cannot be empty.",
+			})
+		}
 
 		if len(*input.Username) > 30 {
 			errors = append(errors, &model.ErrorResponse{
@@ -2105,7 +2154,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 				log.Println("username is not valid")
 				errors = append(errors, &model.ErrorResponse{
 					Field:   "username",
-					Message: "Username can only contain lowercase letters, numbers, periods (.), and underscores (_). No Spaces.",
+					Message: `Username can only contain lowercase letters, numbers, periods ".", and underscores "_". No Spaces.`,
 				})
 
 			} else {
@@ -2119,7 +2168,6 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 
 				if err == nil || (err != nil && !ent.IsNotFound(err)) {
 					if err == nil {
-						log.Println("Error updating user: username is taken")
 						errors = append(errors, &model.ErrorResponse{
 							Field:   "username",
 							Message: "Username is taken.",
@@ -2131,14 +2179,21 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 					}
 
 				} else {
+					oldClaims["username"] = *input.Username
 					updateUser = updateUser.SetUsername(*input.Username)
 				}
 			}
 		}
 	}
 
-	if input.ProfilePic != nil {
+	if len(errors) > 0 {
+		return &model.UpdateUserResponse{
+			User:   nil,
+			Errors: errors,
+		}, nil
+	}
 
+	if input.ProfilePic != nil {
 		content, err := io.ReadAll(input.ProfilePic.File)
 		if err != nil {
 			log.Println("could not read profile picture to update")
@@ -2168,17 +2223,40 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 			return nil, fmt.Errorf("could not update user, try again later")
 		}
 
+		oldClaims["picture"] = *newProfilePicKey
+
 		updateUser = updateUser.SetProfilePic(*newProfilePicKey)
 	}
 
-	if len(errors) > 0 {
-		return &model.UpdateUserResponse{
-			User:   nil,
-			Errors: errors,
-		}, nil
-	}
-
 	if input.ProfilePic != nil || input.Name != nil || input.Username != nil {
+		err = firebaseUtils.AuthClient.SetCustomUserClaims(context.Background(), *firebaseUID, oldClaims)
+		if err != nil {
+			log.Printf("error setting custom user claims on UpdateUser(): %v\n", err)
+
+			if input.ProfilePic != nil {
+
+				var keyFromS3ToDelete []string
+
+				objectToDeleteFullString := *newProfilePicKey
+
+				var cloudfrontDistribution string
+				if config.C.AppEnv == "prod" {
+					cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
+				} else if config.C.AppEnv == "dev" {
+					cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
+				}
+
+				keyFromS3ToDelete = append(keyFromS3ToDelete, strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, ""))
+
+				deleteEventPicsRes := awsS3.DeleteFromS3(keyFromS3ToDelete)
+				if !deleteEventPicsRes {
+					log.Printf("could not delete profile picture from S3: %s", keyFromS3ToDelete)
+				}
+			}
+
+			return nil, err
+		}
+
 		res := meilisearchUtils.UpdateMeiliUser(
 			*userId, input.Username, input.Name, newProfilePicKey,
 		)
@@ -2291,7 +2369,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 
 	return &model.UpdateUserResponse{
 		User:   updatedUser,
-		Errors: errors,
+		Errors: nil,
 	}, nil
 }
 
@@ -3508,20 +3586,18 @@ func (r *queryResolver) MyFriends(ctx context.Context, limit int, idsList []int)
 	args = append(args, realLimitPlusOne)
 
 	query := `
-	SELECT u.*, IF(f3.follower_id IS NOT NULL, 1, 0) follows_current_user FROM users u
+	SELECT u.*, IF(f3.follower_id IS NOT NULL, 1, 0) follows_current_user, f2.created_at follow_created_at FROM users u
 
 	LEFT JOIN follows f3
 	ON f3.user_id = ?
 	AND f3.follower_id = u.id
 	AND f3.valid = true
 
-	WHERE EXISTS (
-		SELECT 1 
-			FROM follows f
-			WHERE f.user_id = u.id
-				AND f.follower_id = ?
-				AND f.valid = true
-	)
+	INNER JOIN follows f2
+	ON f2.user_id = u.id
+	AND f2.follower_id = ?
+	AND f2.valid = true
+
 	AND u.id != ?
 	`
 
@@ -3530,7 +3606,7 @@ func (r *queryResolver) MyFriends(ctx context.Context, limit int, idsList []int)
 	}
 
 	query += `
-		ORDER BY follows_current_user DESC
+		ORDER BY follows_current_user DESC, follow_created_at DESC
 		LIMIT ?
 	`
 
@@ -3550,6 +3626,7 @@ func (r *queryResolver) MyFriends(ctx context.Context, limit int, idsList []int)
 		var updated_at time.Time
 		var profile_pic string
 		var follows_current_user bool
+		var follows_created_at time.Time
 
 		if err := res.Scan(
 			&id,
@@ -3561,6 +3638,7 @@ func (r *queryResolver) MyFriends(ctx context.Context, limit int, idsList []int)
 			&profile_pic,
 			&fuid,
 			&follows_current_user,
+			&follows_created_at,
 		); err != nil {
 			log.Println(err)
 			return nil, err
@@ -3594,7 +3672,7 @@ func (r *queryResolver) MyFriends(ctx context.Context, limit int, idsList []int)
 
 // AddedMe is the resolver for the addedMe field.
 func (r *queryResolver) AddedMe(ctx context.Context, limit int, idsList []int) (*model.PaginatedEventUsersResults, error) {
-	userId, authErr := utils.IsAuth(ctx)
+	userId, authErr := utils.IsAuthPreventFollowStateCall(ctx)
 	if authErr != nil {
 		return nil, authErr
 	}
@@ -3615,10 +3693,6 @@ func (r *queryResolver) AddedMe(ctx context.Context, limit int, idsList []int) (
 	args = append(args, *userId)
 
 	args = append(args, *userId)
-	// args = append(args, id) <-- changed this
-
-	args = append(args, *userId)
-	// args = append(args, id)
 
 	var params []string
 	for _, id := range stringIdsList {
@@ -3637,25 +3711,14 @@ func (r *queryResolver) AddedMe(ctx context.Context, limit int, idsList []int) (
 	args = append(args, realLimitPlusOne)
 
 	query := `
-	SELECT u.*, IF(f3.follower_id IS NOT NULL, 1, 0) follows_current_user FROM users u
+	SELECT u.*, f.created_at follow_created_at FROM users u
 
-	LEFT JOIN follows f3
-	ON f3.user_id = ?
-	AND f3.follower_id = u.id
-	AND f3.valid = true
+	INNER JOIN follows f
+	ON f.user_id = ?
+	AND f.follower_id = u.id
+	AND f.valid = true
 
-	WHERE EXISTS (
-		SELECT 1 
-			FROM follows f1
-			JOIN follows f2
-				ON f1.user_id = f2.user_id
-			WHERE f1.user_id = u.id
-				AND f1.follower_id = ?
-				AND f2.follower_id = ?
-				AND f1.valid = true
-        AND f2.valid = true
-	)
-	AND u.id NOT IN (?,?)
+	AND u.id != ?
 	`
 
 	if len(placeholders) > 0 {
@@ -3663,7 +3726,7 @@ func (r *queryResolver) AddedMe(ctx context.Context, limit int, idsList []int) (
 	}
 
 	query += `
-		ORDER BY follows_current_user DESC
+		ORDER BY follow_created_at DESC
 		LIMIT ?
 	`
 
@@ -3682,7 +3745,7 @@ func (r *queryResolver) AddedMe(ctx context.Context, limit int, idsList []int) (
 		var created_at time.Time
 		var updated_at time.Time
 		var profile_pic string
-		var follows_current_user bool
+		var follow_created_at time.Time
 
 		if err := res.Scan(
 			&id,
@@ -3693,13 +3756,13 @@ func (r *queryResolver) AddedMe(ctx context.Context, limit int, idsList []int) (
 			&updated_at,
 			&profile_pic,
 			&fuid,
-			&follows_current_user,
+			&follow_created_at,
 		); err != nil {
 			log.Println(err)
 			return nil, err
 		}
 
-		event := ent.User{
+		user := ent.User{
 			ID:         id,
 			Name:       name,
 			Username:   username,
@@ -3708,9 +3771,11 @@ func (r *queryResolver) AddedMe(ctx context.Context, limit int, idsList []int) (
 			UpdatedAt:  updated_at,
 			ProfilePic: profile_pic,
 			FUID:       fuid,
+			// FollowState: followState,
+			// followState
 		}
 
-		users = append(users, &event)
+		users = append(users, &user)
 	}
 
 	res.Close()
@@ -3736,20 +3801,7 @@ func (r *userResolver) FollowState(ctx context.Context, obj *ent.User) (bool, er
 		return true, nil
 	}
 
-	res, err := r.client.Follow.Query().
-		Where(
-			follow.And(
-				follow.FollowerID(*userId),
-				follow.UserID(obj.ID),
-			),
-		).
-		Select(follow.FieldValid).
-		Only(ctx)
-	if err == nil {
-		return res.Valid, nil
-	}
-
-	return false, nil
+	return dataloaders.GetFollowState(ctx, strconv.Itoa(obj.ID))
 }
 
 // CreatedAt is the resolver for the createdAt field.

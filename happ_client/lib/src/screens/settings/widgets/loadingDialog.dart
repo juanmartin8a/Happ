@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:go_router/go_router.dart";
 import "package:happ_client/src/riverpod/deleteUser/deleteUser.dart";
 import "package:happ_client/src/riverpod/deleteUser/deleteUserState.dart";
 import "package:happ_client/src/riverpod/firebaseAuthProvider/firebaseAuthProvider.dart";
@@ -30,6 +31,7 @@ class LoadingDialog extends ConsumerWidget {
         textMessage = "Your account has been removed :'(";
         loading = false;
         ref.read(firebaseAuthProvider).signOut();
+        context.go("/");
       }
     } else if (state is DeleteUserErrorState) {
       isDefault = false;
