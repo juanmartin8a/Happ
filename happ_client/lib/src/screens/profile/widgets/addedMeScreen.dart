@@ -31,7 +31,6 @@ class _AddedMeScreenState extends ConsumerState<AddedMeScreen> {
   late bool hasMore;
   bool isLoading = false;
 
-
   @override
   void initState() {
     super.initState();
@@ -108,6 +107,7 @@ class _AddedMeScreenState extends ConsumerState<AddedMeScreen> {
             Expanded(
               child: ListView.builder(
                 padding: EdgeInsets.zero,
+                physics: const AlwaysScrollableScrollPhysics(),
                 controller: controller,
                 itemCount: addedMeUsers.length + 1,
                 itemBuilder: (context, i) {

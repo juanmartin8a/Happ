@@ -5,6 +5,7 @@ query AddedMe($limit: Int!, $idsList: [Int!]!) {
       username
       name
       profilePic
+      followState
     }
     hasMore
   }

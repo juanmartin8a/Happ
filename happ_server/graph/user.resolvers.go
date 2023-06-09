@@ -96,78 +96,80 @@ func (r *eventInviteResResolver) InvitedBy(ctx context.Context, obj *model.Event
 // Friends is the resolver for the friends field.
 func (r *eventInviteResResolver) Friends(ctx context.Context, obj *model.EventInviteRes) ([]*ent.User, error) {
 	var users []*ent.User
-	userId, err := utils.GetUserIdFromHeader(ctx)
+	_, err := utils.GetUserIdFromHeader(ctx)
 	if err != nil {
 		return users, nil
 	}
+
+	return dataloaders.GetFriends(ctx, strconv.Itoa(obj.Event.ID))
 
 	// QUERY MADE BY CHAT GPT
-	res, err := r.client.QueryContext(ctx, `
-		SELECT u.*, f.user_id FROM users u
+	// res, err := r.client.QueryContext(ctx, `
+	// 	SELECT u.*, f.user_id FROM users u
 
-		LEFT JOIN follows f ON f.user_id = u.id AND f.follower_id = `+strconv.Itoa(*userId)+` AND f.valid = true
-		LEFT JOIN event_users eu ON eu.user_id = u.id AND eu.event_id = `+strconv.Itoa(obj.Event.ID)+` AND eu.confirmed = true
+	// 	INNER JOIN event_users eu ON eu.user_id = u.id
+	// 	LEFT JOIN follows f ON f.user_id = u.id AND f.follower_id = `+strconv.Itoa(*userId)+` AND f.valid = true
 
-		WHERE eu.user_id IS NOT NULL
+	// 	WHERE eu.event_id = `+strconv.Itoa(obj.Event.ID)+` AND eu.confirmed = true
 
-		ORDER BY CASE WHEN f.user_id = `+strconv.Itoa(*userId)+` THEN 1 ELSE 2 END, f.user_id DESC
+	// 	ORDER BY CASE WHEN f.user_id = `+strconv.Itoa(*userId)+` THEN 1 ELSE 2 END, f.user_id DESC
 
-		LIMIT 3;
-	`)
-	if err != nil {
-		return users, nil
-	}
+	// 	LIMIT 3;
+	// `)
+	// if err != nil {
+	// 	return users, nil
+	// }
 
-	for res.Next() {
-		var id int
-		var name string
-		var username string
-		var email string
-		var fuid string
-		// var birthday time.Time
-		// var password string
-		var created_at time.Time
-		var updated_at time.Time
-		var profile_pic string
-		var user_id *int
+	// for res.Next() {
+	// 	var id int
+	// 	var name string
+	// 	var username string
+	// 	var email string
+	// 	var fuid string
+	// 	// var birthday time.Time
+	// 	// var password string
+	// 	var created_at time.Time
+	// 	var updated_at time.Time
+	// 	var profile_pic string
+	// 	var user_id *int
 
-		if err := res.Scan(
-			&id,
-			&name,
-			&username,
-			&email,
-			// &birthday,
-			// &password,
-			&created_at,
-			&updated_at,
-			&profile_pic,
-			&fuid,
-			&user_id,
-		); err != nil {
-			// Check for a scan error.
-			log.Println(err)
-			var emptyUsersSlice []*ent.User
-			return emptyUsersSlice, err
-		}
+	// 	if err := res.Scan(
+	// 		&id,
+	// 		&name,
+	// 		&username,
+	// 		&email,
+	// 		// &birthday,
+	// 		// &password,
+	// 		&created_at,
+	// 		&updated_at,
+	// 		&profile_pic,
+	// 		&fuid,
+	// 		&user_id,
+	// 	); err != nil {
+	// 		// Check for a scan error.
+	// 		log.Println(err)
+	// 		var emptyUsersSlice []*ent.User
+	// 		return emptyUsersSlice, err
+	// 	}
 
-		event := ent.User{
-			ID:         id,
-			Name:       name,
-			Username:   username,
-			Email:      email,
-			CreatedAt:  created_at,
-			UpdatedAt:  updated_at,
-			ProfilePic: profile_pic,
-			FUID:       fuid,
-		}
+	// 	event := ent.User{
+	// 		ID:         id,
+	// 		Name:       name,
+	// 		Username:   username,
+	// 		Email:      email,
+	// 		CreatedAt:  created_at,
+	// 		UpdatedAt:  updated_at,
+	// 		ProfilePic: profile_pic,
+	// 		FUID:       fuid,
+	// 	}
 
-		// events = append(events, &event)
-		users = append(users, &event)
-	}
+	// 	// events = append(events, &event)
+	// 	users = append(users, &event)
+	// }
 
-	res.Close()
+	// res.Close()
 
-	return users, nil
+	// return users, nil
 }
 
 // SignIn is the resolver for the signIn field.
@@ -3672,7 +3674,7 @@ func (r *queryResolver) MyFriends(ctx context.Context, limit int, idsList []int)
 
 // AddedMe is the resolver for the addedMe field.
 func (r *queryResolver) AddedMe(ctx context.Context, limit int, idsList []int) (*model.PaginatedEventUsersResults, error) {
-	userId, authErr := utils.IsAuthPreventFollowStateCall(ctx)
+	userId, authErr := utils.IsAuth(ctx)
 	if authErr != nil {
 		return nil, authErr
 	}

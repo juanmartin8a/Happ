@@ -24,26 +24,6 @@ func IsAuth(ctx context.Context) (*int, error) {
 	return userId, nil
 }
 
-func IsAuthPreventFollowStateCall(ctx context.Context) (*int, error) {
-	ec, err := customMiddleware.EchoContextFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	userId, err := GetUserIdFromFirebaseIDToken(ctx, ec.Request().Header.Get("Authorization"))
-	if err != nil {
-		return nil, err
-	}
-
-	userIdToString := strconv.Itoa(*userId)
-
-	ec.Request().Header.Set("UserID", userIdToString)
-
-	ec.Request().Header.Set("preventFollowState", "Y")
-
-	return userId, nil
-}
-
 func IsAuthWithFUID(ctx context.Context) (*UserIdAndFUID, error) {
 	ec, err := customMiddleware.EchoContextFromContext(ctx)
 	if err != nil {

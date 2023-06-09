@@ -4,6 +4,9 @@ package dataloaders
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
+	"time"
 
 	"happ/ent"
 	"happ/ent/follow"
@@ -122,10 +125,127 @@ func GetFollowStates(ctx context.Context, keys dataloader.Keys) []*dataloader.Re
 	return output
 }
 
+func GetEventFriends(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+
+	eventPeopleByEventID := map[string][]*ent.User{}
+
+	client := utils.Client
+	userId, _ := utils.GetUserIdFromHeader(ctx)
+
+	eventIds := make([]int, 0, len(keys))
+	for _, key := range keys {
+		keyToInt, _ := strconv.Atoi(key.String())
+		eventIds = append(eventIds, keyToInt)
+	}
+
+	var args []interface{}
+	args = append(args, *userId)
+	args = append(args, *userId)
+
+	var params []string
+	for _, id := range eventIds {
+		params = append(params, strconv.Itoa(id))
+	}
+
+	// join params with commas
+	placeholders := strings.Join(params, ",")
+
+	args = append(args, placeholders)
+
+	query := fmt.Sprintf(`SELECT sub.id, sub.name, sub.username, sub.email, sub.fuid, sub.created_at, sub.updated_at, sub.profile_pic, sub.event_id
+	FROM (
+		SELECT u.*, f.user_id, eu.event_id, ROW_NUMBER() OVER(PARTITION BY eu.event_id ORDER BY CASE WHEN f.user_id = %d THEN 1 ELSE 2 END, f.user_id DESC) row_num FROM users u
+		INNER JOIN event_users eu ON eu.user_id = u.id
+		LEFT JOIN follows f ON f.user_id = u.id AND f.follower_id = %d AND f.valid = true
+		WHERE eu.event_id IN (%s) AND eu.confirmed = true
+	) sub
+	WHERE sub.row_num <= 3`, args...)
+
+	res, err := client.QueryContext(ctx, query)
+	if err != nil {
+		log.Printf("Error on GetEventFriends(): %s", err)
+		output := make([]*dataloader.Result, len(keys))
+		for i := range output {
+			output[i] = &dataloader.Result{Data: []*ent.User{}, Error: nil}
+		}
+		return output
+	}
+
+	defer res.Close()
+
+	for res.Next() {
+		var id int
+		var name string
+		var username string
+		var email string
+		var fuid string
+		var created_at time.Time
+		var updated_at time.Time
+		var profile_pic string
+		// var user_id *int
+		var event_id int
+
+		if err := res.Scan(
+			&id,
+			&name,
+			&username,
+			&email,
+			&fuid,
+			&created_at,
+			&updated_at,
+			&profile_pic,
+			// &user_id,
+			&event_id,
+		); err != nil {
+			// Check for a scan error.
+			log.Printf("Error on GetEventFriends(): %s", err)
+			output := make([]*dataloader.Result, len(keys))
+			for i := range output {
+				output[i] = &dataloader.Result{Data: []*ent.User{}, Error: nil}
+			}
+			return output
+		}
+
+		user := &ent.User{
+			ID:         id,
+			Name:       name,
+			Username:   username,
+			Email:      email,
+			CreatedAt:  created_at,
+			UpdatedAt:  updated_at,
+			ProfilePic: profile_pic,
+			FUID:       fuid,
+		}
+
+		eventPeopleByEventID[strconv.Itoa(event_id)] = append(eventPeopleByEventID[strconv.Itoa(event_id)], user)
+	}
+
+	output := make([]*dataloader.Result, len(keys))
+	if err != nil {
+		log.Printf("Error on GetEventFriends(): %s", err)
+		for i := range output {
+			output[i] = &dataloader.Result{Data: []*ent.User{}, Error: nil}
+		}
+		return output
+	}
+
+	for index, eventKey := range keys {
+		users, ok := eventPeopleByEventID[eventKey.String()]
+		if ok {
+			output[index] = &dataloader.Result{Data: users, Error: nil}
+		} else {
+			output[index] = &dataloader.Result{Data: []*ent.User{}, Error: nil}
+		}
+	}
+
+	return output
+}
+
 // Loaders wrap your data loaders to inject via middleware
 type Loaders struct {
 	UserLoader        *dataloader.Loader
 	FollowStateLoader *dataloader.Loader
+	FriendsLoader     *dataloader.Loader
 }
 
 // NewLoaders instantiates data loaders for the middleware
@@ -133,6 +253,7 @@ func NewDataLoader() *Loaders {
 	loaders := &Loaders{
 		UserLoader:        dataloader.NewBatchedLoader(GetUsers, dataloader.WithClearCacheOnBatch()),
 		FollowStateLoader: dataloader.NewBatchedLoader(GetFollowStates, dataloader.WithClearCacheOnBatch()),
+		FriendsLoader:     dataloader.NewBatchedLoader(GetEventFriends, dataloader.WithClearCacheOnBatch()),
 	}
 	return loaders
 }
@@ -175,4 +296,14 @@ func GetFollowState(ctx context.Context, userID string) (bool, error) {
 		return false, err
 	}
 	return result.(bool), nil
+}
+
+func GetFriends(ctx context.Context, eventID string) ([]*ent.User, error) {
+	loaders := For(ctx)
+	thunk := loaders.FriendsLoader.Load(ctx, dataloader.StringKey(eventID))
+	result, err := thunk()
+	if err != nil {
+		return []*ent.User{}, err
+	}
+	return result.([]*ent.User), nil
 }
