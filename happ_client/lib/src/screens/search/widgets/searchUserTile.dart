@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
+import 'package:happ_client/src/riverpod/addRemove/addRemoveState.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
 import 'package:happ_client/src/screens/search/widgets/saerchUserAddButton.dart';
+import 'package:happ_client/src/screens/search/searchBar.dart';
 
-class SearchUserTile extends ConsumerWidget {
+class SearchUserTile extends ConsumerStatefulWidget {
   final List<SearchUsers$Query$User> users;
   final SearchUsers$Query$User user;
   const SearchUserTile({
@@ -12,9 +14,29 @@ class SearchUserTile extends ConsumerWidget {
     required this.user,
     Key? key
   }) : super(key: key);
+  
+  @override
+  _SearchUserTileState createState() => _SearchUserTileState();
+}
+
+class _SearchUserTileState extends ConsumerState<SearchUserTile> {
+//   @override
+//   Widget build(BuildContext context) {
+//     return const Placeholder();
+//   }
+// }
+
+// class SearchUserTile extends ConsumerWidget {
+//   final List<SearchUsers$Query$User> users;
+//   final SearchUsers$Query$User user;
+//   const SearchUserTile({
+//     required this.users,
+//     required this.user,
+//     Key? key
+//   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
       color: Colors.transparent,
@@ -27,7 +49,7 @@ class SearchUserTile extends ConsumerWidget {
               height: 45,
               color: Colors.grey[350],
               child: Image.network(
-                user.profilePic,
+                widget.user.profilePic,
                 fit: BoxFit.cover
               )
               // child: ProfileImgLoader(
@@ -50,7 +72,7 @@ class SearchUserTile extends ConsumerWidget {
                   //   key: Key('searchUser_username_$id')
                   // ),
                   Text(
-                    user.name,
+                    widget.user.name,
                     style: TextStyle(
                       color: Colors.grey[800],
                       fontSize: 14,
@@ -60,7 +82,7 @@ class SearchUserTile extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    user.username,
+                    widget.user.username,
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 13,
@@ -72,15 +94,26 @@ class SearchUserTile extends ConsumerWidget {
               )
             ),
           ),
-          if (user.id != ref.read(currentUserProvider)!.id)
+          if (widget.user.id != ref.read(currentUserProvider)!.id)
           SearchUserAddButton(
-            users: users,
-            userId: user.id.toInt(),
-            isFollow: user.followState,
-            key: Key("addRemoveButton_${user.id}")
+            onAddOrRemoveStateChange: onAddOrRemoveStateChange,
+            userId: widget.user.id.toInt(),
+            isFollow: widget.user.followState,
+            key: Key("addRemoveButton_${widget.user.id}")
           )
         ],
       ),
     );
+  }
+
+  void onAddOrRemoveStateChange(AddRemoveState next, int userId) {
+    switch(next.runtimeType) {
+      case AddRemoveAddState:
+        ref.read(searchProvider.notifier).updateUserSearchTileState(widget.users, userId, {"followState": true});
+      break;
+      case AddRemoveRemoveState:
+        ref.read(searchProvider.notifier).updateUserSearchTileState(widget.users, userId, {"followState": false});
+      break;
+    }
   }
 }

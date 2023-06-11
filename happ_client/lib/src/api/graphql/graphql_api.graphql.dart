@@ -1590,8 +1590,10 @@ class AddedMe$Query$PaginatedEventUsersResults$User extends JsonSerializable
 
   late String profilePic;
 
+  late bool followState;
+
   @override
-  List<Object?> get props => [id, username, name, profilePic];
+  List<Object?> get props => [id, username, name, profilePic, followState];
   @override
   Map<String, dynamic> toJson() =>
       _$AddedMe$Query$PaginatedEventUsersResults$UserToJson(this);
@@ -5142,6 +5144,13 @@ final ADDED_ME_QUERY_DOCUMENT = DocumentNode(definitions: [
               ),
               FieldNode(
                 name: NameNode(value: 'profilePic'),
+                alias: null,
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              ),
+              FieldNode(
+                name: NameNode(value: 'followState'),
                 alias: null,
                 arguments: [],
                 directives: [],

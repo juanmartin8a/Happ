@@ -23,4 +23,17 @@ class MutualFriendsLoadedState extends MutualFriends {
   List<Object?> get props => [val];
 }
 
+class MutualFriendsChangeFollowState extends MutualFriends {
+  final MutualFriends$Query$PaginatedEventUsersResults$User user;
+  final bool followState;
+
+  const MutualFriendsChangeFollowState({
+    required this.user,
+    required this.followState
+  });
+
+  @override
+  List<Object?> get props => [user, followState];
+}
+
 class MutualFriendsErrorState extends MutualFriends {}

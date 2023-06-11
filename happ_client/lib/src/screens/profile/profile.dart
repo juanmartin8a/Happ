@@ -5,11 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addRemove/addRemove.dart';
 import 'package:happ_client/src/riverpod/addRemove/addRemoveState.dart';
-import 'package:happ_client/src/riverpod/addedMe/addedMe.dart';
-import 'package:happ_client/src/riverpod/addedMe/addedMeState.dart';
+import 'package:happ_client/src/riverpod/profile/addedMe/addedMe.dart';
+import 'package:happ_client/src/riverpod/profile/addedMe/addedMeState.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
-import 'package:happ_client/src/riverpod/myFriends/myFriends.dart';
-import 'package:happ_client/src/riverpod/myFriends/myFriendsState.dart';
+import 'package:happ_client/src/riverpod/profile/myFriends/myFriends.dart';
+import 'package:happ_client/src/riverpod/profile/myFriends/myFriendsState.dart';
 import 'package:happ_client/src/riverpod/profile/followState/FollowState.dart';
 import 'package:happ_client/src/riverpod/profile/followState/followStateState.dart';
 import 'package:happ_client/src/riverpod/profile/mutualFriends/mutualFriends.dart';
@@ -184,28 +184,56 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
             hasMore = next.val.hasMore;
             isLoading = false;
           });
+        } else if (next is MutualFriendsChangeFollowState) {
+          if (next.followState) {
+            setState(() {
+              users.insert(0, next.user);
+              userIds = users.map((user) => user.id).toList();
+            });
+          } else {
+            setState(() {
+              users.removeWhere((user) => user.id == next.user.id);
+              userIds = users.map((user) => user.id).toList();
+            });
+          }
         }
       });
     } else {
       ref.listen(profileMyFriendsProvider("PROFILE/myFriends/sess:$uuid"), (prev, next) {
         if (next is MyFriendsLoadedState) {
-          setState(() {
-            myFriendsUsers = [...myFriendsUsers, ...next.val.users];
-            myFriendsUsersIds = myFriendsUsers.map((user) => user.id).toList();
-            friendsHasMore = next.val.hasMore;
-            friendsIsLoading = false;
-          });
+          if (myFriendsUsers.isEmpty) {
+            setState(() {
+              myFriendsUsers = [...myFriendsUsers, ...next.val.users];
+              myFriendsUsersIds = myFriendsUsers.map((user) => user.id).toList();
+              friendsHasMore = next.val.hasMore;
+              friendsIsLoading = false;
+            });
+          }
+        } else if (next is MyFriendsChangeFollowState) {
+          if (next.followState) {
+            setState(() {
+              myFriendsUsers.insert(0, next.user);
+              myFriendsUsersIds = myFriendsUsers.map((user) => user.id).toList();
+            });
+          } else {
+            setState(() {
+              myFriendsUsers.removeWhere((user) => user.id == next.user.id);
+              myFriendsUsersIds = myFriendsUsers.map((user) => user.id).toList();
+            });
+          }
         }
       });
 
       ref.listen(profileAddedMeProvider("PROFILE/addedMe/sess:$uuid"), (prev, next) {
         if (next is AddedMeLoadedState) {
-          setState(() {
-            addedMeUsers = [...addedMeUsers, ...next.val.users];
-            addedMeUsersIds = addedMeUsers.map((user) => user.id).toList();
-            addedMeHasMore = next.val.hasMore;
-            addedMeIsLoading = false;
-          });
+          if (addedMeUsers.isEmpty) {
+            setState(() {
+              addedMeUsers = [...addedMeUsers, ...next.val.users];
+              addedMeUsersIds = addedMeUsers.map((user) => user.id).toList();
+              addedMeHasMore = next.val.hasMore;
+              addedMeIsLoading = false;
+            });
+          }
         }
       });
     }
@@ -214,98 +242,111 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
     Widget? currentUserWidget;
 
     if (id != ref.read(currentUserProvider)!.id) {
-      notCurrentUserWidget = Column(
-        children: [
-          Container(
-            width: MediaQuery.of(context).size.width,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              "Mutual Friends",
-              style: TextStyle(
-                color: Colors.grey[800]!,
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                height: 1
-              ),
-            ),
-          ),
-          const SizedBox(height: 3),
-          if (isLoading && users.isEmpty)
-          Container(
-            height: 66,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
+      notCurrentUserWidget = GestureDetector(
+        onTap: () {
+          context.push(
+            "/mutual-friends",
+            extra: MutualFriendsParams(
+              userId: id,
+              users: List.from(users),
+              hasMore: hasMore,
+              uuid: uuid,
+            )
+          );
+        },
+        child: Column(
+          children: [
+            Container(
+              width: MediaQuery.of(context).size.width,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                "Mutual Friends",
+                style: TextStyle(
+                  color: Colors.grey[800]!,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  height: 1
                 ),
-                // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                child: const Loader(radius: 8)
               ),
             ),
-          ),
-
-          if (users.isNotEmpty)
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: 66,
-            // padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: ListView.builder(
-              itemCount: users.length + 2,
-              shrinkWrap: true,
-              physics: const AlwaysScrollableScrollPhysics(),
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.zero,
-              itemBuilder: (context, index) {
-                if (index == 0 || index == (users.length + 2) - 1) {
-                  return const SizedBox(width: 6);
+            const SizedBox(height: 3),
+            if (isLoading && users.isEmpty)
+            Container(
+              height: 66,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: const Loader(radius: 8)
+                ),
+              ),
+            ),
+      
+            if (users.isNotEmpty)
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 66,
+              // padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: ListView.builder(
+                itemCount: users.length + 2,
+                shrinkWrap: true,
+                physics: const AlwaysScrollableScrollPhysics(),
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.zero,
+                itemBuilder: (context, index) {
+                  if (index == 0 || index == (users.length + 2) - 1) {
+                    return const SizedBox(width: 6);
+                  }
+          
+                  int realIndex = index - 1;
+          
+                  return HorizontalUserTile(
+                    followState: true,
+                    name: users[realIndex].name,
+                    profilePic: users[realIndex].profilePic,
+                    username: users[realIndex].username,
+                    id: users[realIndex].id,
+                    key: Key("mutualUser/from:$id+to:${users[realIndex].id}"),
+                  );
                 }
-    
-                int realIndex = index - 1;
-    
-                return HorizontalUserTile(
-                  followState: true,
-                  name: users[realIndex].name,
-                  profilePic: users[realIndex].profilePic,
-                  username: users[realIndex].username,
-                  id: users[realIndex].id,
-                  key: Key("mutualUser/from:$id+to:${users[realIndex].id}"),
-                );
-              }
-            )
-          ),
-          if (users.isEmpty && !isLoading)
-          Container(
-            height: 66,
-            // color: Colors.red,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                child:
-                RichText(
-                  textAlign: TextAlign.center,
-                  
-                  text: TextSpan(
-                    text: "No mutual friends yet :)",
-                    style: TextStyle(
-                      fontFamily: "Inter",
-                      color: Colors.grey[800],
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    children: const <TextSpan>[
-                      // TextSpan(text: '', style: TextStyle(fontSize: 18)),
-                    ]
+              )
+            ),
+            if (users.isEmpty && !isLoading)
+            Container(
+              height: 66,
+              // color: Colors.red,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child:
+                  RichText(
+                    textAlign: TextAlign.center,
+                    
+                    text: TextSpan(
+                      text: "No mutual friends yet :)",
+                      style: TextStyle(
+                        fontFamily: "Inter",
+                        color: Colors.grey[800],
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      children: const <TextSpan>[
+                        // TextSpan(text: '', style: TextStyle(fontSize: 18)),
+                      ]
+                    )
                   )
-                )
-              ),
+                ),
+              )
             )
-          )
-        ],
+          ],
+        ),
       );
     } else {
       currentUserWidget = Column(
@@ -313,10 +354,10 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
           GestureDetector(
             onTap: () {
               context.push(
-                "/added-me",
-                extra: AddedMeParams(
-                  addedMeUsers: addedMeUsers,
-                  hasMore: addedMeHasMore,
+                "/my-friends",
+                extra: MyFriendsParams(
+                  users: List.from(myFriendsUsers),
+                  hasMore: friendsHasMore,
                   uuid: uuid,
                 )
               );
@@ -423,7 +464,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
               context.push(
                 "/added-me",
                 extra: AddedMeParams(
-                  addedMeUsers: addedMeUsers,
+                  addedMeUsers: List.from(addedMeUsers),
                   hasMore: addedMeHasMore,
                   uuid: uuid,
                 )

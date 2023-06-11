@@ -10,6 +10,8 @@ import 'package:happ_client/src/screens/profile/class/profileParams.dart';
 import 'package:happ_client/src/screens/profile/profile.dart';
 import 'package:happ_client/src/screens/profile/updateUser/updateUser.dart';
 import 'package:happ_client/src/screens/profile/widgets/addedMeScreen.dart';
+import 'package:happ_client/src/screens/profile/widgets/friendsScreen.dart';
+import 'package:happ_client/src/screens/profile/widgets/mutualFriendsScreen.dart';
 import 'package:happ_client/src/screens/search/class/SearchUserInviteResParams.dart';
 import 'package:happ_client/src/screens/events/updateEvent/updateEvent.dart';
 import 'package:happ_client/src/screens/settings/settings.dart';
@@ -236,6 +238,7 @@ class MyApp extends ConsumerWidget {
             addedMeUsers: params.addedMeUsers,
             uuid: params.uuid,
             hasMore: params.hasMore,
+            key: const Key("addedMe")
           );
         }
       ),
@@ -243,14 +246,29 @@ class MyApp extends ConsumerWidget {
         path: '/my-friends',
         builder: (BuildContext context, GoRouterState state) {
 
-          return const Settings();
+          MyFriendsParams params = state.extra as MyFriendsParams;
+
+          return FriendsScreen(
+            users: params.users, 
+            hasMore: params.hasMore, 
+            uuid: params.uuid,
+            key: const Key("friends")
+          );
         }
       ),
       GoRoute(
         path: '/mutual-friends',
         builder: (BuildContext context, GoRouterState state) {
 
-          return const Settings();
+          MutualFriendsParams params = state.extra as MutualFriendsParams;
+
+          return MutualFriendsScreen(
+            userId: params.userId,
+            users: params.users, 
+            hasMore: params.hasMore, 
+            uuid: params.uuid,
+            key: const Key("friends")
+          );
         }
       ),
     ],

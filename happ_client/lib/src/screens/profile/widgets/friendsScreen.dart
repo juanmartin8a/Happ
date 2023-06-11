@@ -3,42 +3,44 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addRemove/addRemoveState.dart';
-import 'package:happ_client/src/riverpod/profile/addedMe/addedMe.dart';
-import 'package:happ_client/src/riverpod/profile/addedMe/addedMeState.dart';
+import 'package:happ_client/src/riverpod/profile/myFriends/myFriends.dart';
+import 'package:happ_client/src/riverpod/profile/myFriends/myFriendsState.dart';
 import 'package:happ_client/src/screens/profile/widgets/userTile.dart';
 import 'package:happ_client/src/screens/search/widgets/saerchUserAddButton.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
 import 'package:happ_client/src/utils/widgets/loader.dart';
 
-class AddedMeScreen extends ConsumerStatefulWidget {
-  final List<AddedMe$Query$PaginatedEventUsersResults$User> addedMeUsers;
+class FriendsScreen extends ConsumerStatefulWidget {
+  final List<MyFriends$Query$PaginatedEventUsersResults$User> users;
   final bool hasMore;
   final String uuid;
-  const AddedMeScreen({
-    required this.addedMeUsers,
+  const FriendsScreen({
+    required this.users,
     required this.hasMore,
     required this.uuid,
     super.key
   });
 
   @override
-  _AddedMeScreenState createState() => _AddedMeScreenState();
+  _FriendsScreenState createState() => _FriendsScreenState();
 }
 
-class _AddedMeScreenState extends ConsumerState<AddedMeScreen> with AutomaticKeepAliveClientMixin {
+class _FriendsScreenState extends ConsumerState<FriendsScreen> with AutomaticKeepAliveClientMixin {
 
   ScrollController controller = ScrollController();
 
-  late List<AddedMe$Query$PaginatedEventUsersResults$User> addedMeUsers;
-  late List<int> addedMeUsersIds;
+  late List<MyFriends$Query$PaginatedEventUsersResults$User> users;
+  late List<int> usersIds;
   late bool hasMore;
+  List<int> userIdsWhereUnfollow = [];
+
   bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    addedMeUsers = widget.addedMeUsers;
-    addedMeUsersIds = addedMeUsers.map((user) => user.id).toList();
+    users = widget.users;
+    usersIds = users.map((user) => user.id).toList();
     hasMore = widget.hasMore;
     controller.addListener(() {
       if (hasMore) {
@@ -51,7 +53,7 @@ class _AddedMeScreenState extends ConsumerState<AddedMeScreen> with AutomaticKee
             setState(() {
               isLoading = true;
             });
-            ref.read(profileAddedMeProvider("PROFILE/addedMe/sess:${widget.uuid}").notifier).addedMe(15, addedMeUsersIds);
+            ref.read(profileMyFriendsProvider("PROFILE/myFriends/sess:${widget.uuid}").notifier).myFriends(20, usersIds);
           }
         }
       }
@@ -62,19 +64,22 @@ class _AddedMeScreenState extends ConsumerState<AddedMeScreen> with AutomaticKee
   Widget build(BuildContext context) {
     super.build(context);
 
-    ref.listen(profileAddedMeProvider("PROFILE/addedMe/sess:${widget.uuid}"), (prev, next) {
-      if (next is AddedMeLoadedState) {
-        if (next.isUpdate == true) {
+    ref.listen(profileMyFriendsProvider("PROFILE/myFriends/sess:${widget.uuid}"), (prev, next) {
+      if (next is MyFriendsLoadedState) {
+        setState(() {
+          users = [...users, ...next.val.users];
+          usersIds = users.map((user) => user.id).toList();
+          hasMore = next.val.hasMore;
+          isLoading = false;
+        });
+      } else if (next is MyFriendsChangeFollowState) {
+        if (next.followState) {
           setState(() {
-            addedMeUsers = next.val.users;
-            addedMeUsersIds = addedMeUsers.map((user) => user.id).toList();
+            userIdsWhereUnfollow.removeWhere((id) => id == next.user.id);
           });
         } else {
           setState(() {
-            addedMeUsers = [...addedMeUsers, ...next.val.users];
-            addedMeUsersIds = addedMeUsers.map((user) => user.id).toList();
-            hasMore = next.val.hasMore;
-            isLoading = false;
+            userIdsWhereUnfollow.add(next.user.id);
           });
         }
       }
@@ -120,7 +125,7 @@ class _AddedMeScreenState extends ConsumerState<AddedMeScreen> with AutomaticKee
                   Center(
                     child: Text(
                       // username,
-                      "Added Me",
+                      "My Friends",
                       style: TextStyle(
                         color: Colors.grey[800]!,
                         fontSize: 19,
@@ -137,7 +142,7 @@ class _AddedMeScreenState extends ConsumerState<AddedMeScreen> with AutomaticKee
                 padding: EdgeInsets.zero,
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
-                  ...addedMeUsers.map((user) {
+                  ...users.map((user) {
                     return GestureDetector(
                       onTap: () {
                         // print("Hello there");
@@ -155,14 +160,14 @@ class _AddedMeScreenState extends ConsumerState<AddedMeScreen> with AutomaticKee
                         extraWidget: SearchUserAddButton(
                           onAddOrRemoveStateChange: onAddOrRemoveStateChange,
                           userId: user.id.toInt(),
-                          isFollow: user.followState,
+                          isFollow: userIdsWhereUnfollow.contains(user.id) ? false : true,
                           key: Key("addRemoveButton_${user.id}")
                         ),
-                        key: Key("userTile_addedMe_${user.id}")
+                        key: Key("userTile_myFriends_${user.id}")
                       )
                     );
                   }).toList(),
-                  if (isLoading && addedMeUsers.isNotEmpty)
+                  if (isLoading && users.isNotEmpty)
                   const SizedBox(
                     height: 45,
                     child: Center(child: Loader(radius: 8))
@@ -178,12 +183,14 @@ class _AddedMeScreenState extends ConsumerState<AddedMeScreen> with AutomaticKee
   }
 
   void onAddOrRemoveStateChange(AddRemoveState next, int userId) {
+    MyFriends$Query$PaginatedEventUsersResults$User user = users.where((user) => user.id == userId).first;
+    // MyFriends$Query$PaginatedEventUsersResults$User user = users[userIndex];
     switch(next.runtimeType) {
       case AddRemoveAddState:
-        ref.read(profileAddedMeProvider("PROFILE/addedMe/sess:${widget.uuid}").notifier).updateAddedMeList(addedMeUsers, hasMore, userId, {"followState": true});
+        ref.read(profileMyFriendsProvider("PROFILE/myFriends/sess:${widget.uuid}").notifier).changeFollowState(user, true);
       break;
       case AddRemoveRemoveState:
-        ref.read(profileAddedMeProvider("PROFILE/addedMe/sess:${widget.uuid}").notifier).updateAddedMeList(addedMeUsers, hasMore, userId, {"followState": false});
+        ref.read(profileMyFriendsProvider("PROFILE/myFriends/sess:${widget.uuid}").notifier).changeFollowState(user, false);
       break;
     }
   }

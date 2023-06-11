@@ -14,13 +14,15 @@ class AddedMeLoadingState extends AddedMeState {}
 
 class AddedMeLoadedState extends AddedMeState {
   final AddedMe$Query$PaginatedEventUsersResults val;
+  final bool isUpdate;
 
   const AddedMeLoadedState({
     required this.val,
+    this.isUpdate = false
   });
 
   @override
-  List<Object?> get props => [val];
+  List<Object?> get props => [val, isUpdate];
 }
 
 class AddedMeErrorState extends AddedMeState {}

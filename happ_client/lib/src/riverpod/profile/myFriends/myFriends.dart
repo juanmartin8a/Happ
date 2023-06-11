@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/repos/userRepo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:happ_client/src/riverpod/myFriends/myFriendsState.dart';
+import 'package:happ_client/src/riverpod/profile/myFriends/myFriendsState.dart';
 
 class MyFriends extends StateNotifier<MyFriendsState> {
 
@@ -20,6 +21,10 @@ class MyFriends extends StateNotifier<MyFriendsState> {
     } catch (e) {
       debugPrint("error in myFriends: $e"); 
     }
+  }
+
+  void changeFollowState(MyFriends$Query$PaginatedEventUsersResults$User user, bool followState) {
+    state = MyFriendsChangeFollowState(user: user, followState: followState);
   }
 }
 

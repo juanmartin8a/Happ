@@ -1203,7 +1203,8 @@ AddedMe$Query$PaginatedEventUsersResults$User
           ..id = json['id'] as int
           ..username = json['username'] as String
           ..name = json['name'] as String
-          ..profilePic = json['profilePic'] as String;
+          ..profilePic = json['profilePic'] as String
+          ..followState = json['followState'] as bool;
 
 Map<String, dynamic> _$AddedMe$Query$PaginatedEventUsersResults$UserToJson(
         AddedMe$Query$PaginatedEventUsersResults$User instance) =>
@@ -1212,6 +1213,7 @@ Map<String, dynamic> _$AddedMe$Query$PaginatedEventUsersResults$UserToJson(
       'username': instance.username,
       'name': instance.name,
       'profilePic': instance.profilePic,
+      'followState': instance.followState,
     };
 
 AddedMe$Query$PaginatedEventUsersResults

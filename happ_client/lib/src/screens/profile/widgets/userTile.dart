@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:happ_client/src/screens/search/widgets/saerchUserAddButton.dart';
 
 class UserTile extends ConsumerWidget {
   final String profilePic;
   final String name;
   final String username;
+  final Widget? extraWidget;
   const UserTile({
     required this.profilePic,
     required this.name,
     required this.username,
+    this.extraWidget,
     super.key
   });
 
@@ -69,6 +70,8 @@ class UserTile extends ConsumerWidget {
           //   isFollow: user.followState,
           //   key: Key("addRemoveButton_${user.id}")
           // )
+          if (extraWidget != null)
+          extraWidget!
         ],
       ),
     );

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addRemove/addRemove.dart';
 import 'package:happ_client/src/riverpod/addRemove/addRemoveState.dart';
-import 'package:happ_client/src/screens/search/searchBar.dart';
 
 class SearchUserAddButton extends ConsumerWidget {
-  final List<SearchUsers$Query$User> users;
+  // final List<SearchUsers$Query$User> users;
+  final Function onAddOrRemoveStateChange;
   final bool isFollow;
   final int userId;
   const SearchUserAddButton({
-    required this.users,
+    required this.onAddOrRemoveStateChange,
     required this.isFollow,
     required this.userId,
     required Key key
@@ -20,16 +19,17 @@ class SearchUserAddButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
 
     ref.listen<AddRemoveState>(addOrRemoveUserProvider("userId:$userId"), (prev, next) {
-      switch(next.runtimeType) {
-        case AddRemoveAddState:
-          ref.read(searchProvider.notifier).updateUserSearchTileState(users, userId, {"followState": true});
-        break;
-        case AddRemoveRemoveState:
-          ref.read(searchProvider.notifier).updateUserSearchTileState(users, userId, {"followState": false});
-        break;
-        default: {}
-        break;
-      }
+      onAddOrRemoveStateChange(next, userId);
+      // switch(next.runtimeType) {
+      //   case AddRemoveAddState:
+      //     ref.read(searchProvider.notifier).updateUserSearchTileState(users, userId, {"followState": true});
+      //   break;
+      //   case AddRemoveRemoveState:
+      //     ref.read(searchProvider.notifier).updateUserSearchTileState(users, userId, {"followState": false});
+      //   break;
+      //   default: {}
+      //   break;
+      // }
     });
 
     return GestureDetector(

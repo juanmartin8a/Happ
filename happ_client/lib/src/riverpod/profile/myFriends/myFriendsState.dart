@@ -23,4 +23,17 @@ class MyFriendsLoadedState extends MyFriendsState {
   List<Object?> get props => [val];
 }
 
+class MyFriendsChangeFollowState extends MyFriendsState {
+  final MyFriends$Query$PaginatedEventUsersResults$User user;
+  final bool followState;
+
+  const MyFriendsChangeFollowState({
+    required this.user,
+    required this.followState
+  });
+
+  @override
+  List<Object?> get props => [user, followState];
+}
+
 class MyFriendsErrorState extends MyFriendsState {}
