@@ -2065,7 +2065,6 @@ func (r *mutationResolver) SaveDevice(ctx context.Context, token string) (*bool,
 
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.UpdateUserResponse, error) {
-	fmt.Println("Called UpdateUser SIIIUUUUU")
 	userIdAndFUID, authErr := utils.IsAuthWithFUID(ctx)
 	if authErr != nil {
 		return nil, authErr
@@ -3396,7 +3395,7 @@ func (r *queryResolver) MutualFriends(ctx context.Context, id int, limit int, id
 		return nil, authErr
 	}
 
-	realLimit := 15
+	realLimit := 20
 
 	realLimitPlusOne := realLimit + 1
 
@@ -3410,9 +3409,8 @@ func (r *queryResolver) MutualFriends(ctx context.Context, id int, limit int, id
 
 	var args []interface{}
 	args = append(args, *userId)
-
-	args = append(args, *userId)
 	args = append(args, id)
+	args = append(args, *userId)
 
 	args = append(args, *userId)
 	args = append(args, id)
@@ -3434,25 +3432,24 @@ func (r *queryResolver) MutualFriends(ctx context.Context, id int, limit int, id
 	args = append(args, realLimitPlusOne)
 
 	query := `
-	SELECT u.*, IF(f3.follower_id IS NOT NULL, 1, 0) follows_current_user FROM users u
+	SELECT u.*, IF(f3.follower_id IS NOT NULL, 1, 0) follows_current_user, f1.created_at follow_created_at FROM users u
+
+	INNER JOIN follows f1
+	ON f1.user_id = u.id
+	AND f1.follower_id = ? 
+	AND f1.valid = true
+
+	INNER JOIN follows f2
+	ON f2.user_id = u.id
+	AND f2.follower_id = ? 
+	AND f2.valid = true
 
 	LEFT JOIN follows f3
 	ON f3.user_id = ?
 	AND f3.follower_id = u.id
 	AND f3.valid = true
 
-	WHERE EXISTS (
-		SELECT 1 
-			FROM follows f1
-			JOIN follows f2
-				ON f1.user_id = f2.user_id
-			WHERE f1.user_id = u.id
-				AND f1.follower_id = ?
-				AND f2.follower_id = ?
-				AND f1.valid = true
-        AND f2.valid = true
-	)
-	AND u.id NOT IN (?,?)
+	WHERE u.id NOT IN (?,?) 
 	`
 
 	if len(placeholders) > 0 {
@@ -3460,7 +3457,7 @@ func (r *queryResolver) MutualFriends(ctx context.Context, id int, limit int, id
 	}
 
 	query += `
-		ORDER BY follows_current_user DESC
+		ORDER BY follows_current_user DESC, follow_created_at DESC
 		LIMIT ?
 	`
 
@@ -3480,6 +3477,7 @@ func (r *queryResolver) MutualFriends(ctx context.Context, id int, limit int, id
 		var updated_at time.Time
 		var profile_pic string
 		var follows_current_user bool
+		var follow_created_at time.Time
 
 		if err := res.Scan(
 			&id,
@@ -3491,6 +3489,7 @@ func (r *queryResolver) MutualFriends(ctx context.Context, id int, limit int, id
 			&profile_pic,
 			&fuid,
 			&follows_current_user,
+			&follow_created_at,
 		); err != nil {
 			log.Println(err)
 			return nil, err
@@ -3552,7 +3551,7 @@ func (r *queryResolver) MyFriends(ctx context.Context, limit int, idsList []int)
 		return nil, authErr
 	}
 
-	realLimit := 15
+	realLimit := 20
 
 	realLimitPlusOne := realLimit + 1
 
@@ -3590,15 +3589,15 @@ func (r *queryResolver) MyFriends(ctx context.Context, limit int, idsList []int)
 	query := `
 	SELECT u.*, IF(f3.follower_id IS NOT NULL, 1, 0) follows_current_user, f2.created_at follow_created_at FROM users u
 
-	LEFT JOIN follows f3
-	ON f3.user_id = ?
-	AND f3.follower_id = u.id
-	AND f3.valid = true
-
 	INNER JOIN follows f2
 	ON f2.user_id = u.id
 	AND f2.follower_id = ?
 	AND f2.valid = true
+
+	LEFT JOIN follows f3
+	ON f3.user_id = ?
+	AND f3.follower_id = u.id
+	AND f3.valid = true
 
 	AND u.id != ?
 	`
@@ -3679,7 +3678,7 @@ func (r *queryResolver) AddedMe(ctx context.Context, limit int, idsList []int) (
 		return nil, authErr
 	}
 
-	realLimit := 15
+	realLimit := 20
 
 	realLimitPlusOne := realLimit + 1
 

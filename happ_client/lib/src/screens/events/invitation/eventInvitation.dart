@@ -1,8 +1,10 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
+import 'package:happ_client/src/utils/widgets/loader.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../../utils/widgets/floatingActions.dart';
@@ -27,14 +29,25 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
   Color widgetColor = Colors.black;
   bool isDefault = true;
   String? cypherText;
+  // bool? isLoading;
 
   @override
   void initState() {
     super.initState();
     if (widget.cypherText != null) {
+      // isLoading = true;
       final html = dynamicHTML();
       controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        // ..setNavigationDelegate(
+        //   NavigationDelegate(
+        //     onPageFinished: (String url) {
+        //       setState(() {
+        //         isLoading = false;
+        //       });
+        //     },
+        //   ),
+        // )
         ..loadHtmlString(html);
     }
   }
@@ -188,8 +201,17 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(50),
                     ),
-                    child: WebViewWidget(
-                      controller: controller,
+                    child: GestureDetector(
+                      child: Stack(
+                        children: [
+                          WebViewWidget(
+                            controller: controller,
+                          ),
+                          Container(
+                            color: Colors.transparent,
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -247,14 +269,15 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
       <style>
         #canvas  {
           background-color: white;
-          height: 100vh;
-          width: 100vw;
+          height: 100%;
+          width: 100%;
         }
-        body {
+        html, body {
+          overflow: 'hidden';
           margin: 0;
           padding: 0;
-          height: 100vh;
-          width: 100vw;
+          height: 100%;
+          width: 100%;
           display: flex;
           justify-content: center;
           align-items: center;
@@ -283,7 +306,6 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
           });
 
           qrCode.append(document.getElementById("canvas"));
-          /* qrCode.download({ name: "qr", extension: "svg" }); */
       </script>
       </body>
       </html>''';

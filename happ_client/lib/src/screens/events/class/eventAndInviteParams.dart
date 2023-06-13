@@ -1,4 +1,5 @@
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class EventParams {
   final GetUserEventsFromFriends$Query$PaginatedEventResults$EventInviteRes inviteRes;

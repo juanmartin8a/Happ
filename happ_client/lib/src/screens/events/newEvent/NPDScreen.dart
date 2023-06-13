@@ -15,10 +15,16 @@ class NPDScreen extends ConsumerStatefulWidget {
   _NPDScreenState createState() => _NPDScreenState();
 }
 
-class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveClientMixin {
+class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
 
   TextEditingController nameController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
+
+  AnimationController? nameAnimController;
+  // Animation<double>? nameOpacityAnimation;
+
+  AnimationController? descriptionAnimController;
+  // Animation<double>? descriptionOpacityAnimation;
 
   final nameFocusNode = FocusNode();
   final descriptionFocusNode = FocusNode();
@@ -39,6 +45,27 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
   @override
   void initState() {
     super.initState();
+    
+    nameAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+
+    // nameOpacityAnimation = CurvedAnimation(
+    //   parent: nameAnimController!,
+    //   curve: Curves.easeInOut,
+    // );
+
+    descriptionAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+
+    // descriptionOpacityAnimation = CurvedAnimation(
+    //   parent: descriptionAnimController!,
+    //   curve: Curves.easeInOut,
+    // );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final nameRes = getDYPos(nameGlobalKey);
       nameDYPos = nameRes[0];
@@ -50,10 +77,33 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
       initDescriptionHeight = descriptionRes[1];
       descriptionHeight = initDescriptionHeight;
     });
+
+    nameFocusNode.addListener(() {
+      if (nameFocusNode.hasFocus) {
+        nameAnimController!.reset();
+      } else if (!nameFocusNode.hasFocus && nameController.text.isEmpty) {
+        nameAnimController!.repeat(reverse: true);
+      }
+    });
+
+    descriptionFocusNode.addListener(() {
+      if (descriptionFocusNode.hasFocus) {
+        descriptionAnimController!.reset();
+      } else if (!descriptionFocusNode.hasFocus && descriptionController.text.isEmpty) {
+        descriptionAnimController!.repeat(reverse: true);
+      }
+    });
+
   }
 
   @override
   void dispose() {
+    if (nameAnimController != null) {
+      nameAnimController!.dispose();
+    }
+    if (descriptionAnimController != null) {
+      descriptionAnimController!.dispose();
+    }
     nameController.dispose();
     descriptionController.dispose();
     nameFocusNode.dispose();
@@ -92,42 +142,45 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
                           ),
                           key: nameGlobalKey,
                           width: MediaQuery.of(context).size.width,
-                          child: TextFormField(
-                            controller: nameController,
-                            textInputAction: TextInputAction.done,
-                            focusNode: nameFocusNode,
-                            textAlignVertical: TextAlignVertical.center,
-                            keyboardAppearance: Brightness.dark,
-                            autofocus: false,
-                            maxLength: 40,
-                            style: TextStyle(
-                              color: Colors.grey[800]!,
-                              fontSize: 19,
-                              fontWeight: FontWeight.w700,
-                              height: 1.25
-                            ),
-                            decoration: InputDecoration(
-                              isCollapsed: true,
-                              alignLabelWithHint: true,
-                              counterText: "",
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                              hintText: 'Event Name',
-                              hintStyle: TextStyle(
-                                color: Colors.grey[600]!,
+                          child: FadeTransition(
+                            opacity: nameAnimController!.drive(Tween(begin: 1.0, end: 0.5)),
+                            child: TextFormField(
+                              controller: nameController,
+                              textInputAction: TextInputAction.done,
+                              focusNode: nameFocusNode,
+                              textAlignVertical: TextAlignVertical.center,
+                              keyboardAppearance: Brightness.dark,
+                              autofocus: false,
+                              maxLength: 40,
+                              style: TextStyle(
+                                color: Colors.grey[800]!,
                                 fontSize: 19,
                                 fontWeight: FontWeight.w700,
                                 height: 1.25
                               ),
+                              decoration: InputDecoration(
+                                isCollapsed: true,
+                                alignLabelWithHint: true,
+                                counterText: "",
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                                hintText: 'Event Name',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[600]!,
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.25
+                                ),
+                              ),
+                              onChanged: (text) {
+                                ref.read(newEventCompleteProvider.notifier).fieldChange(
+                                  name: text
+                                );
+                                setState(() {
+                                  nameHeight = getWidgetHeight(descriptionGlobalKey, null);
+                                });
+                              },
                             ),
-                            onChanged: (text) {
-                              ref.read(newEventCompleteProvider.notifier).fieldChange(
-                                name: text
-                              );
-                              setState(() {
-                                nameHeight = getWidgetHeight(descriptionGlobalKey, null);
-                              });
-                            },
                           ),
                         ),
                       ),
@@ -141,43 +194,46 @@ class _NPDScreenState extends ConsumerState<NPDScreen> with AutomaticKeepAliveCl
                             left: 8,
                           ),
                           key: descriptionGlobalKey,
-                          child: TextFormField(
-                            maxLines: null,
-                            controller: descriptionController,
-                            textInputAction: TextInputAction.done,
-                            focusNode: descriptionFocusNode,
-                            textAlignVertical: TextAlignVertical.center,
-                            keyboardAppearance: Brightness.dark,
-                            autofocus: false,
-                            maxLength: 200,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[800],
-                              height: 1.25
-                            ),
-                            decoration: InputDecoration(
-                              isCollapsed: true,
-                              alignLabelWithHint: true,
-                              counterText: "",
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                              hintText: 'Description',
-                              hintStyle: TextStyle(
-                                color: Colors.grey[600],
+                          child: FadeTransition(
+                            opacity: descriptionAnimController!.drive(Tween(begin: 1.0, end: 0.5)),
+                            child: TextFormField(
+                              maxLines: null,
+                              controller: descriptionController,
+                              textInputAction: TextInputAction.done,
+                              focusNode: descriptionFocusNode,
+                              textAlignVertical: TextAlignVertical.center,
+                              keyboardAppearance: Brightness.dark,
+                              autofocus: false,
+                              maxLength: 200,
+                              style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
+                                color: Colors.grey[800],
                                 height: 1.25
                               ),
+                              decoration: InputDecoration(
+                                isCollapsed: true,
+                                alignLabelWithHint: true,
+                                counterText: "",
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                                hintText: 'Description',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  height: 1.25
+                                ),
+                              ),
+                              onChanged: (text) {
+                                ref.read(newEventCompleteProvider.notifier).fieldChange(
+                                  description: text
+                                );
+                                setState(() {
+                                  descriptionHeight = getWidgetHeight(descriptionGlobalKey, null);
+                                });
+                              },
                             ),
-                            onChanged: (text) {
-                              ref.read(newEventCompleteProvider.notifier).fieldChange(
-                                description: text
-                              );
-                              setState(() {
-                                descriptionHeight = getWidgetHeight(descriptionGlobalKey, null);
-                              });
-                            },
                           ),
                         ),
                       ),

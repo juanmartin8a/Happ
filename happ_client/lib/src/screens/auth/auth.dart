@@ -11,7 +11,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/authFlowNotifier/authFlowNotifier.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
-import 'dart:developer' as logDev;
 
 import 'package:happ_client/src/riverpod/signIn/signIn.dart';
 import 'package:happ_client/src/riverpod/signIn/signInState.dart';
@@ -26,15 +25,36 @@ class Auth extends ConsumerStatefulWidget {
   _AuthState createState() => _AuthState();
 }
 
-class _AuthState extends ConsumerState<Auth> {
+class _AuthState extends ConsumerState<Auth> with SingleTickerProviderStateMixin {
 
   bool isGoogleLoading = false;
   bool isAppleLoading = false;
 
   bool isTermsConfirmed = false;
 
+  AnimationController? animController;
+  // Animation<double>? scaleController;
+
+  @override
+  void initState() {
+    super.initState();
+    animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    animController!.addListener(() {
+      if (animController!.isCompleted) {
+        animController!.reverse();
+      }
+    });
+  }
+
   @override
   void dispose() {
+    if (animController != null) {
+      animController!.dispose();
+    }
     // dispose providers used (signInProvider and authFlowNotifierProvider)
     ref.invalidate(signInProvider);
     ref.invalidate(authFlowNotifierProvider);
@@ -94,6 +114,11 @@ class _AuthState extends ConsumerState<Auth> {
             onTap: () {
               if (isTermsConfirmed) {
                 signInWithApple();
+              } else {
+                // animController!.forward();
+                if (!animController!.isAnimating) {
+                  animController!.forward();
+                }
               }
             },
             child: Container(
@@ -141,6 +166,10 @@ class _AuthState extends ConsumerState<Auth> {
             onTap: () {
               if (isTermsConfirmed) {
                 signInWithGoogle();
+              } else {
+                if (!animController!.isAnimating) {
+                  animController!.forward();
+                }
               }
             },
             child: Container(
@@ -183,88 +212,91 @@ class _AuthState extends ConsumerState<Auth> {
           const SizedBox(
             height: 24
           ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8,
-            // height: 50,
-            child: Row(
-              // mainAxisAlignment: MainAxisAlignment.start,
-              // crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isTermsConfirmed = !isTermsConfirmed;
-                    });
-                  },
-                  child: SizedBox(
-                    height: 18,
-                    width: 18,
-                    child: Container(
-                      // color: Colors.red,
-                      decoration: BoxDecoration(
-                        color: isTermsConfirmed ? Colors.greenAccent[700]! : null,
-                        borderRadius: BorderRadius.circular(6),
-                        border: !isTermsConfirmed ? Border.all(width: 1.5, color: Colors.grey[500]!) : null
-                      ),
-                      child: isTermsConfirmed 
-                      ? const Center(
-                        child: Icon(
-                          FluentIcons.checkmark_12_regular,
-                          color: Colors.white,
-                          size: 18
-                        )
-                      ) : null,
-                    )
-                  )
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: RichText(
-                    // textAlign: TextAlign.center,
-                    text: TextSpan(
-                      text: "I have read and agree to the ",
-                      style: TextStyle(
-                        fontFamily: "Inter",
-                        color: Colors.grey[800],
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: "Terms of Use ",
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              launchUrl(
-                                Uri.parse('https://www.happ.rsvp/legal/terms-of-use')
-                              );
-                            },
+          ScaleTransition(
+            scale: animController!.drive(Tween(begin: 1.0, end: 1.06)),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              // height: 50,
+              child: Row(
+                // mainAxisAlignment: MainAxisAlignment.start,
+                // crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isTermsConfirmed = !isTermsConfirmed;
+                      });
+                    },
+                    child: SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: Container(
+                        // color: Colors.red,
+                        decoration: BoxDecoration(
+                          color: isTermsConfirmed ? Colors.greenAccent[700]! : null,
+                          borderRadius: BorderRadius.circular(6),
+                          border: !isTermsConfirmed ? Border.all(width: 1.5, color: Colors.grey[500]!) : null
                         ),
-                        const TextSpan(text: "and "),
-                        TextSpan(
-                          text: "Privacy Policy", 
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              launchUrl(
-                                Uri.parse('https://www.happ.rsvp/legal/privacy-policy')
-                              );
-                            },
-                        ),
-                        const TextSpan(text: "."),
-                      ]
+                        child: isTermsConfirmed 
+                        ? const Center(
+                          child: Icon(
+                            FluentIcons.checkmark_12_regular,
+                            color: Colors.white,
+                            size: 18
+                          )
+                        ) : null,
+                      )
                     )
                   ),
-                ),
-              ],
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: RichText(
+                      // textAlign: TextAlign.center,
+                      text: TextSpan(
+                        text: "I have read and agree to the ",
+                        style: TextStyle(
+                          fontFamily: "Inter",
+                          color: Colors.grey[800],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: "Terms of Use ",
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                launchUrl(
+                                  Uri.parse('https://www.happ.rsvp/legal/terms-of-use')
+                                );
+                              },
+                          ),
+                          const TextSpan(text: "and "),
+                          TextSpan(
+                            text: "Privacy Policy", 
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                launchUrl(
+                                  Uri.parse('https://www.happ.rsvp/legal/privacy-policy')
+                                );
+                              },
+                          ),
+                          const TextSpan(text: "."),
+                        ]
+                      )
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const Spacer(),

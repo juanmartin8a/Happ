@@ -56,6 +56,7 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
         });
 
         if (!next.acceptInviteRes.isHost) {
+
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
             context.push(
               '/event-invitation',
@@ -99,6 +100,16 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
             )
           );
         });
+
+        // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        //   context.push(
+        //     '/event-invitation',
+        //     extra: InviteParams(
+        //       event: event,
+        //       cypherText: next.cypherText,
+        //     )
+        //   );
+        // });
         
       } else if (next is SeePassLoadingState) {
         setState(() {

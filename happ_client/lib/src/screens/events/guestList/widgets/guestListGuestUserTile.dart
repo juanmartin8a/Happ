@@ -1,10 +1,13 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/guestListAction/guestListAction.dart';
 import 'package:happ_client/src/riverpod/guestListAction/guestListActionState.dart';
 import 'package:happ_client/src/riverpod/removeGuestSelect/removeGuestSelect.dart';
+import 'package:happ_client/src/screens/profile/class/profileParams.dart';
+import 'package:happ_client/src/screens/profile/profile.dart';
 
 class GuestListGuestUserTile extends ConsumerStatefulWidget {
   final GetEventGuests$Query$PaginatedEventUsersResults$User guest;
@@ -22,35 +25,10 @@ class GuestListGuestUserTile extends ConsumerStatefulWidget {
 class _GuestListGuestUserTileState extends ConsumerState<GuestListGuestUserTile> with AutomaticKeepAliveClientMixin {
 
   bool isSelected = false;
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   // isSelected = widget.isSelected;
-  // }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    // ref.listen(removeGuestSelectProvider, (prev, next) {
-    //   if (next is RemoveGuestRemoveState) {
-    //     if (next.userId == widget.guest.id) {
-    //       if (isSelected) {
-    //         setState(() {
-    //           isSelected = false;
-    //         });
-    //       }
-    //     }
-    //   } else if (next is RemoveGuestSelectedState) {
-    //     if (next.userId == widget.guest.id) {
-    //       if (!selected) {
-    //         setState(() {
-    //           isSelected = true;
-    //         });
-    //       }
-    //     }
-    //   }
-    // });
+
     ref.listen(guestListActionProvider, (prev, next) {
       if (next is !GuestListActionRemoveState) {
         if (isSelected != false) {
@@ -60,6 +38,7 @@ class _GuestListGuestUserTileState extends ConsumerState<GuestListGuestUserTile>
         }
       }
     });
+
     return GestureDetector(
       onTap: () {
         if (widget.selectMode) {
@@ -76,6 +55,12 @@ class _GuestListGuestUserTileState extends ConsumerState<GuestListGuestUserTile>
           setState(() {
             isSelected = !isSelected;
           });
+        } else {
+          final user = ProfileUserData.fromUserData(widget.guest);
+          context.push('/profile', extra: ProfileParams(
+              user: user,
+            )
+          );
         }
       },
       child: Container(
@@ -88,7 +73,10 @@ class _GuestListGuestUserTileState extends ConsumerState<GuestListGuestUserTile>
               child: SizedBox(
                 height: 45,
                 width: 45,
-                child: Image.network(widget.guest.profilePic),
+                child: Image.network(
+                  widget.guest.profilePic,
+                  fit: BoxFit.cover
+                ),
               ),
             ),
             const SizedBox(width: 8),

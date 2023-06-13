@@ -393,7 +393,10 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
                                     borderRadius: BorderRadius.circular(35),
                                     child: Container(
                                       color: Colors.grey[200],
-                                      child: Image.network(invite.friends[0].profilePic)
+                                      child: Image.network(
+                                        invite.friends[0].profilePic,
+                                        fit: BoxFit.cover
+                                      )
                                     )
                                   )
                                 ),
@@ -412,7 +415,10 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
                                       borderRadius: BorderRadius.circular(35),
                                       child: Container(
                                         color: Colors.grey[200],
-                                        child: Image.network(invite.friends[1].profilePic)
+                                        child: Image.network(
+                                          invite.friends[1].profilePic,
+                                          fit: BoxFit.cover
+                                        )
                                       )
                                     )
                                   ),
@@ -432,7 +438,10 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
                                       borderRadius: BorderRadius.circular(35),
                                       child: Container(
                                         color: Colors.grey[200],
-                                        child: Image.network(invite.friends[2].profilePic)
+                                        child: Image.network(
+                                          invite.friends[2].profilePic,
+                                          fit: BoxFit.cover
+                                        )
                                       )
                                     )
                                   ),

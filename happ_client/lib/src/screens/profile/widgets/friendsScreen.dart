@@ -154,9 +154,11 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with AutomaticKee
                         // );
                       },
                       child: UserTile(
+                        id: user.id,
                         profilePic: user.profilePic, 
                         name: user.name,
                         username: user.username,
+                        followState: userIdsWhereUnfollow.contains(user.id) ? false : true,
                         extraWidget: SearchUserAddButton(
                           onAddOrRemoveStateChange: onAddOrRemoveStateChange,
                           userId: user.id.toInt(),

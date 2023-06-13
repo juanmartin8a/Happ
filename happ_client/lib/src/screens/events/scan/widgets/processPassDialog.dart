@@ -19,7 +19,7 @@ class ProcessPass extends ConsumerWidget {
     ScanPassState state = ref.watch(scanPassProvider);
     if (state is ScanPassDoneState) {
       isDefault = false;
-      widgetColor = const Color.fromARGB(255, 1, 228, 96);
+      widgetColor = const Color.fromARGB(255, 1, 214, 90);
     } else if (state is ScanPassErrorState) {
       isDefault = false;
       widgetColor = Colors.red;

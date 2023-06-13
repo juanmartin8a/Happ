@@ -149,9 +149,11 @@ class _AddedMeScreenState extends ConsumerState<AddedMeScreen> with AutomaticKee
                         // );
                       },
                       child: UserTile(
+                        id: user.id,
                         profilePic: user.profilePic, 
                         name: user.name,
                         username: user.username,
+                        followState: user.followState,
                         extraWidget: SearchUserAddButton(
                           onAddOrRemoveStateChange: onAddOrRemoveStateChange,
                           userId: user.id.toInt(),

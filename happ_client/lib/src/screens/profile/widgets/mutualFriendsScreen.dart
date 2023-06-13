@@ -156,9 +156,11 @@ class _MutualFriendsScreenState extends ConsumerState<MutualFriendsScreen> with 
                         // );
                       },
                       child: UserTile(
+                        id: user.id,
                         profilePic: user.profilePic, 
                         name: user.name,
                         username: user.username,
+                        followState: userIdsWhereUnfollow.contains(user.id) ? false : true,
                         extraWidget: SearchUserAddButton(
                           onAddOrRemoveStateChange: onAddOrRemoveStateChange,
                           userId: user.id.toInt(),

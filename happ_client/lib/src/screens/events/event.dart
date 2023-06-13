@@ -20,6 +20,8 @@ import 'package:happ_client/src/riverpod/updateEvent/updateEventState.dart';
 import 'package:happ_client/src/screens/events/widgets/acceptButton.dart';
 import 'package:happ_client/src/screens/events/widgets/eventMap.dart';
 import 'package:happ_client/src/screens/events/widgets/updateOrDeleteEventDialog.dart';
+import 'package:happ_client/src/screens/profile/class/profileParams.dart';
+import 'package:happ_client/src/screens/profile/profile.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
 import 'package:happ_client/src/utils/widgets/loader.dart';
 import 'package:intl/intl.dart';
@@ -386,30 +388,43 @@ class _EventState extends ConsumerState<Event> {
     
                         if (!isHostsLoading)
                         ...hosts.map((host) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            child: Row(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: SizedBox(
-                                    height: 40,
-                                    width: 40,
-                                    child: Image.network(host.profilePic),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  host.name,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey[850],
-                                    height: 1
-                                  )
+                          return GestureDetector(
+                            onTap: () {
+                              final user = ProfileUserData.fromUserData(host);
+                              context.push('/profile', extra: ProfileParams(
+                                  user: user,
                                 )
-                              ],
-                            )
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              color: Colors.transparent,
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: SizedBox(
+                                      height: 40,
+                                      width: 40,
+                                      child: Image.network(
+                                        host.profilePic,
+                                        fit: BoxFit.cover
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    host.name,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[850],
+                                      height: 1
+                                    )
+                                  )
+                                ],
+                              )
+                            ),
                           );
                         }).toList(),
     
@@ -436,30 +451,43 @@ class _EventState extends ConsumerState<Event> {
     
                         if (!isGuestsLoading && guests.isNotEmpty)
                         ...guests.map((guest) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            child: Row(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: SizedBox(
-                                    height: 40,
-                                    width: 40,
-                                    child: Image.network(guest.profilePic),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  guest.name,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey[800],
-                                    height: 1
-                                  )
+                          return GestureDetector(
+                            onTap: () {
+                              final user = ProfileUserData.fromUserData(guest);
+                              context.push('/profile', extra: ProfileParams(
+                                  user: user,
                                 )
-                              ],
-                            )
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              color: Colors.transparent,
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: SizedBox(
+                                      height: 40,
+                                      width: 40,
+                                      child: Image.network(
+                                        guest.profilePic,
+                                        fit: BoxFit.cover
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    guest.name,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[800],
+                                      height: 1
+                                    )
+                                  )
+                                ],
+                              )
+                            ),
                           );
                         }).toList(),
     

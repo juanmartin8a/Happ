@@ -41,7 +41,13 @@ class ProfileUserData {
 
   ProfileUserData.fromUserData(dynamic user) {
 
-    final userJSON = user.toJson();
+    late Map<String, dynamic> userJSON;
+
+    if (user is Map<String, dynamic>) {
+      userJSON = user;
+    } else {
+      userJSON = user.toJson();
+    }
 
     id = userJSON["id"];
     username = userJSON["username"];
@@ -522,7 +528,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                       int realIndex = index - 1;
           
                       return HorizontalUserTile(
-                        followState: true,
+                        followState: addedMeUsers[realIndex].followState,
                         name: addedMeUsers[realIndex].name,
                         profilePic: addedMeUsers[realIndex].profilePic,
                         username: addedMeUsers[realIndex].username,
@@ -655,13 +661,19 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                             isLoading = false;
                           }
                         } else {
-                          // final user = ProfileUserData.fromSearchUsersQueryUser(searchUsersRes[searchUserResIndex]);
+                          Map<String, dynamic> userJson = {
+                            "id": id,
+                            "username": username,
+                            "name": name,
+                            "profilePic": profilePic,
+                          };
+                          final user = ProfileUserData.fromUserData(userJson);
                           // context.push('/profile', extra: ProfileParams(
                           //     user: user,
                           //   )
                           // );
                           context.push('/update-user', extra: ProfileParams(
-                            user: widget.user,
+                            user: user,
                           ));                        
                         }
                       },
@@ -669,7 +681,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                         height: 36,
                         width: 150,
                         decoration: BoxDecoration(
-                          color: isInitLoading ? Colors.transparent : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
+                          color: isInitLoading ? Colors.grey[200]! : followState! ? Colors.grey[200]!.withOpacity(1): Colors.black,
                           // border: Border.all(color: Colors.grey[800]!, width: 2),
                           borderRadius: BorderRadius.circular(20)
                           // shape: BoxShape.circle
@@ -677,10 +689,12 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                         child: Center(
                           child: Text(
                             id != ref.read(currentUserProvider)!.id
-                            ? isInitLoading ? "" : followState! ? "Added" : "Add"
+                            ? isInitLoading ? "Loading..." : followState! ? "Added" : "Add"
                             : "Edit",
                             style: TextStyle(
-                              color: followState! ? Colors.grey[800] : Colors.white,
+                              color: isInitLoading
+                              ?Colors.grey[800]
+                              : followState! ? Colors.grey[800] : Colors.white,
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                             ),

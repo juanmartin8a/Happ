@@ -2,10 +2,16 @@ package background
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"happ/config"
+	"happ/ent/schema/schematype"
 	"happ/utils"
+	"happ/utils/aws/awsS3"
 	"happ/utils/notifications"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"golang.org/x/sync/semaphore"
@@ -120,14 +126,129 @@ func DeleteEventsAfterEventDate() {
 		hasOrphans := true
 		for hasOrphans {
 			batchesProcessed++
-			res, err := utils.Client.DB().ExecContext(ctx, `
-				DELETE FROM events
+
+			tx, err := utils.Client.Tx(ctx)
+			if err != nil {
+				log.Printf("Error starting transaction on DeleteEventsAfterEventDate(): %v", err)
+				continue
+			}
+
+			res0, err := tx.QueryContext(ctx, `
+				SELECT * FROM events
 				WHERE DATE_ADD(event_date, INTERVAL 7 DAY) < NOW()
 				LIMIT ?
 			`, batchSize)
+			if err != nil {
+				log.Printf("Error selecting events after event date: %v", err)
+				if rerr := tx.Rollback(); rerr != nil {
+					err = fmt.Errorf("%w: %v", err, rerr)
+					log.Printf("Error rolling back on DeleteEventsAfterEventDate(): %v", err)
+				}
+				time.Sleep(pauseDuration)
+				continue
+			}
 
+			var picturesToDelete []string
+
+			var ids []interface{}
+			var params []string
+
+			for res0.Next() {
+				var id int
+				var name string
+				var description string
+				var confirmed_count int
+				var event_pics string
+				var light_event_pics string
+				var event_date time.Time
+				var created_at time.Time
+				var updated_at time.Time
+				var coords schematype.Point
+				var event_key string
+				var event_nonce string
+				var confirmed_hosts int
+				var event_place string
+
+				if err := res0.Scan(
+					&id,
+					&name,
+					&description,
+					&confirmed_count,
+					&event_pics,
+					&event_date,
+					&coords,
+					&created_at,
+					&updated_at,
+					&light_event_pics,
+					&event_key,
+					&event_nonce,
+					&confirmed_hosts,
+					&event_place,
+				); err != nil {
+					// Check for a scan error.
+					// Query rows will be closed with defer.
+					log.Printf("Error scanning select events on DeleteEventsAfterEventDate(): %v", err)
+					time.Sleep(pauseDuration)
+					continue
+				}
+
+				var eventPics []string
+				json.Unmarshal([]byte(event_pics), &eventPics)
+
+				var lightEventPics []string
+				json.Unmarshal([]byte(light_event_pics), &lightEventPics)
+
+				allEventPics := append(eventPics, lightEventPics...)
+
+				for _, pic := range allEventPics {
+					objectToDeleteFullString := pic
+
+					var cloudfrontDistribution string
+					if config.C.AppEnv == "prod" {
+						cloudfrontDistribution = "https://di7aab2ls1mmt.cloudfront.net/"
+					} else if config.C.AppEnv == "dev" {
+						cloudfrontDistribution = "https://d3pvchlba3rmqp.cloudfront.net/"
+					}
+
+					picturesToDelete = append(picturesToDelete, strings.ReplaceAll(objectToDeleteFullString, cloudfrontDistribution, ""))
+				}
+
+				ids = append(ids, id)
+				params = append(params, "?")
+			}
+			res0.Close()
+
+			if len(ids) <= 0 {
+				log.Println("No results from select query on DeleteEventsAfterEventDate()")
+				if rerr := tx.Rollback(); rerr != nil {
+					err = fmt.Errorf("%w: %v", err, rerr)
+					log.Printf("Error rolling back on DeleteEventsAfterEventDate(): %v", err)
+				}
+				hasOrphans = false
+				break
+			}
+
+			placeholders := strings.Join(params, ",")
+
+			query := `
+			DELETE FROM events
+			`
+
+			query += fmt.Sprintf("WHERE id IN (%s)", placeholders)
+
+			res, err := tx.ExecContext(ctx, query, ids...)
 			if err != nil {
 				log.Printf("Error deleting event after event date: %v", err)
+				if rerr := tx.Rollback(); rerr != nil {
+					err = fmt.Errorf("%w: %v", err, rerr)
+					log.Printf("Error rolling back on DeleteEventsAfterEventDate(): %v", err)
+				}
+				time.Sleep(pauseDuration)
+				continue
+			}
+
+			if err := tx.Commit(); err != nil {
+				log.Printf("Error on commit DeleteEventsAfterEventDate(): %v", err)
 				time.Sleep(pauseDuration)
 				continue
 			}
@@ -137,6 +258,13 @@ func DeleteEventsAfterEventDate() {
 				log.Printf("Error getting affected rows after deleting events 7 days or more after event date: %v", err)
 				time.Sleep(pauseDuration)
 				continue
+			}
+
+			if len(picturesToDelete) > 0 {
+				deleteEventPicsRes := awsS3.DeleteFromS3(picturesToDelete)
+				if !deleteEventPicsRes {
+					log.Printf("could not delete event pictures from S3: %s", picturesToDelete)
+				}
 			}
 
 			if affectedRows == 0 || batchesProcessed >= maxBatches {

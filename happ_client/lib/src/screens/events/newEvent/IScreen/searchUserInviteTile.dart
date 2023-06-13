@@ -1,11 +1,14 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
 import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelect.dart';
 import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelectState.dart';
 import 'package:happ_client/src/screens/events/newEvent/IScreen/userRemoveMakeOrganizerDialog.dart';
+import 'package:happ_client/src/screens/profile/class/profileParams.dart';
+import 'package:happ_client/src/screens/profile/profile.dart';
 
 class SearchUserInviteTile extends ConsumerStatefulWidget {
   final SearchUsers$Query$User user;
@@ -48,18 +51,26 @@ class _SearchUserInviteTileState extends ConsumerState<SearchUserInviteTile> {
       }
     });
     return GestureDetector(
-      onTap: !widget.fromGuestList ? () {
-        if (isSelected) {
-          setState(() {
-            isSelected = false;
-          });
+      onTap: () {
+        if (!widget.fromGuestList) {
+          if (isSelected) {
+            setState(() {
+              isSelected = false;
+            });
+          } else {
+            setState(() {
+              isSelected = true;
+            });
+          }
+          ref.read(inviteUserSelectProvider.notifier).inviteSelect(widget.user, isSelected);
         } else {
-          setState(() {
-            isSelected = true;
-          });
+          final user = ProfileUserData.fromSearchUsersQueryUser(widget.user);
+          context.push('/profile', extra: ProfileParams(
+              user: user,
+            )
+          );
         }
-        ref.read(inviteUserSelectProvider.notifier).inviteSelect(widget.user, isSelected);
-      } : null,
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
         color: Colors.transparent,

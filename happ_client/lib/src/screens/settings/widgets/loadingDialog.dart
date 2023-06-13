@@ -27,7 +27,7 @@ class LoadingDialog extends ConsumerWidget {
     } else if (state is DeleteUserDoneState) {
       isDefault = false;
       if (state.success == true) { // Should always be true
-        widgetColor = const Color.fromARGB(255, 1, 228, 96);
+        widgetColor = const Color.fromARGB(255, 1, 214, 90);
         textMessage = "Your account has been removed :'(";
         loading = false;
         ref.read(firebaseAuthProvider).signOut();

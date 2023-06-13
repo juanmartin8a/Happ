@@ -332,7 +332,10 @@ class _OtherInvitationsState extends ConsumerState<OtherInvitations> {
                                         borderRadius: BorderRadius.circular(25),
                                         child: Container(
                                           color: Colors.grey[200],
-                                          child: Image.network(invite.friends[0].profilePic)
+                                          child: Image.network(
+                                            invite.friends[0].profilePic,
+                                            fit: BoxFit.cover
+                                          )
                                         )
                                       )
                                     ),
@@ -351,7 +354,10 @@ class _OtherInvitationsState extends ConsumerState<OtherInvitations> {
                                           borderRadius: BorderRadius.circular(25),
                                           child: Container(
                                             color: Colors.grey[200],
-                                            child: Image.network(invite.friends[1].profilePic)
+                                            child: Image.network(
+                                              invite.friends[1].profilePic,
+                                              fit: BoxFit.cover
+                                            )
                                           )
                                         )
                                       ),
@@ -371,7 +377,10 @@ class _OtherInvitationsState extends ConsumerState<OtherInvitations> {
                                           borderRadius: BorderRadius.circular(25),
                                           child: Container(
                                             color: Colors.grey[200],
-                                            child: Image.network(invite.friends[2].profilePic)
+                                            child: Image.network(
+                                              invite.friends[2].profilePic,
+                                              fit: BoxFit.cover
+                                            )
                                           )
                                         )
                                       ),

@@ -21,7 +21,7 @@ class LoadingDialog extends ConsumerWidget {
     if (state is NewEventDoneState) {
       isDefault = false;
       if (state.newEventRes.errors == null) {
-        widgetColor = const Color.fromARGB(255, 1, 228, 96);
+        widgetColor = const Color.fromARGB(255, 1, 214, 90);
         eventId = state.newEventRes.event!.id;
       } else {
         widgetColor = Colors.red;

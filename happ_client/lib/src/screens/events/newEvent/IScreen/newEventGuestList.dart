@@ -66,137 +66,135 @@ class _NewEventGuestListState extends ConsumerState<NewEventGuestList> {
 
     return Material(
       color: Colors.white,
-      child: Container(
-        child: Column(
-          children: [
-            SizedBox(height: statusBar),
-            SizedBox(
-              height: 45,
-              child: Stack(
-                children: [
-                  Center(
-                    // heightFactor: 100,
-                    // width
-                    child: Text(
-                      "Guest List",
-                      style: TextStyle(
-                        color: Colors.grey[800],
-                        fontSize: 19,
-                        // letterSpacing: 0.5,
-                        // fontStyle: FontStyle.normal,
-                        fontWeight: FontWeight.w700,
-                        // height: 1
-                      ),
+      child: Column(
+        children: [
+          SizedBox(height: statusBar),
+          SizedBox(
+            height: 45,
+            child: Stack(
+              children: [
+                Center(
+                  // heightFactor: 100,
+                  // width
+                  child: Text(
+                    "Guest List",
+                    style: TextStyle(
+                      color: Colors.grey[800],
+                      fontSize: 19,
+                      // letterSpacing: 0.5,
+                      // fontStyle: FontStyle.normal,
+                      fontWeight: FontWeight.w700,
+                      // height: 1
                     ),
                   ),
-                  Positioned(
-                    left: 0,
-                    height: 45,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: FloatingActions(
-                        icon: CupertinoIcons.chevron_back,
-                        padding: const EdgeInsets.only(left: 8),
-                        color: Colors.grey[800]!,
-                        size: 36,
-                        key: Key("goBack_newEvetnInvitedFriends${widget.eventId}")
-                      ),
-                    )
-                  ),
-                ],
-              )
-            ),
-            Expanded(
-              child: CustomScrollView(
-                slivers: [
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 20),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Container(
-                      padding: const EdgeInsets.only(
-                        left: 12,
-                        right: 12,
-                        bottom: 4,
-                      ),
-                      child: Text(
-                        "Hosts",
-                        style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.grey[800],
-                        height: 1
-                      )
-                      ),
+                ),
+                Positioned(
+                  left: 0,
+                  height: 45,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: FloatingActions(
+                      icon: CupertinoIcons.chevron_back,
+                      padding: const EdgeInsets.only(left: 8),
+                      color: Colors.grey[800]!,
+                      size: 36,
+                      key: Key("goBack_newEvetnInvitedFriends${widget.eventId}")
                     ),
-                  ),
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int i) {
-                        if (i == 0) {
-                          SearchUsers$Query$User currentUser = UserTypesConverter().convertToSearchUser(ref.read(currentUserProvider));
-                          return SearchUserInviteTile(
-                            user: currentUser,
-                            isSelected: true,
-                            fromGuestList: true,
-                            key: Key("searchUserInviteTile_fromNewEventInvitedFriendsList_${currentUser.id}")
-                          );
-                        }
-
-                        int organizersIndex = i - 1;
-
-                        return SearchUserInviteTile(
-                          user: organizers[organizersIndex],
-                          isSelected: true,
-                          fromGuestList: true,
-                          isOrganizer: true,
-                          key: Key("searchUserInviteTile_fromNewEventInvitedFriendsList_${organizers[organizersIndex].id}")
-                        );
-                      },
-                      childCount: organizers.length + 1,
-                    ),
-                  ),
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 20),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Container(
-                      padding: const EdgeInsets.only(
-                        left: 12,
-                        right: 12,
-                        bottom: 4,
-                      ),
-                      child: Text(
-                        "Guests",
-                        style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.grey[800],
-                        height: 1
-                      )
-                      ),
-                    ),
-                  ),
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int i) {
-                        return SearchUserInviteTile(
-                          user: users[i],
-                          isSelected: true,
-                          fromGuestList: true,
-                          key: Key("searchUserInviteTile_fromNewEventInvitedFriendsList_${users[i].id}")
-                        );
-                      },
-                      childCount: users.length,
-                    ),
-                  ),
-                ],
-              )
+                  )
+                ),
+              ],
             )
-          ],
-        ),
+          ),
+          Expanded(
+            child: CustomScrollView(
+              slivers: [
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 20),
+                ),
+                SliverToBoxAdapter(
+                  child: Container(
+                    padding: const EdgeInsets.only(
+                      left: 12,
+                      right: 12,
+                      bottom: 4,
+                    ),
+                    child: Text(
+                      "Hosts",
+                      style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey[800],
+                      height: 1
+                    )
+                    ),
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int i) {
+                      if (i == 0) {
+                        SearchUsers$Query$User currentUser = UserTypesConverter().convertToSearchUser(ref.read(currentUserProvider));
+                        return SearchUserInviteTile(
+                          user: currentUser,
+                          isSelected: true,
+                          fromGuestList: true,
+                          key: Key("searchUserInviteTile_fromNewEventInvitedFriendsList_${currentUser.id}")
+                        );
+                      }
+
+                      int organizersIndex = i - 1;
+
+                      return SearchUserInviteTile(
+                        user: organizers[organizersIndex],
+                        isSelected: true,
+                        fromGuestList: true,
+                        isOrganizer: true,
+                        key: Key("searchUserInviteTile_fromNewEventInvitedFriendsList_${organizers[organizersIndex].id}")
+                      );
+                    },
+                    childCount: organizers.length + 1,
+                  ),
+                ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 20),
+                ),
+                SliverToBoxAdapter(
+                  child: Container(
+                    padding: const EdgeInsets.only(
+                      left: 12,
+                      right: 12,
+                      bottom: 4,
+                    ),
+                    child: Text(
+                      "Guests",
+                      style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey[800],
+                      height: 1
+                    )
+                    ),
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int i) {
+                      return SearchUserInviteTile(
+                        user: users[i],
+                        isSelected: true,
+                        fromGuestList: true,
+                        key: Key("searchUserInviteTile_fromNewEventInvitedFriendsList_${users[i].id}")
+                      );
+                    },
+                    childCount: users.length,
+                  ),
+                ),
+              ],
+            )
+          )
+        ],
       ),
     );
   }

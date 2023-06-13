@@ -27,7 +27,7 @@ class InviteLoadingDialog extends ConsumerWidget {
       if (state is InviteGuestsAndOrganizersDoneState) {
         if (state.res == true) {
           isDefault = false;
-          widgetColor = const Color.fromARGB(255, 1, 228, 96);
+          widgetColor = const Color.fromARGB(255, 1, 214, 90);
         } else {
           isDefault = false;
           widgetColor = Colors.red;
@@ -41,7 +41,9 @@ class InviteLoadingDialog extends ConsumerWidget {
       if (state is AddGuestsDoneState) {
         if (state.res == true) {
           isDefault = false;
-          widgetColor = const Color.fromARGB(255, 1, 228, 96);
+          // widgetColor = const Color.fromARGB(255, 1, 228, 96);
+          widgetColor =const Color.fromARGB(255, 1, 214, 90);
+          // widgetColor = const Color.fromARGB(255, 1, 209, 88);
 
           ref.invalidate(addNewGuestsSelectProvider);
         } else {
@@ -66,98 +68,95 @@ class InviteLoadingDialog extends ConsumerWidget {
           Center(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Container(
-                color: Colors.black,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 500),
-                  switchInCurve: Curves.easeIn,
-                  switchOutCurve: Curves.easeOut,
-                  child: Container(
-                    height: 150,
-                    width: 250,
-                    color: widgetColor,
-                    key: Key(const Uuid().v4()),
-                    // padding: const EdgeInsets.all(12),
-                    child: isDefault == true 
-                    ? Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        children: const [
-                          // const Spacer(),
-                          SizedBox(height: 15),
-                          Text(
-                            "Inviting Guests...",
-                            style: TextStyle(
-                              fontSize: 19,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              height: 1
-                            )
-                          ),
-                          Spacer(),
-                          SizedBox(
-                            height: 40,
-                            width: 40,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                            )
-                          ),
-                          Spacer()
-                        ],
-                      ),
-                    )
-                    : Padding(
-                      padding: const EdgeInsets.only(
-                        top: 12,
-                        right: 12,
-                        left: 12
-                      ),
-                      child: Column(
-                        // mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Center(
-                              child: Text(
-                                widgetColor == Colors.red 
-                                ? "Error while inviting guests :'(" 
-                                : "Guests succesfully invited! :D",
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  // height: 1
-                                )
-                              ),
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              if (comesFromAddNewGuests) {
-                                ref.invalidate(addGuestsProvider);
-                              }
-                              Navigator.pop(context);
-                              if (!comesFromAddNewGuests) {
-                                func(0, callRefresh: true);
-                              }
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.only(bottom: 12),
-                              child: Text(
-                                "Done",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1
-                                )
-                              ),
-                            ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                switchInCurve: Curves.easeIn,
+                switchOutCurve: Curves.easeOut,
+                child: Container(
+                  height: 150,
+                  width: 250,
+                  color: widgetColor,
+                  key: Key(const Uuid().v4()),
+                  // padding: const EdgeInsets.all(12),
+                  child: isDefault == true 
+                  ? Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      children: const [
+                        // const Spacer(),
+                        SizedBox(height: 15),
+                        Text(
+                          "Inviting Guests...",
+                          style: TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            height: 1
                           )
-                        ],
-                      ),
-                    )
-                  ),
+                        ),
+                        Spacer(),
+                        SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          )
+                        ),
+                        Spacer()
+                      ],
+                    ),
+                  )
+                  : Padding(
+                    padding: const EdgeInsets.only(
+                      top: 12,
+                      right: 12,
+                      left: 12
+                    ),
+                    child: Column(
+                      // mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              widgetColor == Colors.red 
+                              ? "Error while inviting guests :'(" 
+                              : "Guests succesfully invited! :D",
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                // height: 1
+                              )
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            if (comesFromAddNewGuests) {
+                              ref.invalidate(addGuestsProvider);
+                            }
+                            Navigator.pop(context);
+                            if (!comesFromAddNewGuests) {
+                              func(0, callRefresh: true);
+                            }
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.only(bottom: 12),
+                            child: Text(
+                              "Done",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                height: 1
+                              )
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  )
                 ),
               ),
             ),
