@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -109,7 +111,7 @@ class _GuestListGuestsState extends ConsumerState<GuestListGuests> with Automati
     return ListView(
       padding: EdgeInsets.zero,
       controller: scrollController,
-      physics: const AlwaysScrollableScrollPhysics(),
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
       children: [
         const SizedBox(
           height: 10,
@@ -137,8 +139,8 @@ class _GuestListGuestsState extends ConsumerState<GuestListGuests> with Automati
                   fontSize: 14,
                   fontWeight: FontWeight.w600
                 ),
-                children: const <TextSpan>[
-                  TextSpan(text: '😅', style: TextStyle(fontSize: 20))
+                children: <TextSpan>[
+                  if (Platform.isIOS) const TextSpan(text: '😅', style: TextStyle(fontSize: 20))
                 ]
               )
             ),

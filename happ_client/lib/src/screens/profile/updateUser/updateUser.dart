@@ -414,7 +414,7 @@ class _UpdateUserState extends ConsumerState<UpdateUser> {
             ),
             if ((nameController.text != user.name || usernameController.text != user.username || selectedImageMultipartFile != null))
             Positioned(
-              bottom: 34,
+              bottom: MediaQuery.of(context).padding.bottom > 34 ? MediaQuery.of(context).padding.bottom + 12 : 34,
               left: (MediaQuery.of(context).size.width - (MediaQuery.of(context).size.width * 0.5)) / 2,
               child: GestureDetector(
                 onTap: () {

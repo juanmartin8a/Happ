@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
@@ -210,8 +212,12 @@ class _GuestListState extends ConsumerState<GuestList> with SingleTickerProvider
           ),
           if (widget.isHost)
           Positioned(
-            bottom: 34 * 0.75,
-            right: 34 * 0.75,
+            bottom: MediaQuery.of(context).padding.bottom > 34 
+            ? MediaQuery.of(context).padding.bottom + 12 
+            : 34 * 0.75,
+            right: MediaQuery.of(context).padding.bottom > 34 
+            ? 12 
+            : 34 * 0.75,
             child: AnimatedBuilder(
               animation: _tabController.animation!, 
               builder: (context, child) {

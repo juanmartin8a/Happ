@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
@@ -107,9 +108,11 @@ class _AuthState extends ConsumerState<Auth> with SingleTickerProviderStateMixin
           const SizedBox(
             height: 24
           ),
+          if (Platform.isIOS)
           const SizedBox(
             height: 12
           ),
+          if (Platform.isIOS)
           GestureDetector(
             onTap: () {
               if (isTermsConfirmed) {

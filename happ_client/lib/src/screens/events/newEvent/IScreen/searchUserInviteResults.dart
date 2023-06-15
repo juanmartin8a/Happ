@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
@@ -62,15 +64,16 @@ class _SearchUserInviteResultsState extends ConsumerState<SearchUserInviteResult
               RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                  text: "Pick friends to join the fun!\n",
+                  text: "Pick friends to join the fun!",
                   style: TextStyle(
                     fontFamily: "Inter",
                     color: Colors.grey[800],
                     fontSize: 14,
                     fontWeight: FontWeight.w600
                   ),
-                  children: const <TextSpan>[
-                    TextSpan(text: '😉', style: TextStyle(fontSize: 20))
+                  children: <TextSpan>[
+                    if (Platform.isIOS) const TextSpan(text: '\n😉', style: TextStyle(fontSize: 20)),
+                    if (!Platform.isIOS) const TextSpan(text: ' ;)')
                   ]
                 )
               )
@@ -102,8 +105,8 @@ class _SearchUserInviteResultsState extends ConsumerState<SearchUserInviteResult
                     fontSize: 14,
                     fontWeight: FontWeight.w600
                   ),
-                  children: const <TextSpan>[
-                    TextSpan(text: '🫣🦖', style: TextStyle(fontSize: 20))
+                  children: <TextSpan>[
+                    if (Platform.isIOS) const TextSpan(text: '🫣🦖', style: TextStyle(fontSize: 20))
                   ]
                 )
               )

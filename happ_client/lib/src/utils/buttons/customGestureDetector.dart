@@ -53,6 +53,7 @@ class _BackgroundChangeOnTapGestureDetectorState extends State<BackgroundChangeO
             child: widget.child,
           )
           : Container(
+            color: Colors.transparent,
             key: ValueKey<String>(const Uuid().v4()),
             child: widget.child,
           )

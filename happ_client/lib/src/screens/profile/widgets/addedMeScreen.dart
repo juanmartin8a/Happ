@@ -135,7 +135,7 @@ class _AddedMeScreenState extends ConsumerState<AddedMeScreen> with AutomaticKee
               child: ListView(
                 controller: controller,
                 padding: EdgeInsets.zero,
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
                 children: [
                   ...addedMeUsers.map((user) {
                     return GestureDetector(

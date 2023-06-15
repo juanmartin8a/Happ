@@ -299,7 +299,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
               child: ListView.builder(
                 itemCount: users.length + 2,
                 shrinkWrap: true,
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.zero,
                 itemBuilder: (context, index) {
@@ -336,7 +336,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                     textAlign: TextAlign.center,
                     
                     text: TextSpan(
-                      text: "No mutual friends yet :)",
+                      text: "No mutual friends yet...",
                       style: TextStyle(
                         fontFamily: "Inter",
                         color: Colors.grey[800],
@@ -408,7 +408,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                   child: ListView.builder(
                     itemCount: myFriendsUsers.length + 2,
                     shrinkWrap: true,
-                    physics: const AlwaysScrollableScrollPhysics(),
+                    physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
                     scrollDirection: Axis.horizontal,
                     padding: EdgeInsets.zero,
                     itemBuilder: (context, index) {
@@ -446,7 +446,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                         textAlign: TextAlign.center,
                         
                         text: TextSpan(
-                          text: "No friends yet :)",
+                          text: "No friends yet? ",
                           style: TextStyle(
                             fontFamily: "Inter",
                             color: Colors.grey[800],
@@ -518,7 +518,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                     itemCount: addedMeUsers.length + 2,
                     shrinkWrap: true,
                     scrollDirection: Axis.horizontal,
-                    physics: const AlwaysScrollableScrollPhysics(),
+                    physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
                     padding: EdgeInsets.zero,
                     itemBuilder: (context, index) {
                       if (index == 0 || index == (addedMeUsers.length + 2) - 1) {
@@ -554,7 +554,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                         textAlign: TextAlign.center,
                         
                         text: TextSpan(
-                          text: "No one has added you as friend :(",
+                          text: "No one has added you as a friend yet.",
                           style: TextStyle(
                             fontFamily: "Inter",
                             color: Colors.grey[800],
@@ -591,7 +591,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
               color: Colors.transparent,
               height: MediaQuery.of(context).size.height,
               child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
                 child: Column(
                   children: [
                     SizedBox(

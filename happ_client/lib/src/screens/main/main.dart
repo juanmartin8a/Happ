@@ -51,6 +51,7 @@ class _MainScreenState extends ConsumerState<MainScreen> with SingleTickerProvid
                     builder: (context, widget) {
                       return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
+                        color: Colors.transparent,
                         child: Text(
                           "Events",
                           style: TextStyle(
@@ -67,6 +68,7 @@ class _MainScreenState extends ConsumerState<MainScreen> with SingleTickerProvid
                     builder: (context, widget) {
                       return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
+                        color: Colors.transparent,
                         child: Text(
                           "Invitations",
                           style: TextStyle(

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/riverpod/locationSearch/locationSearch.dart';
@@ -51,8 +53,8 @@ class SearchLocationResults extends ConsumerWidget {
                     fontSize: 14,
                     fontWeight: FontWeight.w600
                   ),
-                  children: const <TextSpan>[
-                    TextSpan(text: '🤥💀', style: TextStyle(fontSize: 20))
+                  children: <TextSpan>[
+                    if (Platform.isIOS) const TextSpan(text: '🤥💀', style: TextStyle(fontSize: 20))
                   ]
                 )
               )

@@ -142,7 +142,7 @@ class _MutualFriendsScreenState extends ConsumerState<MutualFriendsScreen> with 
               child: ListView(
                 controller: controller,
                 padding: EdgeInsets.zero,
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
                 children: [
                   ...users.map((user) {
                     return GestureDetector(

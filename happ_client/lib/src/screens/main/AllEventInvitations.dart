@@ -130,7 +130,7 @@ class _AllEventInvitationsState extends ConsumerState<AllEventInvitations> with 
             _refreshController.refreshFailed();
           }
         },
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
         child: SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
           child: Column(

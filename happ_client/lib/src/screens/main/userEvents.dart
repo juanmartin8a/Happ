@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -185,14 +187,22 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
             return Container(
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(vertical: 8),
-              margin: const EdgeInsets.only(top: 12),
+              // margin: const EdgeInsets.only(top: 12),
               child: FadeTransition(
                 opacity: _scaleController,
                 child: ScaleTransition(
                   scale: _scaleController,
-                  child: const Text(
-                    "❌",
-                    style: TextStyle(fontSize: 22, height: 1)
+                  child: Text(
+                    Platform.isIOS ? "❌" : "Error :/",
+                    // "❌",
+                    style: Platform.isIOS 
+                    ? const TextStyle(fontSize: 22, height: 1) 
+                    : TextStyle(
+                      fontSize: 16, 
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[800]!,
+                      height: 1
+                    )
                   )
                 ),
               )
@@ -202,14 +212,21 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
             return Container(
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(vertical: 8),
-              margin: const EdgeInsets.only(top: 12),
+              // margin: const EdgeInsets.only(top: 12),
               child: FadeTransition(
                 opacity: _scaleController,
                 child: ScaleTransition(
                   scale: _scaleController,
-                  child: const Text(
-                    "😉",
-                    style: TextStyle(fontSize: 22, height: 1)
+                  child: Text(
+                    Platform.isIOS ? "😉" : ";)",
+                    style: Platform.isIOS 
+                    ? const TextStyle(fontSize: 22, height: 1) 
+                    : TextStyle(
+                      fontSize: 16, 
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[800]!,
+                      height: 1
+                    )
                   )
                 ),
               )
@@ -239,7 +256,7 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
           _refreshController.refreshFailed();
         }
       },
-      physics: const AlwaysScrollableScrollPhysics(),
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
       child: ListView(
         physics: const NeverScrollableScrollPhysics(),
         padding: const EdgeInsets.all(0),
@@ -263,10 +280,11 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
                   fontWeight: FontWeight.w600,
                   height: 1.25,
                 ),
-                children: const <TextSpan>[
-                  TextSpan(text: ' 😮\n', style: TextStyle(fontSize: 18)),
-                  TextSpan(text: 'Stay tuned for invitations! '),
-                  TextSpan(text: '📨🎉', style: TextStyle(fontSize: 18))
+                children: <TextSpan>[
+                  if (Platform.isIOS) const TextSpan(text: ' 😮\n', style: TextStyle(fontSize: 18)),
+                  if (!Platform.isIOS) const TextSpan(text: ' :O\n', style: TextStyle(fontSize: 18)),
+                  const TextSpan(text: 'Stay tuned for invitations!'),
+                  if (Platform.isIOS) const TextSpan(text: ' 📨🎉', style: TextStyle(fontSize: 18))
                 ]
               )
             )

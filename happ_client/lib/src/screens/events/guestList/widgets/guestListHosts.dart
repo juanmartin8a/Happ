@@ -79,6 +79,7 @@ class _GuestListHostsState extends ConsumerState<GuestListHosts> with AutomaticK
     return ListView(
       padding: EdgeInsets.zero,
       controller: scrollController,
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
       children: [
         const SizedBox(
           height: 10,

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:happ_client/src/screens/events/class/eventAndInviteParams.dart';
 import 'package:happ_client/src/screens/events/event.dart';
 import 'package:happ_client/src/screens/events/invitation/eventInvitation.dart';
@@ -37,7 +38,7 @@ void main() async {
   final firebaseAuth = FirebaseAuth.instance;
 
   final HttpLink httpLink = HttpLink(
-    'http://localhost:8080/query'
+    'http://192.168.100.88:8080/query'
     // 'https://api.happ.rsvp/query'
   );
 
@@ -68,6 +69,7 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: [SystemUiOverlay.top]);
 
     return RefreshConfiguration(
       headerTriggerDistance: 60,
@@ -87,14 +89,16 @@ class MyApp extends ConsumerWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           fontFamily: "Inter",
-          // appBarTheme: const AppBarTheme(
-          //   foregroundColor: Colors.black,
-          //   systemOverlayStyle: SystemUiOverlayStyle(
-          //     // statusBarColor: Colors.green, // <-- SEE HERE
-          //     statusBarIconBrightness: Brightness.light, //<-- For Android SEE HERE (dark icons)
-          //     statusBarBrightness: Brightness.dark, //<-- For iOS SEE HERE (dark icons)
-          //   ),
-          // )
+          appBarTheme: const AppBarTheme(
+            foregroundColor: Colors.black,
+            systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent, //top status bar
+              systemNavigationBarColor: Colors.transparent, // navigation bar color, the one Im looking for
+              statusBarIconBrightness: Brightness.dark, // status bar icons' color
+              systemNavigationBarIconBrightness:
+                  Brightness.light, //navigation bar icons' color
+            ),
+          )
         ),
         title: 'Happ',
       ),

@@ -1,4 +1,4 @@
-package com.example.happ_client
+package rsvp.happ.happ
 
 import io.flutter.embedding.android.FlutterActivity
 

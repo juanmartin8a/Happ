@@ -27,19 +27,54 @@ class PhotoDialog extends ConsumerStatefulWidget {
 
 class _PhotoDialogState extends ConsumerState<PhotoDialog> {
 
+  ScrollController controller = ScrollController();
+
   late bool accessGranted;
   List<Widget> imagesWidget = [];
   List<AssetEntity> images = [];
   List<int> selectedImages = [];
   bool hasMore = false;
 
-  bool loading = false;
+  bool isPhotosLoading = false;
+
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
     requestPermission();
+    controller.addListener(() {
+      controller.addListener(() {
+        if (hasMore) {
+          final maxScrollExtent = controller.position.maxScrollExtent;
+          final currentPos = controller.position.pixels;
+          final screenHeight = MediaQuery.of(context).size.height - (45 + MediaQuery.of(context).padding.top);
+
+          if (currentPos >= (maxScrollExtent - screenHeight * 2)) {
+            if (isPhotosLoading == false) {
+              setState(() {
+                isPhotosLoading = true;
+              });
+
+              // final imageLengthSubtractNum = images.length >= 100 ? 100 : images.length;
+              final page = (images.length / 100).floor();
+
+              // print(page);
+              
+              getPhotos(page);
+              // ref.read(userEventsProvider.notifier).getUserEvents(10, eventIds);
+            }
+          }
+        }
+      });
+    });
     // selectedImages = widget.
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -49,7 +84,11 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
       child: Stack(
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              if (!isLoading) {
+                Navigator.pop(context);
+              }
+            },
             child: Container(color: Colors.black26)
           ),
           Center(
@@ -106,8 +145,10 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
                           )
                         ),
                         Expanded(
-                          child: GridView.builder(
+                          child: imagesWidget.isNotEmpty || isPhotosLoading == true
+                          ? GridView.builder(
                             itemCount: imagesWidget.length + 1,
+                            controller: controller,
                             padding: const EdgeInsets.symmetric(horizontal: 5),
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 3,
@@ -128,7 +169,20 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
                                 child: imagesWidget[index]
                               );
                             }
-                          ),
+                          )
+                          : Container(
+                            padding: EdgeInsets.only(top: 150),
+                            child: Text(
+                              "No photos :/",
+                              style: TextStyle(
+                                color: Colors.grey[800],
+                                fontFamily: "Inter",
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                height: 1.25,
+                              ),
+                            )
+                          )
                         ),
                       ],
                     ),
@@ -142,7 +196,7 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
                             MultipartFile lightMultipartFile;
 
                             setState(() {
-                              loading = true;
+                              isLoading = true;
                             });
 
                             newImage = images[selectedImages[0]];
@@ -162,7 +216,7 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
                             lightMultipartFile = await MultipartFile.fromPath('lightEventPicture', lightDestinationPath);
 
                             setState(() {
-                              loading = false;
+                              isLoading = false;
                             });
 
                             if (widget.isUpdate) {
@@ -176,7 +230,7 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
                             List<MultipartFile> lightMultipartFiles = [];
 
                             setState(() {
-                              loading = true;
+                              isLoading = true;
                             });
 
                             for (int i = 0; i < selectedImages.length; i++) {
@@ -198,7 +252,7 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
                             }
 
                             setState(() {
-                              loading = false;
+                              isLoading = false;
                             });
 
                             if (widget.isUpdate) {
@@ -233,7 +287,7 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
                             ],
                           ),
                           child: Center(
-                            child: loading 
+                            child: isLoading 
                             ? const SizedBox(
                               height: 20,
                               width: 20,
@@ -266,6 +320,9 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
   }
 
   void requestPermission() async {
+    setState(() {
+      isPhotosLoading = true;
+    });
     final PermissionState ps = await PhotoManager.requestPermissionExtend();
     accessGranted = ps.isAuth;
     if (accessGranted == true) {
@@ -285,24 +342,25 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
       )
     );
 
-    List<AssetEntity> media = await albums[0].getAssetListPaged(page: page, size: 80);
+    List<AssetEntity> media = await albums[0].getAssetListPaged(page: page, size: 100);
     List<Widget> preImagesWidget = [];
 
-    if (media.isEmpty || media.length < 80) {
-      for (int i = 0; i < media.length; i++) {
-        preImagesWidget.add(getImageWidget(media[i]));
-      }
+    for (int i = 0; i < media.length; i++) {
+      preImagesWidget.add(getImageWidget(media[i]));
+    }
+
+    if (media.isEmpty || media.length < 100) {
       hasMore = false;
     } else {
-      for (int i = 0; i < media.length; i++) {
-        preImagesWidget.add(getImageWidget(media[i]));
-      }
-       hasMore = true;
+      hasMore = true;
     }
+
     imagesWidget = [...imagesWidget, ...preImagesWidget];
     images = [...images, ...media];
 
-    setState(() {});
+    setState(() {
+      isPhotosLoading = false;
+    });
   }
 
   Widget getImageWidget(AssetEntity assetEntity) {
@@ -360,56 +418,61 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
           }
         }
       }
-      imagesWidget[index] = Stack(
-        children: [
-          Stack(
-            fit: StackFit.expand,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(5),
-                child: AssetEntityImage(
-                  assetEntity,
-                  isOriginal: false, // Defaults to `true`.
-                  thumbnailSize: const ThumbnailSize.square(240), // Preferred value.
-                  thumbnailFormat: ThumbnailFormat.jpeg, // Defaults to `jpeg`.
-                  fit: BoxFit.cover,
+      if (selectedImages.length < 5) {
+
+        imagesWidget[index] = Stack(
+          children: [
+            Stack(
+              fit: StackFit.expand,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(5),
+                  child: AssetEntityImage(
+                    assetEntity,
+                    isOriginal: false, // Defaults to `true`.
+                    thumbnailSize: const ThumbnailSize.square(240), // Preferred value.
+                    thumbnailFormat: ThumbnailFormat.jpeg, // Defaults to `jpeg`.
+                    fit: BoxFit.cover,
+                  )
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(5),
+                  child: Container(
+                    color: Colors.black12,
+                  ),
+                ),
+                Positioned(
+                  right: 5,
+                  top: 5,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1.5)
+                    ),
+                    padding: const EdgeInsets.all(1),
+                    child: const Icon(
+                      FluentIcons.checkmark_12_regular,
+                      color: Colors.white,
+                      size: 18
+                    ),
+                  ),
                 )
-              ),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(5),
-                child: Container(
-                  color: Colors.black12,
-                ),
-              ),
-              Positioned(
-                right: 5,
-                top: 5,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5)
-                  ),
-                  padding: const EdgeInsets.all(1),
-                  child: const Icon(
-                    FluentIcons.checkmark_12_regular,
-                    color: Colors.white,
-                    size: 18
-                  ),
-                ),
-              )
-            ],
-          )
-        ],
-      );
+              ],
+            )
+          ],
+        );
+      }
       if (widget.selectOne == true) {
         setState(() {
           selectedImages = [index];
         });
       } else {
-        setState(() {
-          selectedImages.add(index);
-        });
+        if (selectedImages.length < 5) {
+          setState(() {
+            selectedImages.add(index);
+          });
+        }
       }
     }
 

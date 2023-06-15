@@ -36,7 +36,15 @@ class _HomeState extends ConsumerState<Home> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>( 
-      value: SystemUiOverlayStyle.dark,
+      // value: SystemUiOverlayStyle.dark,
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent, //top status bar
+        systemNavigationBarColor: Colors.transparent, // navigation bar color, the one Im looking for
+        statusBarIconBrightness: Brightness.dark, // status bar icons' color
+        systemNavigationBarIconBrightness:
+            Brightness.light, //navigation bar icons' color
+        
+      ),
       child: SafeArea(
         top: false,
         bottom: false,

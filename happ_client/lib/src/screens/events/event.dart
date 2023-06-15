@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -149,7 +151,14 @@ class _EventState extends ConsumerState<Event> {
     });
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      // value: SystemUiOverlayStyle.dark,
+       value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent, //top status bar
+        systemNavigationBarColor: Colors.transparent, // navigation bar color, the one Im looking for
+        statusBarIconBrightness: Brightness.dark, // status bar icons' color
+        systemNavigationBarIconBrightness:
+          Brightness.dark, //navigation bar icons' color
+      ),
       child: Material(
         color: Colors.white,
         child: Stack(
@@ -258,7 +267,7 @@ class _EventState extends ConsumerState<Event> {
                 Expanded(
                   // padding: EdgeInsets.symmetric(horizontal:8),
                   child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
+                    physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -499,7 +508,7 @@ class _EventState extends ConsumerState<Event> {
                               textAlign: TextAlign.center,
                               text: TextSpan(
                                 // text: r"No guests yet ¯\_(ツ)_/¯",
-                                text: "Guest RSVPs are on their way!  ",
+                                text: "Guest RSVPs are on their way!",
                                 style: TextStyle(
                                   fontFamily: "Inter",
                                   color: Colors.grey[800],
@@ -507,7 +516,7 @@ class _EventState extends ConsumerState<Event> {
                                   fontWeight: FontWeight.w600
                                 ),
                                 children: const <TextSpan>[
-                                  TextSpan(text: '📬', style: TextStyle(fontSize: 18))
+                                  TextSpan(text: ' 📬', style: TextStyle(fontSize: 18))
                                 ]
                               )
                             ),
@@ -566,7 +575,7 @@ class _EventState extends ConsumerState<Event> {
               ],
             ),
             Positioned(
-              bottom: 34,
+              bottom: MediaQuery.of(context).padding.bottom > 34 ? MediaQuery.of(context).padding.bottom + 12 : 34,
               left: (MediaQuery.of(context).size.width - (MediaQuery.of(context).size.width * 0.5)) / 2,
               child: AcceptButton(inviteRes: widget.inviteRes)
             )

@@ -7,7 +7,6 @@ import 'package:happ_client/src/riverpod/eventUpdatePictureActions/pictureAction
 import 'package:happ_client/src/riverpod/eventUpdateReady/eventUpdateReady.dart';
 import 'package:happ_client/src/riverpod/locationSearch/locationDetails.dart';
 import 'package:happ_client/src/riverpod/locationSearch/locationSearch.dart';
-import 'package:happ_client/src/riverpod/locationSearch/reverseLocationDetails.dart';
 import 'package:happ_client/src/riverpod/pickDateAndTime/pickDateAndTime.dart';
 import 'package:happ_client/src/riverpod/updateEvent/updateEvent.dart';
 import 'package:happ_client/src/riverpod/updateEvent/updateEventState.dart';
@@ -126,7 +125,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
               Expanded(
                 // padding: EdgeInsets.symmetric(horizontal:8),
                 child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
+                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -322,7 +321,7 @@ class _UpdateEventState extends ConsumerState<UpdateEvent> {
             ],
           ),
           Positioned(
-            bottom: 34,
+            bottom: MediaQuery.of(context).padding.bottom > 34 ? MediaQuery.of(context).padding.bottom + 12 : 34,
             left: (MediaQuery.of(context).size.width - (MediaQuery.of(context).size.width * 0.5)) / 2,
             child: UpdateButton(event: event)
           )

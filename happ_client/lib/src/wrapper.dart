@@ -63,7 +63,7 @@ class WrapperState extends ConsumerState<Wrapper> {
                 if (snapshot.connectionState == ConnectionState.done) {
                   return const Home(key: Key("Home"));
                 } else {
-                  return Container();
+                  return const Material(color: Colors.white);
                 }
               }
             );

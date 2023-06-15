@@ -261,7 +261,7 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
           ),
           Positioned(
             // bottom: 0,
-            bottom: 34,
+            bottom: MediaQuery.of(context).padding.bottom > 34 ? MediaQuery.of(context).padding.bottom + 12 : 34,
             left: (MediaQuery.of(context).size.width - (MediaQuery.of(context).size.width * 0.5)) / 2,
             child: InviteGuestsButton(eventId: eventId)
           )

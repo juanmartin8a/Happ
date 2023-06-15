@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
 import 'package:happ_client/src/utils/widgets/loader.dart';
+import 'package:uuid/uuid.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../../utils/widgets/floatingActions.dart';
@@ -39,15 +40,15 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
       final html = dynamicHTML();
       controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        // ..setNavigationDelegate(
-        //   NavigationDelegate(
-        //     onPageFinished: (String url) {
-        //       setState(() {
-        //         isLoading = false;
-        //       });
-        //     },
-        //   ),
-        // )
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageFinished: (String url) {
+              setState(() {
+                // isLoading = false;
+              });
+            },
+          ),
+        )
         ..loadHtmlString(html);
     }
   }
@@ -206,6 +207,7 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
                         children: [
                           WebViewWidget(
                             controller: controller,
+                            key: Key(const Uuid().v4())
                           ),
                           Container(
                             color: Colors.transparent,
@@ -230,6 +232,9 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
                       )
                     ),
                   )
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).padding.bottom > 34 ? MediaQuery.of(context).padding.bottom + 12 : 34,
                 )
               ],
             ),
@@ -267,45 +272,50 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
           <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
       </head>
       <style>
-        #canvas  {
-          background-color: white;
-          height: 100%;
-          width: 100%;
-        }
         html, body {
-          overflow: 'hidden';
+          overflow: hidden;
           margin: 0;
           padding: 0;
-          height: 100%;
-          width: 100%;
+          height: 100vh;
+          width: 100vw;
           display: flex;
           justify-content: center;
           align-items: center;
+        }
+        #canvas  {
+          background-color: white;
+          height: 100vh;
+          width: 100vw;
         }
       </style>
       <body>
       <div id="canvas"></div>
       <script type="text/javascript">
 
-          const qrCode = new QRCodeStyling({
-              width: window.innerWidth,
-              height: window.innerHeight,
-              margin: 0,
-              type: "svg",
-              data: "${widget.cypherText}",
-              dotsOptions: {
-                  color: "#000000",
-                  type: "rounded"
-              },
-              cornersSquareOptions: {
-                type: "extra-rounded"
-              },
-              qrOptions: {
-                errorCorrectionLevel: 'M'
-              }
-          });
+        document.addEventListener('DOMContentLoaded', function () {
+          setTimeout(function() {
+            const qrCode = new QRCodeStyling({
+                width: window.innerWidth,
+                height: window.innerHeight,
+                margin: 0,
+                type: "svg",
+                data: "${widget.cypherText}",
+                dotsOptions: {
+                    color: "#000000",
+                    type: "rounded"
+                },
+                cornersSquareOptions: {
+                  type: "extra-rounded"
+                },
+                qrOptions: {
+                  errorCorrectionLevel: 'M'
+                }
+            });
 
-          qrCode.append(document.getElementById("canvas"));
+            qrCode.append(document.getElementById("canvas"));
+          }, 150);
+        });
+
       </script>
       </body>
       </html>''';

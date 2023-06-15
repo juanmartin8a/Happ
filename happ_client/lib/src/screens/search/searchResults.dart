@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -101,8 +103,8 @@ class _SearchResultsState extends ConsumerState<SearchResults> {
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
-                  children: const <TextSpan>[
-                    TextSpan(text: '😰🦤', style: TextStyle(fontSize: 20))
+                  children: <TextSpan>[
+                    if (Platform.isIOS) const TextSpan(text: '😰🦤', style: TextStyle(fontSize: 20))
                   ]
                 )
               )

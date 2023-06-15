@@ -196,7 +196,7 @@ class _InvitationsFromFriendsState extends ConsumerState<InvitationsFromFriends>
           height: 239,
           child: ListView(
             scrollDirection: Axis.horizontal,
-            physics: const AlwaysScrollableScrollPhysics(),
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),// const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 8),
             controller: scrollController,
             children: [

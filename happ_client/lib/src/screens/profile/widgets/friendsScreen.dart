@@ -140,7 +140,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with AutomaticKee
               child: ListView(
                 controller: controller,
                 padding: EdgeInsets.zero,
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
                 children: [
                   ...users.map((user) {
                     return GestureDetector(

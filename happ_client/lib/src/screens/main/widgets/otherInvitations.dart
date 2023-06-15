@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -188,10 +190,14 @@ class _OtherInvitationsState extends ConsumerState<OtherInvitations> {
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
-                  children: const <TextSpan>[
-                    TextSpan(text: ' 🤔 ', style: TextStyle(fontSize: 18)),
-                    TextSpan(text: 'Be the host!'),
-                    TextSpan(text: '🎊😄', style: TextStyle(fontSize: 18))
+                  children: <TextSpan>[
+                    if (Platform.isIOS) 
+                    const TextSpan(text: ' 🤔', style: TextStyle(fontSize: 18)),
+                    const TextSpan(text: r' Be the host! '),
+                    if (Platform.isIOS) 
+                    const TextSpan(text: '🎊😄', style: TextStyle(fontSize: 18)),
+                    if (!Platform.isIOS) 
+                    const TextSpan(text: r'¯\_(ツ)_/¯')
                   ]
                 )
               )
@@ -203,7 +209,7 @@ class _OtherInvitationsState extends ConsumerState<OtherInvitations> {
           child: ListView(
             scrollDirection: Axis.horizontal,
             controller: scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
             padding: const EdgeInsets.symmetric(horizontal: 8),
 
             children: [
