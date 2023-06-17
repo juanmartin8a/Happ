@@ -37,7 +37,7 @@ class AddedMe extends StateNotifier<AddedMeState> {
       userToChangeJson[changeMap.keys.toList()[i]] = changeMap.values.toList()[i];
     }
 
-    users[listIndex] = AddedMe$Query$PaginatedEventUsersResults$User.fromJson(userToChangeJson);
+    usersToJson[listIndex] = userToChangeJson;
 
     Map<String, dynamic> newResJson = {
       "users": usersToJson,

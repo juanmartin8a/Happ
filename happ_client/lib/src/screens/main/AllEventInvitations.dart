@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.graphql.dart';
@@ -57,15 +59,22 @@ class _AllEventInvitationsState extends ConsumerState<AllEventInvitations> with 
             if (status == RefreshStatus.failed) {
               return Container(
                 alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                // padding: const EdgeInsets.symmetric(vertical: 8),
                 margin: const EdgeInsets.only(top: 20),
+                height: 40,
                 child: FadeTransition(
                   opacity: _scaleController,
                   child: ScaleTransition(
                     scale: _scaleController,
-                    child: const Text(
-                      "❌",
-                      style: TextStyle(fontSize: 22, height: 1)
+                    child: Text(
+                      Platform.isIOS ? "❌" : "Error :/",
+                      style: Platform.isIOS 
+                      ? const TextStyle(fontSize: 22) 
+                      : TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800]!,
+                      )
                     )
                   ),
                 )
@@ -74,25 +83,32 @@ class _AllEventInvitationsState extends ConsumerState<AllEventInvitations> with 
             if (status == RefreshStatus.completed) {
               return Container(
                 alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                // padding: const EdgeInsets.symmetric(vertical: 8),
                 margin: const EdgeInsets.only(top: 20),
+                height: 40,
                 child: FadeTransition(
                   opacity: _scaleController,
                   child: ScaleTransition(
                     scale: _scaleController,
-                    child: const Text(
-                      "😉",
-                      style: TextStyle(fontSize: 22, height: 1)
+                    child: Text(
+                      Platform.isIOS ? "😉" : ";)",
+                      style: Platform.isIOS 
+                      ? const TextStyle(fontSize: 22) 
+                      : TextStyle(
+                        fontSize: 16, 
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800]!,
+                      )
                     )
                   ),
                 )
               );
             }
             return Container(
-              // color: Colors.red,
               alignment: Alignment.center,
               margin: const EdgeInsets.only(top: 20),
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              // padding: const EdgeInsets.symmetric(vertical: 8),
+              height: 40,
               child: FadeTransition(
                 opacity: _scaleController,
                 child: ScaleTransition(

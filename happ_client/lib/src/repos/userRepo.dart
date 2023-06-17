@@ -163,9 +163,6 @@ class UserRepo {
       UserOptions().updateUserMutatioOptions(profilePic, username, name)
     );
 
-    print(result);
-    print("returned ^");
-
     if (result.hasException) {
       throw (result.exception as OperationException);
     } else {

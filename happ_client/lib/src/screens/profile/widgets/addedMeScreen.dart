@@ -138,30 +138,19 @@ class _AddedMeScreenState extends ConsumerState<AddedMeScreen> with AutomaticKee
                 physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
                 children: [
                   ...addedMeUsers.map((user) {
-                    return GestureDetector(
-                      onTap: () {
-                        // print("Hello there");
-                        // final inviteRes = EventTypesConverter().convertOtherInviteResToFriendsInviteRes(invite);
-                        // final user = ProfileUserData.fromSearchUsersQueryUser(searchUsersRes[searchUserResIndex]);
-                        // context.push('/profile', extra: ProfileParams(
-                        //     user: user,
-                        //   )
-                        // );
-                      },
-                      child: UserTile(
-                        id: user.id,
-                        profilePic: user.profilePic, 
-                        name: user.name,
-                        username: user.username,
-                        followState: user.followState,
-                        extraWidget: SearchUserAddButton(
-                          onAddOrRemoveStateChange: onAddOrRemoveStateChange,
-                          userId: user.id.toInt(),
-                          isFollow: user.followState,
-                          key: Key("addRemoveButton_${user.id}")
-                        ),
-                        key: Key("userTile_addedMe_${user.id}")
-                      )
+                    return UserTile(
+                      id: user.id,
+                      profilePic: user.profilePic, 
+                      name: user.name,
+                      username: user.username,
+                      followState: user.followState,
+                      extraWidget: SearchUserAddButton(
+                        onAddOrRemoveStateChange: onAddOrRemoveStateChange,
+                        userId: user.id.toInt(),
+                        isFollow: user.followState,
+                        key: Key("addRemoveButton_${user.id}")
+                      ),
+                      key: Key("userTile_addedMe_${user.id}")
                     );
                   }).toList(),
                   if (isLoading && addedMeUsers.isNotEmpty)

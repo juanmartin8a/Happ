@@ -186,22 +186,21 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
           if (status == RefreshStatus.failed) {
             return Container(
               alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              // margin: const EdgeInsets.only(top: 12),
+              margin: const EdgeInsets.only(top: 12),
+              // padding: const EdgeInsets.symmetric(vertical: 8),
+              height: 48,
               child: FadeTransition(
                 opacity: _scaleController,
                 child: ScaleTransition(
                   scale: _scaleController,
                   child: Text(
                     Platform.isIOS ? "❌" : "Error :/",
-                    // "❌",
                     style: Platform.isIOS 
-                    ? const TextStyle(fontSize: 22, height: 1) 
+                    ? const TextStyle(fontSize: 22) 
                     : TextStyle(
                       fontSize: 16, 
                       fontWeight: FontWeight.w600,
                       color: Colors.grey[800]!,
-                      height: 1
                     )
                   )
                 ),
@@ -211,8 +210,9 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
           if (status == RefreshStatus.completed) {
             return Container(
               alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              // margin: const EdgeInsets.only(top: 12),
+              margin: const EdgeInsets.only(top: 12),
+              // padding: const EdgeInsets.symmetric(vertical: 8),
+              height: 48,
               child: FadeTransition(
                 opacity: _scaleController,
                 child: ScaleTransition(
@@ -220,12 +220,11 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
                   child: Text(
                     Platform.isIOS ? "😉" : ";)",
                     style: Platform.isIOS 
-                    ? const TextStyle(fontSize: 22, height: 1) 
+                    ? const TextStyle(fontSize: 22) 
                     : TextStyle(
                       fontSize: 16, 
                       fontWeight: FontWeight.w600,
                       color: Colors.grey[800]!,
-                      height: 1
                     )
                   )
                 ),
@@ -235,7 +234,8 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
           return Container(
             alignment: Alignment.center,
             margin: const EdgeInsets.only(top: 12),
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            // padding: const EdgeInsets.symmetric(vertical: 8),
+            height: 48,
             child: FadeTransition(
               opacity: _scaleController,
               child: ScaleTransition(
@@ -282,7 +282,7 @@ class _MainEventsState extends ConsumerState<MainEvents> with AutomaticKeepAlive
                 ),
                 children: <TextSpan>[
                   if (Platform.isIOS) const TextSpan(text: ' 😮\n', style: TextStyle(fontSize: 18)),
-                  if (!Platform.isIOS) const TextSpan(text: ' :O\n', style: TextStyle(fontSize: 18)),
+                  if (!Platform.isIOS) const TextSpan(text: ' :0\n', style: TextStyle(fontSize: 18)),
                   const TextSpan(text: 'Stay tuned for invitations!'),
                   if (Platform.isIOS) const TextSpan(text: ' 📨🎉', style: TextStyle(fontSize: 18))
                 ]

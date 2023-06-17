@@ -760,17 +760,18 @@ func (r *mutationResolver) AddOrRemoveUser(ctx context.Context, followUserID int
 			newctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			userName, err := r.client.User.Query().
+			userName, err := utils.Client.User.Query().
 				Where(
 					user.ID(*userId),
 				).
 				Select(user.FieldName).
 				String(newctx)
 			if err != nil {
+				log.Printf("Error sending notification follow: %s", err)
 				return
 			}
 
-			notifications.SendPushNotifications(r.client, newctx, followUserID, "Happ", userName+" has added you as a friend!")
+			notifications.SendPushNotifications(utils.Client, newctx, followUserID, "Happ", userName+" has added you as a friend!")
 		}()
 
 		return &model.AddResponse{
@@ -2476,10 +2477,12 @@ func (r *queryResolver) GetUserEvents(ctx context.Context, limit int, idsList []
 			on (e.id = eu.event_id)
 			and (eu.user_id = ?)
 			and (eu.confirmed = true)
+
+		where DATE_ADD(e.event_date, INTERVAL 1 DAY) > NOW()
 	`
 
 	if len(placeholders) > 0 {
-		query += fmt.Sprintf("where e.id not in (%s) ", placeholders)
+		query += fmt.Sprintf("and e.id not in (%s) ", placeholders)
 	}
 
 	query += `
@@ -2644,10 +2647,12 @@ func (r *queryResolver) GetUserEventsFromFriends(ctx context.Context, limit int,
 	 		on (f.user_id = eu.invited_by)
 	 		and (f.follower_id = ?)
 	 		and (f.valid = true)
+
+		where DATE_ADD(e.event_date, INTERVAL 1 DAY) > NOW()
 	`
 
 	if len(placeholders) > 0 {
-		query += fmt.Sprintf("where e.id not in (%s) ", placeholders)
+		query += fmt.Sprintf("and e.id not in (%s) ", placeholders)
 	}
 
 	query += `
@@ -2812,6 +2817,7 @@ func (r *queryResolver) GetUserOtherEvents(ctx context.Context, limit int, idsLi
 	 		and (f.follower_id = ?)
 
 		where (f.user_id is null or f.valid = false)
+		and DATE_ADD(e.event_date, INTERVAL 1 DAY) > NOW()
 	`
 
 	if len(placeholders) > 0 {

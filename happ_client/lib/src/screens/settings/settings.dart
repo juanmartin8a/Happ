@@ -1,3 +1,5 @@
+import "dart:io";
+
 import "package:eva_icons_flutter/eva_icons_flutter.dart";
 import "package:fluentui_system_icons/fluentui_system_icons.dart";
 import "package:flutter/material.dart";
@@ -102,10 +104,11 @@ class _SettingsState extends ConsumerState<Settings> {
                             fontWeight: FontWeight.w700,
                             color: Colors.grey[800]!
                           ),
-                          children: const <TextSpan>[
-                            TextSpan(text: '⬇️ ', style: TextStyle(fontSize: 20)),
-                            TextSpan(text: 'DANGER ZONE'),
-                            TextSpan(text: '💀  ⬇️', style: TextStyle(fontSize: 20))
+                          children: <TextSpan>[
+                            if (Platform.isIOS) const TextSpan(text: '⬇️ ', style: TextStyle(fontSize: 20)),
+                            const TextSpan(text: 'DANGER ZONE'),
+                            if (!Platform.isIOS) const TextSpan(text: '❗️', style: TextStyle(fontSize: 20)),
+                            if (Platform.isIOS) const TextSpan(text: '💀  ⬇️', style: TextStyle(fontSize: 20))
                           ]
                         )
                       )

@@ -32,7 +32,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      // value: SystemUiOverlayStyle.light,
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent, //top status bar
+        systemNavigationBarColor: Colors.transparent, // navigation bar color, the one Im looking for
+        statusBarIconBrightness: Brightness.light, // status bar icons' color
+        systemNavigationBarIconBrightness:
+            Brightness.light, //navigation bar icons' color
+        statusBarBrightness: Brightness.light
+        
+      ),
       child: Material(
         child: Stack(
           children: [

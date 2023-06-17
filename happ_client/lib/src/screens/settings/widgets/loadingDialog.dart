@@ -1,3 +1,5 @@
+import "dart:io";
+
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:go_router/go_router.dart";
@@ -19,7 +21,12 @@ class LoadingDialog extends ConsumerWidget {
     DeleteUserState state = ref.watch(deleteUserProvider);
     if(state is DeleteUserInitState){
       isDefault = true;
-      textMessage = "Are you considering deleting your account?😫";
+      textMessage = "Are you considering deleting your account?\n";
+      if (Platform.isIOS) {
+        textMessage += "😫";
+      } else {
+        textMessage += ":(";
+      }
     }
     if (state is DeleteUserLoadingState) {
       loading = true;

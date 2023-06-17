@@ -43,6 +43,7 @@ class _HomeState extends ConsumerState<Home> with SingleTickerProviderStateMixin
         statusBarIconBrightness: Brightness.dark, // status bar icons' color
         systemNavigationBarIconBrightness:
             Brightness.light, //navigation bar icons' color
+        statusBarBrightness: Brightness.light
         
       ),
       child: SafeArea(
@@ -203,13 +204,12 @@ class _HomeState extends ConsumerState<Home> with SingleTickerProviderStateMixin
       sound: true,
     );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    if (settings.authorizationStatus == AuthorizationStatus.authorized || settings.authorizationStatus == AuthorizationStatus.provisional) {
       String? currentToken = await messaging.getToken();
 
       var box = Hive.box('myBox');
 
       var token = box.get("FCM_token");
-
 
       if (currentToken != null && token != currentToken) {
         try {

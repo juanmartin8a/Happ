@@ -43,23 +43,33 @@ class _MainScreenState extends ConsumerState<MainScreen> with SingleTickerProvid
                   indicatorHeight: 35,
                   indicatorColor: Colors.black,
                   tabBarIndicatorSize: TabBarIndicatorSize.label,
-                  padding: EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                  // padding: EdgeInsets.symmetric(),
+
                 ),
+                
                 tabs: [
                   AnimatedBuilder(
                     animation: _tabController.animation!,
                     builder: (context, widget) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8,),
                         color: Colors.transparent,
-                        child: Text(
-                          "Events",
-                          style: TextStyle(
-                            color: ColorTween(begin: Colors.white, end: Colors.black).animate(_tabController.animation!).value,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          )
-                        )
+                        height: 35,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              "Events",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: ColorTween(begin: Colors.white, end: Colors.black).animate(_tabController.animation!).value,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              )
+                            )
+                          ],
+                        ),
                       );
                     }
                   ),
@@ -67,16 +77,24 @@ class _MainScreenState extends ConsumerState<MainScreen> with SingleTickerProvid
                     animation: _tabController.animation!,
                     builder: (context, widget) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        // alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(horizontal: 8,),
                         color: Colors.transparent,
-                        child: Text(
-                          "Invitations",
-                          style: TextStyle(
-                            color: ColorTween(begin: Colors.black, end: Colors.white).animate(_tabController.animation!).value,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          )
-                        )
+                        height: 35,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              "Invitations",
+                              style: TextStyle(
+                                color: ColorTween(begin: Colors.black, end: Colors.white).animate(_tabController.animation!).value,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       );
                     }
                   )

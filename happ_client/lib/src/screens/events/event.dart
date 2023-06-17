@@ -152,7 +152,7 @@ class _EventState extends ConsumerState<Event> {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       // value: SystemUiOverlayStyle.dark,
-       value: const SystemUiOverlayStyle(
+      value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent, //top status bar
         systemNavigationBarColor: Colors.transparent, // navigation bar color, the one Im looking for
         statusBarIconBrightness: Brightness.dark, // status bar icons' color

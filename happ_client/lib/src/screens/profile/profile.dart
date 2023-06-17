@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -232,13 +234,20 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
 
       ref.listen(profileAddedMeProvider("PROFILE/addedMe/sess:$uuid"), (prev, next) {
         if (next is AddedMeLoadedState) {
-          if (addedMeUsers.isEmpty) {
+          if (next.isUpdate == true) {
             setState(() {
-              addedMeUsers = [...addedMeUsers, ...next.val.users];
+              addedMeUsers = next.val.users.length > 20 ? next.val.users.sublist(0, 20) : next.val.users;
               addedMeUsersIds = addedMeUsers.map((user) => user.id).toList();
-              addedMeHasMore = next.val.hasMore;
-              addedMeIsLoading = false;
             });
+          } else {
+            if (addedMeUsers.isEmpty) {
+              setState(() {
+                addedMeUsers = [...addedMeUsers, ...next.val.users];
+                addedMeUsersIds = addedMeUsers.map((user) => user.id).toList();
+                hasMore = next.val.hasMore;
+                isLoading = false;
+              });
+            }
           }
         }
       });
@@ -336,16 +345,13 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                     textAlign: TextAlign.center,
                     
                     text: TextSpan(
-                      text: "No mutual friends yet...",
+                      text: "No mutual friends :0",
                       style: TextStyle(
                         fontFamily: "Inter",
                         color: Colors.grey[800],
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
-                      children: const <TextSpan>[
-                        // TextSpan(text: '', style: TextStyle(fontSize: 18)),
-                      ]
                     )
                   )
                 ),
@@ -446,15 +452,17 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                         textAlign: TextAlign.center,
                         
                         text: TextSpan(
-                          text: "No friends yet? ",
+                          // text: "You haven't added your friends yet? ",
+                          text: "Your friends' list is still empty? ",
                           style: TextStyle(
                             fontFamily: "Inter",
                             color: Colors.grey[800],
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
-                          children: const <TextSpan>[
-                            // TextSpan(text: '', style: TextStyle(fontSize: 18)),
+                          children: <TextSpan>[
+                            if (Platform.isIOS) const TextSpan(text: '😱', style: TextStyle(fontSize: 18)),
+                            if (!Platform.isIOS) const TextSpan(text: ':0'),
                           ]
                         )
                       )
@@ -554,15 +562,16 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                         textAlign: TextAlign.center,
                         
                         text: TextSpan(
-                          text: "No one has added you as a friend yet.",
+                          text: "No one has added you as a friend... Yet! ",
                           style: TextStyle(
                             fontFamily: "Inter",
                             color: Colors.grey[800],
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
-                          children: const <TextSpan>[
-                            // TextSpan(text: '', style: TextStyle(fontSize: 18)),
+                          children: <TextSpan>[
+                            if (Platform.isIOS) const TextSpan(text: '😉', style: TextStyle(fontSize: 18)),
+                            if (!Platform.isIOS) const TextSpan(text: ';)'),
                           ]
                         )
                       )
@@ -695,7 +704,7 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
                               color: isInitLoading
                               ?Colors.grey[800]
                               : followState! ? Colors.grey[800] : Colors.white,
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                           ),

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -38,8 +40,7 @@ void main() async {
   final firebaseAuth = FirebaseAuth.instance;
 
   final HttpLink httpLink = HttpLink(
-    'http://192.168.100.88:8080/query'
-    // 'https://api.happ.rsvp/query'
+    'https://api.happ.rsvp/query'
   );
 
   final AuthLink authLink = AuthLink(
@@ -97,6 +98,7 @@ class MyApp extends ConsumerWidget {
               statusBarIconBrightness: Brightness.dark, // status bar icons' color
               systemNavigationBarIconBrightness:
                   Brightness.light, //navigation bar icons' color
+              statusBarBrightness: Brightness.light
             ),
           )
         ),
@@ -114,167 +116,317 @@ class MyApp extends ConsumerWidget {
       GoRoute(
         path: '/new-event-guest-list',
         // name: "sample",
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (BuildContext context, GoRouterState state) {
           NewEventInvitedFriendsListParams params = state.extra as NewEventInvitedFriendsListParams;
-          return NewEventGuestList(
-            users: params.selectedUsers,
-            organizers: params.organizers,
-            eventId: params.eventId,
-            key: Key("guestList_eventId_${params.eventId}")
+
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state,
+            child: NewEventGuestList(
+              users: params.selectedUsers,
+              organizers: params.organizers,
+              eventId: params.eventId,
+              key: Key("guestList_eventId_${params.eventId}")
+            )
           );
+          // return NewEventGuestList(
+          //   users: params.selectedUsers,
+          //   organizers: params.organizers,
+          //   eventId: params.eventId,
+          //   key: Key("guestList_eventId_${params.eventId}")
+          // );
         }
       ),
       GoRoute(
         path: '/event',
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (context, state) {
           EventParams params = state.extra as EventParams;
-          
-          return Event(
-            inviteRes: params.inviteRes,
-            key: Key("event_id_${params.inviteRes.event.id}")
+
+          // return MaterialPage(
+          //   child: Event(
+          //     inviteRes: params.inviteRes,
+          //     key: Key("event_id_${params.inviteRes.event.id}")
+          //   )
+          // );
+
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state, 
+            child: Event(
+              inviteRes: params.inviteRes,
+              key: Key("event_id_${params.inviteRes.event.id}")
+            )
           );
         }
       ),
       // EventInvitation
       GoRoute(
         path: '/event-invitation',
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (BuildContext context, GoRouterState state) {
 
           InviteParams params = state.extra as InviteParams;
           
-          return EventInvitation(
-            event: params.event,
-            cypherText: params.cypherText,
-            key: Key("invitation_event_id_${params.event.id}")
+          // return EventInvitation(
+          //   event: params.event,
+          //   cypherText: params.cypherText,
+          //   key: Key("invitation_event_id_${params.event.id}")
+          // );
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state,
+            child: EventInvitation(
+              event: params.event,
+              cypherText: params.cypherText,
+              key: Key("invitation_event_id_${params.event.id}")
+            )
           );
         }
       ),
       GoRoute(
         path: '/event-guest-list',
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (BuildContext context, GoRouterState state) {
 
           EventGuestListParams params = state.extra as EventGuestListParams;
           
-          return GuestList(
-            eventId: params.eventId,
-            isHost: params.isHost,
-            isCreator: params.isCreator,
-            paginatedHostsRes: params.paginatedHostsRes,
-            paginatedGuestRes: params.paginatedGuestsRes,
-            key: Key("event_guest_list_${params.eventId}")
+          // return GuestList(
+          //   eventId: params.eventId,
+          //   isHost: params.isHost,
+          //   isCreator: params.isCreator,
+          //   paginatedHostsRes: params.paginatedHostsRes,
+          //   paginatedGuestRes: params.paginatedGuestsRes,
+          //   key: Key("event_guest_list_${params.eventId}")
+          // );
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state,
+            child: GuestList(
+              eventId: params.eventId,
+              isHost: params.isHost,
+              isCreator: params.isCreator,
+              paginatedHostsRes: params.paginatedHostsRes,
+              paginatedGuestRes: params.paginatedGuestsRes,
+              key: Key("event_guest_list_${params.eventId}")
+            )
           );
         }
       ),
       GoRoute(
         path: '/update-event',
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (BuildContext context, GoRouterState state) {
 
           EventParams params = state.extra as EventParams;
           
-          return UpdateEvent(
-            inviteRes: params.inviteRes,
-            key: Key("update_event_id_${params.inviteRes.event.id}")
+          // return UpdateEvent(
+          //   inviteRes: params.inviteRes,
+          //   key: Key("update_event_id_${params.inviteRes.event.id}")
+          // );
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state,
+            child: UpdateEvent(
+              inviteRes: params.inviteRes,
+              key: Key("update_event_id_${params.inviteRes.event.id}")
+            )
           );
         }
       ),
       GoRoute(
         path: '/invite-guests',
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (BuildContext context, GoRouterState state) {
 
           InviteGuestsScreenParams params = state.extra as InviteGuestsScreenParams;
           
-          return InviteNewGuests(
-            eventId: params.eventId,
-            key: Key("invite_guests_${params.eventId}")
+          // return InviteNewGuests(
+          //   eventId: params.eventId,
+          //   key: Key("invite_guests_${params.eventId}")
+          // );
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state,
+            child: InviteNewGuests(
+              eventId: params.eventId,
+              key: Key("invite_guests_${params.eventId}")
+            )
           );
         }
       ),
       GoRoute(
         path: '/scan-pass',
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (BuildContext context, GoRouterState state) {
 
           InviteGuestsScreenParams params = state.extra as InviteGuestsScreenParams;
           
-          return ScanScreen(
-            eventId: params.eventId,
-            key: Key("scan_screen_${params.eventId}")
+          // return ScanScreen(
+          //   eventId: params.eventId,
+          //   key: Key("scan_screen_${params.eventId}")
+          // );
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state,
+            child: ScanScreen(
+              eventId: params.eventId,
+              key: Key("scan_screen_${params.eventId}")
+            )
           );
         }
       ),
       GoRoute(
         path: '/profile',
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (BuildContext context, GoRouterState state) {
 
           ProfileParams params = state.extra as ProfileParams;
           
-          return Profile(
-            user: params.user,
-            key: Key("profie_screen_${params.user.id}")
+          // return Profile(
+          //   user: params.user,
+          //   key: Key("profie_screen_${params.user.id}")
+          // );
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state,
+            child: Profile(
+              user: params.user,
+              key: Key("profie_screen_${params.user.id}")
+            )
           );
         }
       ),
       GoRoute(
         path: '/update-user',
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (BuildContext context, GoRouterState state) {
 
           ProfileParams params = state.extra as ProfileParams;
           
-          return UpdateUser(
-            user: params.user,
-            key: const Key("update_user_screen")
+          // return UpdateUser(
+          //   user: params.user,
+          //   key: const Key("update_user_screen")
+          // );
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state,
+            child: UpdateUser(
+              user: params.user,
+              key: const Key("update_user_screen")
+            )
           );
         }
       ),
       GoRoute(
         path: '/settings',
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (BuildContext context, GoRouterState state) {
 
-          return const Settings();
+          // return const Settings();
+
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state,
+            child: const Settings()
+          );
         }
       ),
       GoRoute(
         path: '/added-me',
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (BuildContext context, GoRouterState state) {
 
           AddedMeParams params = state.extra as AddedMeParams;
 
-          return AddedMeScreen(
-            addedMeUsers: params.addedMeUsers,
-            uuid: params.uuid,
-            hasMore: params.hasMore,
-            key: const Key("addedMe")
+          // return AddedMeScreen(
+          //   addedMeUsers: params.addedMeUsers,
+          //   uuid: params.uuid,
+          //   hasMore: params.hasMore,
+          //   key: const Key("addedMe")
+          // );
+
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state,
+            child: AddedMeScreen(
+              addedMeUsers: params.addedMeUsers,
+              uuid: params.uuid,
+              hasMore: params.hasMore,
+              key: const Key("addedMe")
+            )
           );
         }
       ),
       GoRoute(
         path: '/my-friends',
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (BuildContext context, GoRouterState state) {
 
           MyFriendsParams params = state.extra as MyFriendsParams;
 
-          return FriendsScreen(
-            users: params.users, 
-            hasMore: params.hasMore, 
-            uuid: params.uuid,
-            key: const Key("friends")
+          // return FriendsScreen(
+          //   users: params.users, 
+          //   hasMore: params.hasMore, 
+          //   uuid: params.uuid,
+          //   key: const Key("friends")
+          // );
+
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state,
+            child: FriendsScreen(
+              users: params.users, 
+              hasMore: params.hasMore, 
+              uuid: params.uuid,
+              key: const Key("friends")
+            )
           );
         }
       ),
       GoRoute(
         path: '/mutual-friends',
-        builder: (BuildContext context, GoRouterState state) {
+        pageBuilder: (BuildContext context, GoRouterState state) {
 
           MutualFriendsParams params = state.extra as MutualFriendsParams;
 
-          return MutualFriendsScreen(
-            userId: params.userId,
-            users: params.users, 
-            hasMore: params.hasMore, 
-            uuid: params.uuid,
-            key: const Key("friends")
+          // return MutualFriendsScreen(
+          //   userId: params.userId,
+          //   users: params.users,
+          //   hasMore: params.hasMore,
+          //   uuid: params.uuid,
+          //   key: const Key("friends")
+          // );
+
+          return buildPageWithDefaultTransition<void>(
+            context: context,
+            state: state,
+            child: MutualFriendsScreen(
+              userId: params.userId,
+              users: params.users,
+              hasMore: params.hasMore,
+              uuid: params.uuid,
+              key: const Key("friends")
+            )
           );
         }
       ),
     ],
+  );
+}
+
+dynamic buildPageWithDefaultTransition<T>({
+  required BuildContext context, 
+  required GoRouterState state, 
+  required Widget child,
+}) {
+
+  if (Platform.isIOS) {
+    return MaterialPage(
+      child: child
+    );
+  }
+
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return SlideTransition(position: Tween<Offset>(
+        begin: const Offset(1.0, 0.0),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeInOut,
+      )), child: child);
+    }
   );
 }

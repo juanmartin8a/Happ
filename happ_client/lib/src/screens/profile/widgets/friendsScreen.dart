@@ -143,30 +143,19 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> with AutomaticKee
                 physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics(),),
                 children: [
                   ...users.map((user) {
-                    return GestureDetector(
-                      onTap: () {
-                        // print("Hello there");
-                        // final inviteRes = EventTypesConverter().convertOtherInviteResToFriendsInviteRes(invite);
-                        // final user = ProfileUserData.fromSearchUsersQueryUser(searchUsersRes[searchUserResIndex]);
-                        // context.push('/profile', extra: ProfileParams(
-                        //     user: user,
-                        //   )
-                        // );
-                      },
-                      child: UserTile(
-                        id: user.id,
-                        profilePic: user.profilePic, 
-                        name: user.name,
-                        username: user.username,
-                        followState: userIdsWhereUnfollow.contains(user.id) ? false : true,
-                        extraWidget: SearchUserAddButton(
-                          onAddOrRemoveStateChange: onAddOrRemoveStateChange,
-                          userId: user.id.toInt(),
-                          isFollow: userIdsWhereUnfollow.contains(user.id) ? false : true,
-                          key: Key("addRemoveButton_${user.id}")
-                        ),
-                        key: Key("userTile_myFriends_${user.id}")
-                      )
+                    return UserTile(
+                      id: user.id,
+                      profilePic: user.profilePic, 
+                      name: user.name,
+                      username: user.username,
+                      followState: userIdsWhereUnfollow.contains(user.id) ? false : true,
+                      extraWidget: SearchUserAddButton(
+                        onAddOrRemoveStateChange: onAddOrRemoveStateChange,
+                        userId: user.id.toInt(),
+                        isFollow: userIdsWhereUnfollow.contains(user.id) ? false : true,
+                        key: Key("addRemoveButton_${user.id}")
+                      ),
+                      key: Key("userTile_myFriends_${user.id}")
                     );
                   }).toList(),
                   if (isLoading && users.isNotEmpty)
