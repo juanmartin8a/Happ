@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/gestures.dart';
 import "package:flutter/material.dart";
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
@@ -84,230 +85,242 @@ class _AuthState extends ConsumerState<Auth> with SingleTickerProviderStateMixin
       }
     });
 
-    return Material(
-      color: Colors.white,
-      child: Column(
-        children: [
-          SizedBox(
-            height: MediaQuery.of(context).padding.top
-          ),
-          const Spacer(),
-          const Center(
-            child: Text(
-              "Welcome to\nHapp ;)",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 40,
-                fontWeight: FontWeight.w700,
-                // height: 1
+    return AnnotatedRegion<SystemUiOverlayStyle>( 
+      // value: SystemUiOverlayStyle.dark,
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent, //top status bar
+        systemNavigationBarColor: Colors.transparent, // navigation bar color, the one Im looking for
+        statusBarIconBrightness: Brightness.dark, // status bar icons' color
+        systemNavigationBarIconBrightness:
+            Brightness.light, //navigation bar icons' color
+        statusBarBrightness: Brightness.light
+        
+      ),
+      child: Material(
+        color: Colors.white,
+        child: Column(
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).padding.top
+            ),
+            const Spacer(),
+            const Center(
+              child: Text(
+                "Welcome to\nHapp ;)",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 40,
+                  fontWeight: FontWeight.w700,
+                  // height: 1
+                )
               )
-            )
-            
-          ),
-          const SizedBox(
-            height: 24
-          ),
-          if (Platform.isIOS)
-          const SizedBox(
-            height: 12
-          ),
-          if (Platform.isIOS)
-          GestureDetector(
-            onTap: () {
-              if (isTermsConfirmed) {
-                signInWithApple();
-              } else {
-                // animController!.forward();
-                if (!animController!.isAnimating) {
-                  animController!.forward();
+              
+            ),
+            const SizedBox(
+              height: 24
+            ),
+            if (Platform.isIOS)
+            const SizedBox(
+              height: 12
+            ),
+            if (Platform.isIOS)
+            GestureDetector(
+              onTap: () {
+                if (isTermsConfirmed) {
+                  signInWithApple();
+                } else {
+                  // animController!.forward();
+                  if (!animController!.isAnimating) {
+                    animController!.forward();
+                  }
                 }
-              }
-            },
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: 47,
-              // padding: const EdgeInsets.all(9),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                // border: Border.all(width: 2, color: Colors.grey[800]!),
-                borderRadius: BorderRadius.circular(25)
-              ),
-              child: isAppleLoading 
-              ? const Center(
-                child: Loader(radius: 8, brightness: Brightness.dark)
-              )
-              : Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Image.asset(
-                      "assets/logos/apple_logo.png",
-                      height: 47,
-                      width: 47,
+              },
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: 47,
+                // padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  // border: Border.all(width: 2, color: Colors.grey[800]!),
+                  borderRadius: BorderRadius.circular(25)
+                ),
+                child: isAppleLoading 
+                ? const Center(
+                  child: Loader(radius: 8, brightness: Brightness.dark)
+                )
+                : Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Image.asset(
+                        "assets/logos/apple_logo.png",
+                        height: 47,
+                        width: 47,
+                      ),
                     ),
-                  ),
-                  const Text(
-                    "Continue with Apple",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      height: 1
-                    )
-                  ),
-                ],
-              )
-            ),
-          ),
-          const SizedBox(
-            height: 6
-          ),
-          GestureDetector(
-            onTap: () {
-              if (isTermsConfirmed) {
-                signInWithGoogle();
-              } else {
-                if (!animController!.isAnimating) {
-                  animController!.forward();
-                }
-              }
-            },
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: 47,
-              // padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                border: Border.all(width: 2, color: Colors.grey[800]!),
-                borderRadius: BorderRadius.circular(25)
-              ),
-              child: isGoogleLoading 
-              ? const Center(
-                child: Loader(radius: 8)
-              )
-              : Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    "assets/logos/google_logo.png",
-                    height: 19,
-                    width: 19,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    "Continue with Google",
-                    style: TextStyle(
-                      fontFamily: "",
-                      color: Colors.grey[800],
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      height: 1
-                    )
-                  ),
-                ],
-              )
-            ),
-          ),
-          const SizedBox(
-            height: 24
-          ),
-          ScaleTransition(
-            scale: animController!.drive(Tween(begin: 1.0, end: 1.06)),
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
-              // height: 50,
-              child: Row(
-                // mainAxisAlignment: MainAxisAlignment.start,
-                // crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isTermsConfirmed = !isTermsConfirmed;
-                      });
-                    },
-                    child: SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: Container(
-                        // color: Colors.red,
-                        decoration: BoxDecoration(
-                          color: isTermsConfirmed ? Colors.greenAccent[700]! : null,
-                          borderRadius: BorderRadius.circular(6),
-                          border: !isTermsConfirmed ? Border.all(width: 1.5, color: Colors.grey[500]!) : null
-                        ),
-                        child: isTermsConfirmed 
-                        ? const Center(
-                          child: Icon(
-                            FluentIcons.checkmark_12_regular,
-                            color: Colors.white,
-                            size: 18
-                          )
-                        ) : null,
-                      )
-                    )
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: RichText(
-                      // textAlign: TextAlign.center,
-                      text: TextSpan(
-                        text: "I have read and agree to the ",
-                        style: TextStyle(
-                          fontFamily: "Inter",
-                          color: Colors.grey[800],
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: "Terms of Use ",
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                launchUrl(
-                                  Uri.parse('https://www.happ.rsvp/legal/terms-of-use')
-                                );
-                              },
-                          ),
-                          const TextSpan(text: "and "),
-                          TextSpan(
-                            text: "Privacy Policy", 
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                launchUrl(
-                                  Uri.parse('https://www.happ.rsvp/legal/privacy-policy')
-                                );
-                              },
-                          ),
-                          const TextSpan(text: "."),
-                        ]
+                    const Text(
+                      "Continue with Apple",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        height: 1
                       )
                     ),
-                  ),
-                ],
+                  ],
+                )
               ),
             ),
-          ),
-          const Spacer(),
-          SizedBox(
-            height: MediaQuery.of(context).padding.bottom
-          ),
-        ],
-      )
+            const SizedBox(
+              height: 6
+            ),
+            GestureDetector(
+              onTap: () {
+                if (isTermsConfirmed) {
+                  signInWithGoogle();
+                } else {
+                  if (!animController!.isAnimating) {
+                    animController!.forward();
+                  }
+                }
+              },
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: 47,
+                // padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(width: 2, color: Colors.grey[800]!),
+                  borderRadius: BorderRadius.circular(25)
+                ),
+                child: isGoogleLoading 
+                ? const Center(
+                  child: Loader(radius: 8)
+                )
+                : Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      "assets/logos/google_logo.png",
+                      height: 19,
+                      width: 19,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      "Continue with Google",
+                      style: TextStyle(
+                        fontFamily: "",
+                        color: Colors.grey[800],
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        height: 1
+                      )
+                    ),
+                  ],
+                )
+              ),
+            ),
+            const SizedBox(
+              height: 24
+            ),
+            ScaleTransition(
+              scale: animController!.drive(Tween(begin: 1.0, end: 1.06)),
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,
+                // height: 50,
+                child: Row(
+                  // mainAxisAlignment: MainAxisAlignment.start,
+                  // crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isTermsConfirmed = !isTermsConfirmed;
+                        });
+                      },
+                      child: SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: Container(
+                          // color: Colors.red,
+                          decoration: BoxDecoration(
+                            color: isTermsConfirmed ? Colors.greenAccent[700]! : null,
+                            borderRadius: BorderRadius.circular(6),
+                            border: !isTermsConfirmed ? Border.all(width: 1.5, color: Colors.grey[500]!) : null
+                          ),
+                          child: isTermsConfirmed 
+                          ? const Center(
+                            child: Icon(
+                              FluentIcons.checkmark_12_regular,
+                              color: Colors.white,
+                              size: 18
+                            )
+                          ) : null,
+                        )
+                      )
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: RichText(
+                        // textAlign: TextAlign.center,
+                        text: TextSpan(
+                          text: "I have read and agree to the ",
+                          style: TextStyle(
+                            fontFamily: "Inter",
+                            color: Colors.grey[800],
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: "Terms of Use ",
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  launchUrl(
+                                    Uri.parse('https://www.happ.rsvp/legal/terms-of-use')
+                                  );
+                                },
+                            ),
+                            const TextSpan(text: "and "),
+                            TextSpan(
+                              text: "Privacy Policy", 
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  launchUrl(
+                                    Uri.parse('https://www.happ.rsvp/legal/privacy-policy')
+                                  );
+                                },
+                            ),
+                            const TextSpan(text: "."),
+                          ]
+                        )
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Spacer(),
+            SizedBox(
+              height: MediaQuery.of(context).padding.bottom
+            ),
+          ],
+        )
+      ),
     );
   }
 
