@@ -177,6 +177,7 @@ class MyApp extends ConsumerWidget {
             child: EventInvitation(
               event: params.event,
               cypherText: params.cypherText,
+              image: params.image,
               key: Key("invitation_event_id_${params.event.id}")
             )
           );

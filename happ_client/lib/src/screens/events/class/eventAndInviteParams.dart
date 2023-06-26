@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -11,9 +13,11 @@ class EventParams {
 class InviteParams {
   final GetUserEventsFromFriends$Query$PaginatedEventResults$EventInviteRes$Event event;
   final String? cypherText;
+  final Uint8List? image;
   const InviteParams({
     required this.event,
     required this.cypherText,
+    required this.image,
   });
 }
 

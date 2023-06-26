@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +11,7 @@ import 'package:happ_client/src/riverpod/seePass/seePass.dart';
 import 'package:happ_client/src/riverpod/seePass/seePassState.dart';
 import 'package:happ_client/src/screens/events/class/eventAndInviteParams.dart';
 import 'package:happ_client/src/screens/main/widgets/otherInvitations.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class AcceptButton extends ConsumerStatefulWidget {
   final GetUserEventsFromFriends$Query$PaginatedEventResults$EventInviteRes inviteRes;
@@ -21,6 +25,8 @@ class AcceptButton extends ConsumerStatefulWidget {
 }
 
 class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepAliveClientMixin {
+  WebViewController? controller;
+  
   bool isDone = false;
   bool isLoading = false;
 
@@ -49,23 +55,60 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
     super.build(context);
     ref.listen(acceptInvitationProvider, (previous, next) {
       if (next is AcceptInvitationDoneState) {
-        setState(() {
-          isDone = true;
-          isLoading = false;
-          isConfirmed = true;
-        });
+        // setState(() {
+        //   isDone = true;
+        //   isLoading = false;
+        //   isConfirmed = true;
+        // });
 
         if (!next.acceptInviteRes.isHost) {
 
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            context.push(
-              '/event-invitation',
-              extra: InviteParams(
-                event: event,
-                cypherText: next.acceptInviteRes.cypherText,
-              )
-            );
-          });
+          if (next.acceptInviteRes.cypherText != null) {
+
+            final html = dynamicHTML(next.acceptInviteRes.cypherText!);
+            controller = WebViewController()
+              ..setJavaScriptMode(JavaScriptMode.unrestricted)
+              ..addJavaScriptChannel("Print", onMessageReceived: (message) {
+                final blob = message.message;
+                final stripped = blob.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
+
+                Uint8List image = const Base64Codec().decode(stripped);
+
+                // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                  context.push(
+                    '/event-invitation',
+                    extra: InviteParams(
+                      event: event,
+                      cypherText: next.acceptInviteRes.cypherText,
+                      image: image
+                    )
+                  );
+                // });
+              })
+              // ..setNavigationDelegate(
+              //   NavigationDelegate(
+              //     onPageFinished: (String url) {
+              //       print("hello there");
+              //       setState(() {
+              //         // isLoading = false;
+              //       });
+              //     },
+              //   ),
+              // )
+              ..loadHtmlString(html);
+          } else {
+            // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              context.push(
+                '/event-invitation',
+                extra: InviteParams(
+                  event: event,
+                  cypherText: next.acceptInviteRes.cypherText,
+                  image: null
+                )
+              );
+            // });
+          }
+
         }
 
         final userInfoJson = userInfo.toJson();
@@ -75,6 +118,12 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
         final newUserInfo = GetUserEventsFromFriends$Query$PaginatedEventResults$EventInviteRes$InvitedUserInfo.fromJson(userInfoJson);
 
         ref.read(userEventsProvider.notifier).updateUserInfo(false, widget.inviteRes, newUserInfo);
+
+        setState(() {
+          isDone = true;
+          isLoading = false;
+          isConfirmed = true;
+        });
         
       } else if (next is AcceptInvitationLoadingState) {
         setState(() {
@@ -86,20 +135,80 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
 
     ref.listen(seePassProvider, (previous, next) {
       if (next is SeePassDoneState) {
-        setState(() {
-          isDone = true;
-          isLoading = false;
-        });
 
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          context.push(
-            '/event-invitation',
-            extra: InviteParams(
-              event: event,
-              cypherText: next.cypherText,
-            )
-          );
-        });
+        if (next.cypherText != null) {
+
+          final html = dynamicHTML(next.cypherText!);
+          controller = WebViewController()
+            ..setJavaScriptMode(JavaScriptMode.unrestricted)
+            ..addJavaScriptChannel("Print", onMessageReceived: (message) {
+              final blob = message.message;
+              final stripped = blob.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
+
+              Uint8List image = const Base64Codec().decode(stripped);
+
+              // setState(() {
+              //   isDone = true;
+              //   isLoading = false;
+              // });
+
+              // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                context.push(
+                  '/event-invitation',
+                  extra: InviteParams(
+                    event: event,
+                    cypherText: next.cypherText,
+                    image: image
+                  )
+                );
+              // });
+              setState(() {
+                isDone = true;
+                isLoading = false;
+              });
+            })
+            // ..setNavigationDelegate(
+            //   NavigationDelegate(
+            //     onPageFinished: (String url) {
+            //       print("hello there");
+            //       setState(() {
+            //         // isLoading = false;
+            //       });
+            //     },
+            //   ),
+            // )
+            ..loadHtmlString(html);
+        } else {
+          setState(() {
+            isDone = true;
+            isLoading = false;
+          });
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            context.push(
+              '/event-invitation',
+              extra: InviteParams(
+                event: event,
+                cypherText: next.cypherText,
+                image: null
+              )
+            );
+          });
+        }
+
+        // setState(() {
+        //   isDone = true;
+        //   isLoading = false;
+        // });
+
+        // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        //   context.push(
+        //     '/event-invitation',
+        //     extra: InviteParams(
+        //       event: event,
+        //       cypherText: next.cypherText,
+        //     )
+        //   );
+        // });
 
         // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         //   context.push(
@@ -131,7 +240,7 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
       }
     } else {
       if (isConfirmed) {
-        buttonTextString = "See pass";
+        buttonTextString = "See your pass";
       } else {
         buttonTextString = "Accept";
       }
@@ -188,6 +297,56 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
         )
       ),
     );
+  }
+
+  String dynamicHTML(String cypherText) {
+    final html = '''
+    <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <title>QR Code Styling</title>
+          <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+      </head>
+      <body>
+      <script type="text/javascript">
+
+        const qrCode = new QRCodeStyling({
+          width: 1000,
+          height: 1000,
+          type: "svg",
+          data: "$cypherText",
+          dotsOptions: {
+            color: "#000000",
+            type: "rounded"
+          },
+          cornersSquareOptions: {
+            type: "extra-rounded"
+          },
+          qrOptions: {
+            errorCorrectionLevel: 'M'
+          },
+          imageOptions: {
+            crossOrigin: "anonymous",
+            margin: 0
+          }
+        });
+
+        qrCode.getRawData().then((val) => {
+          var reader = new FileReader();
+          reader.readAsDataURL(val); 
+          reader.onloadend = () => {
+            var base64data = reader.result;                
+            window.Print.postMessage(base64data)
+          }
+        });
+
+      </script>
+      </body>
+      </html>
+    ''';
+
+    return html;
   }
   
   @override

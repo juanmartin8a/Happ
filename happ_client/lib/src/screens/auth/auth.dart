@@ -166,7 +166,7 @@ class _AuthState extends ConsumerState<Auth> with SingleTickerProviderStateMixin
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                         height: 1
                       )
                     ),
@@ -193,7 +193,7 @@ class _AuthState extends ConsumerState<Auth> with SingleTickerProviderStateMixin
                 // padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.transparent,
-                  border: Border.all(width: 2, color: Colors.grey[800]!),
+                  border: Border.all(width: 2, color: Colors.black),
                   borderRadius: BorderRadius.circular(25)
                 ),
                 child: isGoogleLoading 
@@ -213,10 +213,10 @@ class _AuthState extends ConsumerState<Auth> with SingleTickerProviderStateMixin
                     Text(
                       "Continue with Google",
                       style: TextStyle(
-                        fontFamily: "",
-                        color: Colors.grey[800],
+                        // fontFamily: "",
+                        color: Colors.grey[900],
                         fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                         height: 1
                       )
                     ),
@@ -243,12 +243,12 @@ class _AuthState extends ConsumerState<Auth> with SingleTickerProviderStateMixin
                         });
                       },
                       child: SizedBox(
-                        height: 18,
-                        width: 18,
+                        height: 20,
+                        width: 20,
                         child: Container(
                           // color: Colors.red,
                           decoration: BoxDecoration(
-                            color: isTermsConfirmed ? Colors.greenAccent[700]! : null,
+                            color: isTermsConfirmed ? Colors.black : null,
                             borderRadius: BorderRadius.circular(6),
                             border: !isTermsConfirmed ? Border.all(width: 1.5, color: Colors.grey[500]!) : null
                           ),
