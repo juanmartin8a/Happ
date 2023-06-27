@@ -679,7 +679,7 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 			newctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			rows, allGuestsErr := r.client.DB().QueryContext(newctx, `
+			rows, allGuestsErr := utils.Client.DB().QueryContext(newctx, `
 				SELECT d.token FROM event_users eu
 				JOIN devices d ON eu.user_id = d.user_id
 				WHERE eu.event_id = ? AND eu.confirmed = true;
@@ -714,7 +714,7 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 			newctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			userName, err := r.client.User.Query().
+			userName, err := utils.Client.User.Query().
 				Where(
 					user.ID(*userId),
 				).
@@ -974,7 +974,7 @@ func (r *mutationResolver) InviteGuestsAndOrganizers(ctx context.Context, guests
 		newctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		userName, err := r.client.User.Query().
+		userName, err := utils.Client.User.Query().
 			Where(
 				user.ID(*currentUserID),
 			).
@@ -984,7 +984,7 @@ func (r *mutationResolver) InviteGuestsAndOrganizers(ctx context.Context, guests
 			return
 		}
 
-		eventName, err := r.client.Event.Query().
+		eventName, err := utils.Client.Event.Query().
 			Where(
 				event.ID(eventID),
 			).
@@ -994,7 +994,7 @@ func (r *mutationResolver) InviteGuestsAndOrganizers(ctx context.Context, guests
 			return
 		}
 
-		notifications.SendManyPushNotifications(r.client, newctx, userIds, "Happ", userName+" has invited you to "+eventName)
+		notifications.SendManyPushNotifications(utils.Client, newctx, userIds, "Happ", userName+" has invited you to "+eventName)
 	}()
 
 	return true, nil
@@ -1104,7 +1104,7 @@ func (r *mutationResolver) AcceptInvitation(ctx context.Context, eventID int) (*
 		newctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		rows, err := r.client.DB().QueryContext(newctx, `
+		rows, err := utils.Client.DB().QueryContext(newctx, `
 			SELECT d.token FROM event_users eu
 			JOIN devices d ON eu.user_id = d.user_id
 			WHERE eu.event_id = ? AND eu.admin = true AND eu.confirmed = true;
@@ -1131,7 +1131,7 @@ func (r *mutationResolver) AcceptInvitation(ctx context.Context, eventID int) (*
 			return
 		}
 
-		userName, err := r.client.User.Query().
+		userName, err := utils.Client.User.Query().
 			Where(
 				user.ID(*userId),
 			).
@@ -1508,7 +1508,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input model.UpdateEv
 			newctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			rows, err := r.client.DB().QueryContext(newctx, `
+			rows, err := utils.Client.DB().QueryContext(newctx, `
 				SELECT d.token FROM event_users eu
 				JOIN devices d ON eu.user_id = d.user_id
 				WHERE eu.event_id = ? AND eu.confirmed = true;
@@ -1721,6 +1721,34 @@ func (r *mutationResolver) AddGuests(ctx context.Context, eventID int, userIds [
 	}
 
 	value = true
+
+	go func() {
+
+		newctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		userName, err := utils.Client.User.Query().
+			Where(
+				user.ID(*userId),
+			).
+			Select(user.FieldName).
+			String(newctx)
+		if err != nil {
+			return
+		}
+
+		eventName, err := utils.Client.Event.Query().
+			Where(
+				event.ID(eventID),
+			).
+			Select(event.FieldName).
+			String(newctx)
+		if err != nil {
+			return
+		}
+
+		notifications.SendManyPushNotifications(utils.Client, newctx, userIds, "Happ", userName+" has invited you to "+eventName)
+	}()
 	return &value, nil
 }
 
@@ -1988,7 +2016,7 @@ func (r *mutationResolver) LeaveEvent(ctx context.Context, eventID int) (*bool, 
 			newctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			rows, err := r.client.DB().QueryContext(newctx, `
+			rows, err := utils.Client.DB().QueryContext(newctx, `
 				SELECT d.token FROM event_users eu
 				JOIN devices d ON eu.user_id = d.user_id
 				WHERE eu.event_id = ? AND eu.admin = true AND eu.confirmed = true;
@@ -2016,7 +2044,7 @@ func (r *mutationResolver) LeaveEvent(ctx context.Context, eventID int) (*bool, 
 				return
 			}
 
-			userName, err := r.client.User.Query().
+			userName, err := utils.Client.User.Query().
 				Where(user.ID(*userId)).
 				Select(user.FieldName).
 				String(newctx)
@@ -2025,7 +2053,7 @@ func (r *mutationResolver) LeaveEvent(ctx context.Context, eventID int) (*bool, 
 				return
 			}
 
-			eventName, err := r.client.Event.Query().
+			eventName, err := utils.Client.Event.Query().
 				Where(event.ID(eventID)).
 				Select(event.FieldName).
 				String(newctx)
