@@ -193,7 +193,7 @@ class _AuthState extends ConsumerState<Auth> with SingleTickerProviderStateMixin
                 // padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.transparent,
-                  border: Border.all(width: 2, color: Colors.black),
+                  border: Border.all(width: 2, color: Colors.grey[850]!),
                   borderRadius: BorderRadius.circular(25)
                 ),
                 child: isGoogleLoading 
@@ -214,10 +214,10 @@ class _AuthState extends ConsumerState<Auth> with SingleTickerProviderStateMixin
                       "Continue with Google",
                       style: TextStyle(
                         // fontFamily: "",
-                        color: Colors.grey[900],
+                        color: Colors.grey[850],
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
-                        height: 1
+                        // height: 1
                       )
                     ),
                   ],
@@ -243,13 +243,13 @@ class _AuthState extends ConsumerState<Auth> with SingleTickerProviderStateMixin
                         });
                       },
                       child: SizedBox(
-                        height: 20,
-                        width: 20,
+                        height: 19,
+                        width: 19,
                         child: Container(
                           // color: Colors.red,
                           decoration: BoxDecoration(
-                            color: isTermsConfirmed ? Colors.black : null,
-                            borderRadius: BorderRadius.circular(6),
+                            color: isTermsConfirmed ? Colors.greenAccent[700] : null,
+                            borderRadius: BorderRadius.circular(7),
                             border: !isTermsConfirmed ? Border.all(width: 1.5, color: Colors.grey[500]!) : null
                           ),
                           child: isTermsConfirmed 

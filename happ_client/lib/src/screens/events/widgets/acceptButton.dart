@@ -55,11 +55,6 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
     super.build(context);
     ref.listen(acceptInvitationProvider, (previous, next) {
       if (next is AcceptInvitationDoneState) {
-        // setState(() {
-        //   isDone = true;
-        //   isLoading = false;
-        //   isConfirmed = true;
-        // });
 
         if (!next.acceptInviteRes.isHost) {
 
@@ -74,41 +69,42 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
 
                 Uint8List image = const Base64Codec().decode(stripped);
 
-                // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                  context.push(
-                    '/event-invitation',
-                    extra: InviteParams(
-                      event: event,
-                      cypherText: next.acceptInviteRes.cypherText,
-                      image: image
-                    )
-                  );
-                // });
+                context.push(
+                  '/event-invitation',
+                  extra: InviteParams(
+                    event: event,
+                    cypherText: next.acceptInviteRes.cypherText,
+                    image: image
+                  )
+                );
+                setState(() {
+                  isDone = true;
+                  isLoading = false;
+                  isConfirmed = true;
+                });
               })
-              // ..setNavigationDelegate(
-              //   NavigationDelegate(
-              //     onPageFinished: (String url) {
-              //       print("hello there");
-              //       setState(() {
-              //         // isLoading = false;
-              //       });
-              //     },
-              //   ),
-              // )
               ..loadHtmlString(html);
           } else {
-            // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-              context.push(
-                '/event-invitation',
-                extra: InviteParams(
-                  event: event,
-                  cypherText: next.acceptInviteRes.cypherText,
-                  image: null
-                )
-              );
-            // });
+            context.push(
+              '/event-invitation',
+              extra: InviteParams(
+                event: event,
+                cypherText: next.acceptInviteRes.cypherText,
+                image: null
+              )
+            );
+            setState(() {
+              isDone = true;
+              isLoading = false;
+              isConfirmed = true;
+            });
           }
-
+        } else {
+          setState(() {
+            isDone = true;
+            isLoading = false;
+            isConfirmed = true;
+          });
         }
 
         final userInfoJson = userInfo.toJson();
@@ -118,12 +114,6 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
         final newUserInfo = GetUserEventsFromFriends$Query$PaginatedEventResults$EventInviteRes$InvitedUserInfo.fromJson(userInfoJson);
 
         ref.read(userEventsProvider.notifier).updateUserInfo(false, widget.inviteRes, newUserInfo);
-
-        setState(() {
-          isDone = true;
-          isLoading = false;
-          isConfirmed = true;
-        });
         
       } else if (next is AcceptInvitationLoadingState) {
         setState(() {
@@ -147,78 +137,36 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
 
               Uint8List image = const Base64Codec().decode(stripped);
 
-              // setState(() {
-              //   isDone = true;
-              //   isLoading = false;
-              // });
+              context.push(
+                '/event-invitation',
+                extra: InviteParams(
+                  event: event,
+                  cypherText: next.cypherText,
+                  image: image
+                )
+              );
 
-              // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                context.push(
-                  '/event-invitation',
-                  extra: InviteParams(
-                    event: event,
-                    cypherText: next.cypherText,
-                    image: image
-                  )
-                );
-              // });
               setState(() {
                 isDone = true;
                 isLoading = false;
               });
             })
-            // ..setNavigationDelegate(
-            //   NavigationDelegate(
-            //     onPageFinished: (String url) {
-            //       print("hello there");
-            //       setState(() {
-            //         // isLoading = false;
-            //       });
-            //     },
-            //   ),
-            // )
             ..loadHtmlString(html);
         } else {
+          context.push(
+            '/event-invitation',
+            extra: InviteParams(
+              event: event,
+              cypherText: next.cypherText,
+              image: null
+            )
+          );
+
           setState(() {
             isDone = true;
             isLoading = false;
           });
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            context.push(
-              '/event-invitation',
-              extra: InviteParams(
-                event: event,
-                cypherText: next.cypherText,
-                image: null
-              )
-            );
-          });
         }
-
-        // setState(() {
-        //   isDone = true;
-        //   isLoading = false;
-        // });
-
-        // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        //   context.push(
-        //     '/event-invitation',
-        //     extra: InviteParams(
-        //       event: event,
-        //       cypherText: next.cypherText,
-        //     )
-        //   );
-        // });
-
-        // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        //   context.push(
-        //     '/event-invitation',
-        //     extra: InviteParams(
-        //       event: event,
-        //       cypherText: next.cypherText,
-        //     )
-        //   );
-        // });
         
       } else if (next is SeePassLoadingState) {
         setState(() {

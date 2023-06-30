@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
@@ -6,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
-import 'package:uuid/uuid.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../../utils/widgets/floatingActions.dart';
 
@@ -28,7 +25,6 @@ class EventInvitation extends ConsumerStatefulWidget {
 }
 
 class _EventInvitationState extends ConsumerState<EventInvitation> {
-  late final WebViewController controller;
 
   Color widgetColor = Colors.black;
   bool isDefault = true;
@@ -42,35 +38,6 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
     super.initState();
     if (widget.cypherText != null) {
       image = widget.image;
-      // isLoading = true;
-      // final html = dynamicHTML();
-      // controller = WebViewController()
-      //   ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      //   ..addJavaScriptChannel("Print", onMessageReceived: (message) {
-      //     print("torororor");
-      //     print(message.message);
-      //     final blob = message.message;
-      //     // var blob = yourJSONMapHere['yourJSONKeyHere'];
-
-      //     final stripped = blob.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
-
-      //     image = Base64Codec().decode(stripped);
-      //     print(image);
-      //     setState(() {
-            
-      //     });
-      //   })
-      //   ..setNavigationDelegate(
-      //     NavigationDelegate(
-      //       onPageFinished: (String url) {
-      //         print("hello there");
-      //         setState(() {
-      //           // isLoading = false;
-      //         });
-      //       },
-      //     ),
-      //   )
-      //   ..loadHtmlString(html);
     }
   }
   
@@ -226,10 +193,6 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
                     child: GestureDetector(
                       child: Stack(
                         children: [
-                          // WebViewWidget(
-                          //   controller: controller,
-                          //   key: Key(const Uuid().v4())
-                          // ),
                           if (image != null)
                           Image.memory(image!),
                           Container(
@@ -284,53 +247,5 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
         )
       ),
     );
-  }
-
-  String dynamicHTML() {
-    final html = '''<!DOCTYPE html>
-      <html lang="en">
-      <head>
-          <meta charset="UTF-8">
-          <title>QR Code Styling</title>
-          <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
-      </head>
-      <body>
-      <script type="text/javascript">
-
-        const qrCode = new QRCodeStyling({
-          width: 1000,
-          height: 1000,
-          type: "svg",
-          data: "${widget.cypherText}",
-          dotsOptions: {
-            color: "#000000",
-            type: "rounded"
-          },
-          cornersSquareOptions: {
-            type: "extra-rounded"
-          },
-          qrOptions: {
-            errorCorrectionLevel: 'M'
-          },
-          imageOptions: {
-            crossOrigin: "anonymous",
-            margin: 0
-          }
-        });
-
-        qrCode.getRawData().then((val) => {
-          var reader = new FileReader();
-          reader.readAsDataURL(val); 
-          reader.onloadend = () => {
-            var base64data = reader.result;                
-            window.Print.postMessage(base64data)
-          }
-        });
-
-      </script>
-      </body>
-      </html>''';
-
-      return html;
   }
 }

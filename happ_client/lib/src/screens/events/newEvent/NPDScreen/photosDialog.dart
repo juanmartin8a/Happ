@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/riverpod/newEventAddPictures/newEventAddPictures.dart';
 import 'package:happ_client/src/riverpod/newEventComplete/newEventComplete.dart';
 import 'package:happ_client/src/riverpod/updatePictures/updatePictures.dart';
+import 'package:happ_client/src/utils/widgets/loader.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:http/http.dart';
@@ -30,12 +31,13 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
   ScrollController controller = ScrollController();
 
   late bool accessGranted;
+  late bool hasAccess;
   List<Widget> imagesWidget = [];
   List<AssetEntity> images = [];
   List<int> selectedImages = [];
   bool hasMore = false;
 
-  bool isPhotosLoading = false;
+  bool isPhotosLoading = true;
 
   bool isLoading = false;
 
@@ -145,7 +147,16 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
                           )
                         ),
                         Expanded(
-                          child: imagesWidget.isNotEmpty || isPhotosLoading == true
+                          child:imagesWidget.isEmpty && isPhotosLoading == true
+                          ? Align(
+                            alignment: Alignment.topCenter,
+                            child: Container(
+                              height: 32,
+                              padding: const EdgeInsets.only(top: 150),
+                              child: const Loader(radius: 8)
+                            ),
+                          )
+                          : isPhotosLoading == false && imagesWidget.isNotEmpty
                           ? GridView.builder(
                             itemCount: imagesWidget.length + 1,
                             controller: controller,
@@ -170,8 +181,50 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
                               );
                             }
                           )
+                          : accessGranted == false && hasAccess == false
+                          ? Container(
+                            padding: const EdgeInsets.only(top: 150, left: 12, right: 12),
+                            child: Column(
+                              children: [
+                                Text(
+                                  "Enable photo library access in settings to view images!\n;)",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.grey[800],
+                                    fontFamily: "Inter",
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.25,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                GestureDetector(
+                                  onTap: () {
+                                    PhotoManager.openSetting();
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.transparent,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(width: 2, color: Colors.black)
+                                    ),
+                                    child: const Text(
+                                      "Settings",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontFamily: "Inter",
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          )
                           : Container(
-                            padding: EdgeInsets.only(top: 150),
+                            padding: const EdgeInsets.only(top: 150),
                             child: Text(
                               "No photos :/",
                               style: TextStyle(
@@ -320,13 +373,22 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
   }
 
   void requestPermission() async {
-    setState(() {
-      isPhotosLoading = true;
-    });
+
+    await Future.delayed(const Duration(milliseconds: 1000));
     final PermissionState ps = await PhotoManager.requestPermissionExtend();
+
     accessGranted = ps.isAuth;
     if (accessGranted == true) {
       getPhotos(0);
+    } else {
+      hasAccess = ps.hasAccess;
+      if (hasAccess) {
+        getPhotos(0);
+      } else {
+        setState(() {
+          isPhotosLoading = false;
+        });
+      }
     }
   }
 
@@ -342,21 +404,23 @@ class _PhotoDialogState extends ConsumerState<PhotoDialog> {
       )
     );
 
-    List<AssetEntity> media = await albums[0].getAssetListPaged(page: page, size: 100);
-    List<Widget> preImagesWidget = [];
+    if (albums.isNotEmpty) {
+      List<AssetEntity> media = await albums[0].getAssetListPaged(page: page, size: 100);
+      List<Widget> preImagesWidget = [];
 
-    for (int i = 0; i < media.length; i++) {
-      preImagesWidget.add(getImageWidget(media[i]));
+      for (int i = 0; i < media.length; i++) {
+        preImagesWidget.add(getImageWidget(media[i]));
+      }
+
+      if (media.isEmpty || media.length < 100) {
+        hasMore = false;
+      } else {
+        hasMore = true;
+      }
+
+      imagesWidget = [...imagesWidget, ...preImagesWidget];
+      images = [...images, ...media];
     }
-
-    if (media.isEmpty || media.length < 100) {
-      hasMore = false;
-    } else {
-      hasMore = true;
-    }
-
-    imagesWidget = [...imagesWidget, ...preImagesWidget];
-    images = [...images, ...media];
 
     setState(() {
       isPhotosLoading = false;

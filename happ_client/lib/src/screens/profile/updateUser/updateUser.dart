@@ -41,6 +41,8 @@ class _UpdateUserState extends ConsumerState<UpdateUser> {
   File? selectedImageFile;
   http.MultipartFile? selectedImageMultipartFile;
 
+  http.MultipartFile? selectedImageMultipartFilePrev;
+
   bool isLoading = false;
 
   Map<String, dynamic> errors = {};
@@ -77,6 +79,7 @@ class _UpdateUserState extends ConsumerState<UpdateUser> {
           if ((next as UpdateUserDoneState).updateUserRes.user != null) {
             errors = {};
             user = ProfileUserData.fromUserData(next.updateUserRes.user);
+            selectedImageMultipartFilePrev = selectedImageMultipartFile;
             refreshFirebaseToken();
           } else {
             if (next.updateUserRes.errors != null) {
@@ -412,7 +415,7 @@ class _UpdateUserState extends ConsumerState<UpdateUser> {
                 ),
               ],
             ),
-            if ((nameController.text != user.name || usernameController.text != user.username || selectedImageMultipartFile != null))
+            if ((nameController.text != user.name || usernameController.text != user.username || selectedImageMultipartFilePrev != selectedImageMultipartFile))
             Positioned(
               bottom: MediaQuery.of(context).padding.bottom > 34 ? MediaQuery.of(context).padding.bottom + 12 : 34,
               left: (MediaQuery.of(context).size.width - (MediaQuery.of(context).size.width * 0.5)) / 2,
@@ -518,7 +521,7 @@ class _UpdateUserState extends ConsumerState<UpdateUser> {
       destinationPath,
       minWidth: 150,
       minHeight: 150,
-      quality: 70,
+      quality: 80,
     );
 
     return File(destinationPath);

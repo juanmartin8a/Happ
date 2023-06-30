@@ -413,10 +413,10 @@ packages:
     dependency: "direct main"
     description:
       name: fluentui_system_icons
-      sha256: ce3eb7c9bec0645e11fa7a3fadcaca70aa106f30b12eddc06e7e466a2f0446b4
+      sha256: d37474571868c0ed14bab79dfc757d52fc99327442cac40fc723a8cd9fda333a
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.178"
+    version: "1.1.203"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -1020,10 +1020,10 @@ packages:
     dependency: "direct main"
     description:
       name: photo_manager
-      sha256: "660ea774de417d4d58e89acc064e7faaaae6f21305b6a2f00970992158c722da"
+      sha256: bdc4ab1fa9fb064d8ccfea6ab44119f55b220293d7ce2e19eb5a5f998db86c88
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.0"
+    version: "2.6.0"
   platform:
     dependency: transitive
     description:

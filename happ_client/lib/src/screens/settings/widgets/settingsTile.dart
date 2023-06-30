@@ -19,6 +19,7 @@ class SettingsTile extends StatelessWidget {
       color: Colors.transparent,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           icon,
           const SizedBox(width: 8),
@@ -28,7 +29,7 @@ class SettingsTile extends StatelessWidget {
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: textColor ?? Colors.grey[850],
-              height: 1
+              // height: 1
             )
           )
         ],

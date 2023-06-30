@@ -211,6 +211,8 @@ class _HomeState extends ConsumerState<Home> with SingleTickerProviderStateMixin
 
       var token = box.get("FCM_token");
 
+      print("CurrentTOKEN: $currentToken");
+
       if (currentToken != null && token != currentToken) {
         try {
           await UserRepo().saveDevice(currentToken);
