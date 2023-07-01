@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
@@ -53,14 +54,16 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    ref.listen(acceptInvitationProvider, (previous, next) {
+    ref.listen(acceptInvitationProvider, (previous, next) async {
       if (next is AcceptInvitationDoneState) {
 
         if (!next.acceptInviteRes.isHost) {
 
           if (next.acceptInviteRes.cypherText != null) {
 
-            final html = dynamicHTML(next.acceptInviteRes.cypherText!);
+            String jsCode = await rootBundle.loadString('assets/js/qr-code-styling.js');
+
+            final html = dynamicHTML(next.acceptInviteRes.cypherText!, jsCode);
             controller = WebViewController()
               ..setJavaScriptMode(JavaScriptMode.unrestricted)
               ..addJavaScriptChannel("Print", onMessageReceived: (message) {
@@ -123,12 +126,14 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
       }
     });
 
-    ref.listen(seePassProvider, (previous, next) {
+    ref.listen(seePassProvider, (previous, next) async {
       if (next is SeePassDoneState) {
 
         if (next.cypherText != null) {
 
-          final html = dynamicHTML(next.cypherText!);
+          String jsCode = await rootBundle.loadString('assets/js/qr-code-styling.js');
+
+          final html = dynamicHTML(next.cypherText!, jsCode);
           controller = WebViewController()
             ..setJavaScriptMode(JavaScriptMode.unrestricted)
             ..addJavaScriptChannel("Print", onMessageReceived: (message) {
@@ -247,14 +252,16 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
     );
   }
 
-  String dynamicHTML(String cypherText) {
+  String dynamicHTML(String cypherText, String package) {
     final html = '''
     <!DOCTYPE html>
       <html lang="en">
       <head>
           <meta charset="UTF-8">
           <title>QR Code Styling</title>
-          <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+          <script type="text/javascript">
+            $package
+          </script>
       </head>
       <body>
       <script type="text/javascript">
