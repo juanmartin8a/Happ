@@ -60,33 +60,27 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
         if (!next.acceptInviteRes.isHost) {
 
           if (next.acceptInviteRes.cypherText != null) {
+            initWebView(next.acceptInviteRes.cypherText!, (message) {
+              final blob = message.message;
 
-            String jsCode = await rootBundle.loadString('assets/js/qr-code-styling.js');
+              final stripped = blob.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
 
-            final html = dynamicHTML(next.acceptInviteRes.cypherText!, jsCode);
-            controller = WebViewController()
-              ..setJavaScriptMode(JavaScriptMode.unrestricted)
-              ..addJavaScriptChannel("Print", onMessageReceived: (message) {
-                final blob = message.message;
-                final stripped = blob.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
+              Uint8List image = const Base64Codec().decode(stripped);
 
-                Uint8List image = const Base64Codec().decode(stripped);
+              context.push(
+                '/event-invitation',
+                extra: InviteParams(
+                  event: event,
+                  cypherText: next.acceptInviteRes.cypherText,
+                  image: image
+                )
+              );
 
-                context.push(
-                  '/event-invitation',
-                  extra: InviteParams(
-                    event: event,
-                    cypherText: next.acceptInviteRes.cypherText,
-                    image: image
-                  )
-                );
-                setState(() {
-                  isDone = true;
-                  isLoading = false;
-                  isConfirmed = true;
-                });
-              })
-              ..loadHtmlString(html);
+              setState(() {
+                isDone = true;
+                isLoading = false;
+              });
+            });
           } else {
             context.push(
               '/event-invitation',
@@ -131,32 +125,28 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
 
         if (next.cypherText != null) {
 
-          String jsCode = await rootBundle.loadString('assets/js/qr-code-styling.js');
+          initWebView(next.cypherText!, (message) {
+            final blob = message.message;
 
-          final html = dynamicHTML(next.cypherText!, jsCode);
-          controller = WebViewController()
-            ..setJavaScriptMode(JavaScriptMode.unrestricted)
-            ..addJavaScriptChannel("Print", onMessageReceived: (message) {
-              final blob = message.message;
-              final stripped = blob.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
+            final stripped = blob.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
 
-              Uint8List image = const Base64Codec().decode(stripped);
+            Uint8List image = const Base64Codec().decode(stripped);
 
-              context.push(
-                '/event-invitation',
-                extra: InviteParams(
-                  event: event,
-                  cypherText: next.cypherText,
-                  image: image
-                )
-              );
+            context.push(
+              '/event-invitation',
+              extra: InviteParams(
+                event: event,
+                cypherText: next.cypherText,
+                image: image
+              )
+            );
 
-              setState(() {
-                isDone = true;
-                isLoading = false;
-              });
-            })
-            ..loadHtmlString(html);
+            setState(() {
+              isDone = true;
+              isLoading = false;
+            });
+          });
+
         } else {
           context.push(
             '/event-invitation',
@@ -250,6 +240,19 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
         )
       ),
     );
+  }
+
+  Future<void> initWebView(String cypher, void Function(JavaScriptMessage) onJSChannelMessageRecieved) async {
+
+    String jsCode = await rootBundle.loadString('assets/js/qr-code-styling.js');
+
+    final html = dynamicHTML(cypher, jsCode);
+
+    controller = WebViewController();
+
+    await controller!.setJavaScriptMode(JavaScriptMode.unrestricted);
+    await controller!.addJavaScriptChannel('Print', onMessageReceived: onJSChannelMessageRecieved);
+    await controller!.loadHtmlString(html);
   }
 
   String dynamicHTML(String cypherText, String package) {
