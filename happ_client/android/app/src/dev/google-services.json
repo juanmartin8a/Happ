@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "711329985144",
+    "project_id": "happ-dev-d189f",
+    "storage_bucket": "happ-dev-d189f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:711329985144:android:c20052c7c73458ee9af38d",
+        "android_client_info": {
+          "package_name": "rsvp.happ.happ.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "711329985144-36ns8kv9bpovtj0bru2dklpj7qmus7e9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARbUeb7jiebHzrl1YykSqo4WdxZdhHKGg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "711329985144-36ns8kv9bpovtj0bru2dklpj7qmus7e9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "711329985144-i8unr67al25urd1hj8e1g193c612iaua.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "rsvp.happ.happ"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

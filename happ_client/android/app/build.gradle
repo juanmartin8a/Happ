@@ -61,6 +61,18 @@ android {
         versionName flutterVersionName
     }
 
+    flavorDimensions "env"
+    productFlavors {
+        dev {
+            dimension "env"
+            applicationId "rsvp.happ.happ.dev"
+        }
+        prod {
+            dimension "env"
+            applicationId "rsvp.happ.happ"
+        }
+    }
+
     signingConfigs {
         release {
             keyAlias keystoreProperties['keyAlias']
