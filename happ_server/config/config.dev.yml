@@ -1,0 +1,17 @@
+appEnv: dev
+
+database:
+  user: Happ_dev_db_user
+  password: Happ_dev_db_password
+  net: tcp
+  addr: Happ_dev_db_addr
+  dbname: happ_dev
+  allowNativePasswords: true
+  params:
+    parseTime: true
+    charset: utf8mb4
+    tls: true
+
+meilisearchMK: meilisearchDevMK
+firebaseSAPrivateKey: FirebaseSAPrivateKey-Dev
+mapsAPIKey: MapsAPIKey
