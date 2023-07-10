@@ -135,23 +135,23 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		AddedMe                     func(childComplexity int, limit int, idsList []int) int
-		GetEventGuests              func(childComplexity int, eventID int, limit int, idsList []int) int
-		GetEventHosts               func(childComplexity int, eventID int, limit int, idsList []int) int
-		GetFollowState              func(childComplexity int, id int) int
-		GetUserEvents               func(childComplexity int, limit int, idsList []int) int
-		GetUserEventsFromFriends    func(childComplexity int, limit int, idsList []int) int
-		GetUserOtherEvents          func(childComplexity int, limit int, idsList []int) int
-		LocationDetails             func(childComplexity int, placeID string) int
-		LocationDetailsFromCoords   func(childComplexity int, coords model.CoordinatesInput) int
-		MutualFriends               func(childComplexity int, id int, limit int, idsList []int) int
-		MyFriends                   func(childComplexity int, limit int, idsList []int) int
-		SearchForUsersToAddAsGuests func(childComplexity int, search string, eventID int) int
-		SearchLocation              func(childComplexity int, search string) int
-		SearchUsers                 func(childComplexity int, search string, userSearching int) int
-		SeePass                     func(childComplexity int, eventID int) int
-		User                        func(childComplexity int, username string) int
-		UserFromID                  func(childComplexity int, id int) int
+		AddedMe                    func(childComplexity int, limit int, idsList []int) int
+		GetEventGuests             func(childComplexity int, eventID int, limit int, idsList []int) int
+		GetEventHosts              func(childComplexity int, eventID int, limit int, idsList []int) int
+		GetFollowState             func(childComplexity int, id int) int
+		GetUserEvents              func(childComplexity int, limit int, idsList []int) int
+		GetUserEventsFromFriends   func(childComplexity int, limit int, idsList []int) int
+		GetUserOtherEvents         func(childComplexity int, limit int, idsList []int) int
+		LocationDetails            func(childComplexity int, placeID string) int
+		LocationDetailsFromCoords  func(childComplexity int, coords model.CoordinatesInput) int
+		MutualFriends              func(childComplexity int, id int, limit int, idsList []int) int
+		MyFriends                  func(childComplexity int, limit int, idsList []int) int
+		SearchForUsersToAddToEvent func(childComplexity int, search string, eventID int) int
+		SearchLocation             func(childComplexity int, search string) int
+		SearchUsers                func(childComplexity int, search string, userSearching int) int
+		SeePass                    func(childComplexity int, eventID int) int
+		User                       func(childComplexity int, username string) int
+		UserFromID                 func(childComplexity int, id int) int
 	}
 
 	SignInResponse struct {
@@ -165,14 +165,15 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		CreatedAt   func(childComplexity int) int
-		Email       func(childComplexity int) int
-		FollowState func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Name        func(childComplexity int) int
-		ProfilePic  func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
-		Username    func(childComplexity int) int
+		CreatedAt       func(childComplexity int) int
+		Email           func(childComplexity int) int
+		EventUserStatus func(childComplexity int) int
+		FollowState     func(childComplexity int) int
+		ID              func(childComplexity int) int
+		Name            func(childComplexity int) int
+		ProfilePic      func(childComplexity int) int
+		UpdatedAt       func(childComplexity int) int
+		Username        func(childComplexity int) int
 	}
 }
 
@@ -214,7 +215,7 @@ type QueryResolver interface {
 	SeePass(ctx context.Context, eventID int) (*string, error)
 	GetEventGuests(ctx context.Context, eventID int, limit int, idsList []int) (*model.PaginatedEventUsersResults, error)
 	GetEventHosts(ctx context.Context, eventID int, limit int, idsList []int) (*model.PaginatedEventUsersResults, error)
-	SearchForUsersToAddAsGuests(ctx context.Context, search string, eventID int) ([]*ent.User, error)
+	SearchForUsersToAddToEvent(ctx context.Context, search string, eventID int) ([]*ent.User, error)
 	SearchLocation(ctx context.Context, search string) ([]*model.LocationAutoCompletePrediction, error)
 	LocationDetails(ctx context.Context, placeID string) (*model.Coordinates, error)
 	LocationDetailsFromCoords(ctx context.Context, coords model.CoordinatesInput) (string, error)
@@ -227,6 +228,8 @@ type UserResolver interface {
 	FollowState(ctx context.Context, obj *ent.User) (bool, error)
 	CreatedAt(ctx context.Context, obj *ent.User) (string, error)
 	UpdatedAt(ctx context.Context, obj *ent.User) (string, error)
+
+	EventUserStatus(ctx context.Context, obj *ent.User) (model.EventUserStatus, error)
 }
 
 type executableSchema struct {
@@ -791,17 +794,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.MyFriends(childComplexity, args["limit"].(int), args["idsList"].([]int)), true
 
-	case "Query.searchForUsersToAddAsGuests":
-		if e.complexity.Query.SearchForUsersToAddAsGuests == nil {
+	case "Query.searchForUsersToAddToEvent":
+		if e.complexity.Query.SearchForUsersToAddToEvent == nil {
 			break
 		}
 
-		args, err := ec.field_Query_searchForUsersToAddAsGuests_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_searchForUsersToAddToEvent_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchForUsersToAddAsGuests(childComplexity, args["search"].(string), args["eventId"].(int)), true
+		return e.complexity.Query.SearchForUsersToAddToEvent(childComplexity, args["search"].(string), args["eventId"].(int)), true
 
 	case "Query.searchLocation":
 		if e.complexity.Query.SearchLocation == nil {
@@ -904,6 +907,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Email(childComplexity), true
+
+	case "User.EventUserStatus":
+		if e.complexity.User.EventUserStatus == nil {
+			break
+		}
+
+		return e.complexity.User.EventUserStatus(childComplexity), true
 
 	case "User.followState":
 		if e.complexity.User.FollowState == nil {
@@ -1028,6 +1038,12 @@ var sources = []*ast.Source{
 }`, BuiltIn: false},
 	{Name: "../user.graphqls", Input: `scalar Upload
 
+enum EventUserStatus {
+  NOT_INVITED
+  INVITED
+  CONFIRMED
+}
+
 type User {
   id: Int!
   name: String!
@@ -1037,6 +1053,7 @@ type User {
   createdAt: String!
   updatedAt: String!
   profilePic: String!
+  EventUserStatus: EventUserStatus!
 }
 
 type Event {
@@ -1213,7 +1230,7 @@ type Query {
     limit: Int!
     idsList: [Int!]!
   ): PaginatedEventUsersResults!,
-  searchForUsersToAddAsGuests(
+  searchForUsersToAddToEvent(
     search: String!
     eventId: Int!
   ): [User!]!,
@@ -1837,7 +1854,7 @@ func (ec *executionContext) field_Query_myFriends_args(ctx context.Context, rawA
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_searchForUsersToAddAsGuests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_searchForUsersToAddToEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -3149,6 +3166,8 @@ func (ec *executionContext) fieldContext_EventInviteRes_invitedBy(ctx context.Co
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
+			case "EventUserStatus":
+				return ec.fieldContext_User_EventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -3263,6 +3282,8 @@ func (ec *executionContext) fieldContext_EventInviteRes_friends(ctx context.Cont
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
+			case "EventUserStatus":
+				return ec.fieldContext_User_EventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -4422,6 +4443,8 @@ func (ec *executionContext) fieldContext_PaginatedEventUsersResults_users(ctx co
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
+			case "EventUserStatus":
+				return ec.fieldContext_User_EventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -4525,6 +4548,8 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
+			case "EventUserStatus":
+				return ec.fieldContext_User_EventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -4595,6 +4620,8 @@ func (ec *executionContext) fieldContext_Query_userFromId(ctx context.Context, f
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
+			case "EventUserStatus":
+				return ec.fieldContext_User_EventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -4668,6 +4695,8 @@ func (ec *executionContext) fieldContext_Query_searchUsers(ctx context.Context, 
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
+			case "EventUserStatus":
+				return ec.fieldContext_User_EventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -5043,8 +5072,8 @@ func (ec *executionContext) fieldContext_Query_getEventHosts(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_searchForUsersToAddAsGuests(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_searchForUsersToAddAsGuests(ctx, field)
+func (ec *executionContext) _Query_searchForUsersToAddToEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_searchForUsersToAddToEvent(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5057,7 +5086,7 @@ func (ec *executionContext) _Query_searchForUsersToAddAsGuests(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchForUsersToAddAsGuests(rctx, fc.Args["search"].(string), fc.Args["eventId"].(int))
+		return ec.resolvers.Query().SearchForUsersToAddToEvent(rctx, fc.Args["search"].(string), fc.Args["eventId"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5074,7 +5103,7 @@ func (ec *executionContext) _Query_searchForUsersToAddAsGuests(ctx context.Conte
 	return ec.marshalNUser2ᚕᚖhappᚋentᚐUserᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_searchForUsersToAddAsGuests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_searchForUsersToAddToEvent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -5098,6 +5127,8 @@ func (ec *executionContext) fieldContext_Query_searchForUsersToAddAsGuests(ctx c
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
+			case "EventUserStatus":
+				return ec.fieldContext_User_EventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -5109,7 +5140,7 @@ func (ec *executionContext) fieldContext_Query_searchForUsersToAddAsGuests(ctx c
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_searchForUsersToAddAsGuests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_searchForUsersToAddToEvent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -5712,6 +5743,8 @@ func (ec *executionContext) fieldContext_SignInResponse_user(ctx context.Context
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
+			case "EventUserStatus":
+				return ec.fieldContext_User_EventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -5812,6 +5845,8 @@ func (ec *executionContext) fieldContext_UpdateUserResponse_user(ctx context.Con
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
+			case "EventUserStatus":
+				return ec.fieldContext_User_EventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -6213,6 +6248,50 @@ func (ec *executionContext) fieldContext_User_profilePic(ctx context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_EventUserStatus(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_EventUserStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().EventUserStatus(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.EventUserStatus)
+	fc.Result = res
+	return ec.marshalNEventUserStatus2happᚋgraphᚋmodelᚐEventUserStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_EventUserStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type EventUserStatus does not have child fields")
 		},
 	}
 	return fc, nil
@@ -9307,7 +9386,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "searchForUsersToAddAsGuests":
+		case "searchForUsersToAddToEvent":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -9316,7 +9395,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_searchForUsersToAddAsGuests(ctx, field)
+				res = ec._Query_searchForUsersToAddToEvent(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -9677,6 +9756,26 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "EventUserStatus":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_EventUserStatus(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10154,6 +10253,16 @@ func (ec *executionContext) marshalNEventInviteRes2ᚖhappᚋgraphᚋmodelᚐEve
 		return graphql.Null
 	}
 	return ec._EventInviteRes(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNEventUserStatus2happᚋgraphᚋmodelᚐEventUserStatus(ctx context.Context, v interface{}) (model.EventUserStatus, error) {
+	var res model.EventUserStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNEventUserStatus2happᚋgraphᚋmodelᚐEventUserStatus(ctx context.Context, sel ast.SelectionSet, v model.EventUserStatus) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {

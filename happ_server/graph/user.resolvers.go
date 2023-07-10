@@ -3309,27 +3309,18 @@ func (r *queryResolver) GetEventHosts(ctx context.Context, eventID int, limit in
 	}, nil
 }
 
-// SearchForUsersToAddAsGuests is the resolver for the searchForUsersToAddAsGuests field.
-func (r *queryResolver) SearchForUsersToAddAsGuests(ctx context.Context, search string, eventID int) ([]*ent.User, error) {
-	// Get the list of invited user IDs for the event
-	invitedIDs, err := r.client.EventUser.
-		Query().
-		Where(eventuser.EventID(eventID)).
-		Select(eventuser.FieldUserID).
-		Ints(ctx)
+// SearchForUsersToAddToEvent is the resolver for the searchForUsersToAddToEvent field.
+func (r *queryResolver) SearchForUsersToAddToEvent(ctx context.Context, search string, eventID int) ([]*ent.User, error) {
+	_, err := utils.SaveEventIdInHeader(ctx, eventID)
 	if err != nil {
 		return nil, err
 	}
 
 	trimmedSearch := strings.TrimSpace(search)
 
-	// Search for users using Meilisearch
 	var users []*ent.User
-	res, err := meilisearchUtils.GetUsersFromMeili(trimmedSearch, invitedIDs)
+	res, err := meilisearchUtils.GetUsersFromMeili(trimmedSearch, []int{})
 	if err != nil {
-		// return nil, err
-
-		// or show empty array of users
 		return users, nil
 	}
 
@@ -3865,6 +3856,11 @@ func (r *userResolver) UpdatedAt(ctx context.Context, obj *ent.User) (string, er
 	return updatedAt, nil
 }
 
+// EventUserStatus is the resolver for the EventUserStatus field.
+func (r *userResolver) EventUserStatus(ctx context.Context, obj *ent.User) (model.EventUserStatus, error) {
+	return dataloaders.GetEventUserStatus(ctx, strconv.Itoa(obj.ID))
+}
+
 // Event returns generated.EventResolver implementation.
 func (r *Resolver) Event() generated.EventResolver { return &eventResolver{r} }
 
@@ -3887,3 +3883,57 @@ type eventInviteResResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+// func (r *queryResolver) SearchForUsersToAddAsGuests(ctx context.Context, search string, eventID int) ([]*ent.User, error) {
+// 	_, err := utils.SaveEventIdInHeader(ctx, eventID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	// Get the list of invited user IDs for the event
+// 	invitedIDs, err := r.client.EventUser.
+// 		Query().
+// 		Where(eventuser.EventID(eventID)).
+// 		Select(eventuser.FieldUserID).
+// 		Ints(ctx)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	trimmedSearch := strings.TrimSpace(search)
+
+// 	// Search for users using Meilisearch
+// 	var users []*ent.User
+// 	res, err := meilisearchUtils.GetUsersFromMeili(trimmedSearch, invitedIDs)
+// 	if err != nil {
+// 		// return nil, err
+
+// 		// or show empty array of users
+// 		return users, nil
+// 	}
+
+// 	if len(res) == 0 {
+// 		return users, nil
+// 	}
+
+// 	for _, user := range res {
+// 		userMap := user.(map[string]interface{})
+// 		users = append(
+// 			users,
+// 			&ent.User{
+// 				ID:         int(userMap["id"].(float64)),
+// 				Username:   userMap["username"].(string),
+// 				Name:       userMap["name"].(string),
+// 				ProfilePic: userMap["profilePic"].(string),
+// 			},
+// 		)
+// 	}
+
+// 	return users, nil
+// }

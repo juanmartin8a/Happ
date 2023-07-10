@@ -125,6 +125,49 @@ type UpdateUserResponse struct {
 	Errors []*ErrorResponse `json:"errors,omitempty"`
 }
 
+type EventUserStatus string
+
+const (
+	EventUserStatusNotInvited EventUserStatus = "NOT_INVITED"
+	EventUserStatusInvited    EventUserStatus = "INVITED"
+	EventUserStatusConfirmed  EventUserStatus = "CONFIRMED"
+)
+
+var AllEventUserStatus = []EventUserStatus{
+	EventUserStatusNotInvited,
+	EventUserStatusInvited,
+	EventUserStatusConfirmed,
+}
+
+func (e EventUserStatus) IsValid() bool {
+	switch e {
+	case EventUserStatusNotInvited, EventUserStatusInvited, EventUserStatusConfirmed:
+		return true
+	}
+	return false
+}
+
+func (e EventUserStatus) String() string {
+	return string(e)
+}
+
+func (e *EventUserStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EventUserStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EventUserStatus", str)
+	}
+	return nil
+}
+
+func (e EventUserStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type PictureAction string
 
 const (

@@ -1,5 +1,11 @@
 scalar Upload
 
+enum EventUserStatus {
+  NOT_INVITED
+  INVITED
+  CONFIRMED
+}
+
 type User {
   id: Int!
   name: String!
@@ -9,6 +15,7 @@ type User {
   createdAt: String!
   updatedAt: String!
   profilePic: String!
+  EventUserStatus: EventUserStatus!
 }
 
 type Event {
@@ -185,7 +192,7 @@ type Query {
     limit: Int!
     idsList: [Int!]!
   ): PaginatedEventUsersResults!,
-  searchForUsersToAddAsGuests(
+  searchForUsersToAddToEvent(
     search: String!
     eventId: Int!
   ): [User!]!,

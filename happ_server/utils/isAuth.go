@@ -69,3 +69,29 @@ func SaveUserIdInHeader(ctx context.Context, userId int) (*int, error) {
 
 	return &userId, nil
 }
+
+func GetEventIdFromHeader(ctx context.Context) (*int, error) {
+	ec, err := customMiddleware.EchoContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userIdString := ec.Request().Header.Get("EventID")
+
+	userID, _ := strconv.Atoi(userIdString)
+
+	return &userID, nil
+}
+
+func SaveEventIdInHeader(ctx context.Context, eventId int) (*int, error) {
+	ec, err := customMiddleware.EchoContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	eventIdToString := strconv.Itoa(eventId)
+
+	ec.Request().Header.Set("EventID", eventIdToString)
+
+	return &eventId, nil
+}

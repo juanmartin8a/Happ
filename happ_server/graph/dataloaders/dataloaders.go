@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"happ/ent"
+	"happ/ent/eventuser"
 	"happ/ent/follow"
 	"happ/ent/user"
+	"happ/graph/model"
 	"happ/utils"
 	"strconv"
 
@@ -241,19 +243,71 @@ func GetEventFriends(ctx context.Context, keys dataloader.Keys) []*dataloader.Re
 	return output
 }
 
+func GetEventUsersStatus(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+
+	client := utils.Client
+	eventId, _ := utils.GetEventIdFromHeader(ctx)
+
+	userIDs := make([]int, 0, len(keys))
+	for _, key := range keys {
+		keyToInt, _ := strconv.Atoi(key.String())
+		userIDs = append(userIDs, keyToInt)
+	}
+
+	res, err := client.EventUser.Query().
+		Where(
+			eventuser.And(
+				eventuser.EventID(*eventId),
+				eventuser.UserIDIn(userIDs...),
+			),
+		).
+		Select(eventuser.FieldUserID, eventuser.FieldConfirmed).
+		All(ctx)
+
+	output := make([]*dataloader.Result, len(keys))
+	if err != nil {
+		for i := range output {
+			output[i] = &dataloader.Result{Data: model.EventUserStatusNotInvited, Error: nil}
+		}
+		return output
+	}
+
+	eventUserStatusByUserId := map[string]model.EventUserStatus{}
+	for _, eu := range res {
+		if eu.Confirmed {
+			eventUserStatusByUserId[strconv.Itoa(eu.UserID)] = model.EventUserStatusConfirmed
+		} else {
+			eventUserStatusByUserId[strconv.Itoa(eu.UserID)] = model.EventUserStatusInvited
+		}
+	}
+
+	for index, userKey := range keys {
+		eventUserStatus, ok := eventUserStatusByUserId[userKey.String()]
+		if ok {
+			output[index] = &dataloader.Result{Data: eventUserStatus, Error: nil}
+		} else {
+			output[index] = &dataloader.Result{Data: model.EventUserStatusNotInvited, Error: nil}
+		}
+	}
+
+	return output
+}
+
 // Loaders wrap your data loaders to inject via middleware
 type Loaders struct {
-	UserLoader        *dataloader.Loader
-	FollowStateLoader *dataloader.Loader
-	FriendsLoader     *dataloader.Loader
+	UserLoader            *dataloader.Loader
+	FollowStateLoader     *dataloader.Loader
+	FriendsLoader         *dataloader.Loader
+	EventUserStatusLoader *dataloader.Loader
 }
 
 // NewLoaders instantiates data loaders for the middleware
 func NewDataLoader() *Loaders {
 	loaders := &Loaders{
-		UserLoader:        dataloader.NewBatchedLoader(GetUsers, dataloader.WithClearCacheOnBatch()),
-		FollowStateLoader: dataloader.NewBatchedLoader(GetFollowStates, dataloader.WithClearCacheOnBatch()),
-		FriendsLoader:     dataloader.NewBatchedLoader(GetEventFriends, dataloader.WithClearCacheOnBatch()),
+		UserLoader:            dataloader.NewBatchedLoader(GetUsers, dataloader.WithClearCacheOnBatch()),
+		FollowStateLoader:     dataloader.NewBatchedLoader(GetFollowStates, dataloader.WithClearCacheOnBatch()),
+		FriendsLoader:         dataloader.NewBatchedLoader(GetEventFriends, dataloader.WithClearCacheOnBatch()),
+		EventUserStatusLoader: dataloader.NewBatchedLoader(GetEventUsersStatus, dataloader.WithClearCacheOnBatch()),
 	}
 	return loaders
 }
@@ -306,4 +360,14 @@ func GetFriends(ctx context.Context, eventID string) ([]*ent.User, error) {
 		return []*ent.User{}, err
 	}
 	return result.([]*ent.User), nil
+}
+
+func GetEventUserStatus(ctx context.Context, userID string) (model.EventUserStatus, error) {
+	loaders := For(ctx)
+	thunk := loaders.EventUserStatusLoader.Load(ctx, dataloader.StringKey(userID))
+	result, err := thunk()
+	if err != nil {
+		return model.EventUserStatusNotInvited, err
+	}
+	return result.(model.EventUserStatus), nil
 }
