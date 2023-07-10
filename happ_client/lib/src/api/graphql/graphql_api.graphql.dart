@@ -1497,48 +1497,6 @@ class GetEventHosts$Query extends JsonSerializable with EquatableMixin {
 }
 
 @JsonSerializable(explicitToJson: true)
-class SearchForUsersToAddAsGuests$Query$User extends JsonSerializable
-    with EquatableMixin {
-  SearchForUsersToAddAsGuests$Query$User();
-
-  factory SearchForUsersToAddAsGuests$Query$User.fromJson(
-          Map<String, dynamic> json) =>
-      _$SearchForUsersToAddAsGuests$Query$UserFromJson(json);
-
-  late int id;
-
-  late String username;
-
-  late String name;
-
-  late String profilePic;
-
-  @override
-  List<Object?> get props => [id, username, name, profilePic];
-  @override
-  Map<String, dynamic> toJson() =>
-      _$SearchForUsersToAddAsGuests$Query$UserToJson(this);
-}
-
-@JsonSerializable(explicitToJson: true)
-class SearchForUsersToAddAsGuests$Query extends JsonSerializable
-    with EquatableMixin {
-  SearchForUsersToAddAsGuests$Query();
-
-  factory SearchForUsersToAddAsGuests$Query.fromJson(
-          Map<String, dynamic> json) =>
-      _$SearchForUsersToAddAsGuests$QueryFromJson(json);
-
-  late List<SearchForUsersToAddAsGuests$Query$User> searchForUsersToAddAsGuests;
-
-  @override
-  List<Object?> get props => [searchForUsersToAddAsGuests];
-  @override
-  Map<String, dynamic> toJson() =>
-      _$SearchForUsersToAddAsGuests$QueryToJson(this);
-}
-
-@JsonSerializable(explicitToJson: true)
 class SearchLocation$Query$LocationAutoCompletePrediction
     extends JsonSerializable with EquatableMixin {
   SearchLocation$Query$LocationAutoCompletePrediction();
@@ -1909,6 +1867,48 @@ class SearchUsers$Query extends JsonSerializable with EquatableMixin {
   List<Object?> get props => [searchUsers];
   @override
   Map<String, dynamic> toJson() => _$SearchUsers$QueryToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class SearchForUsersToAddToEvent$Query$User extends JsonSerializable
+    with EquatableMixin {
+  SearchForUsersToAddToEvent$Query$User();
+
+  factory SearchForUsersToAddToEvent$Query$User.fromJson(
+          Map<String, dynamic> json) =>
+      _$SearchForUsersToAddToEvent$Query$UserFromJson(json);
+
+  late int id;
+
+  late String username;
+
+  late String name;
+
+  late String profilePic;
+
+  @override
+  List<Object?> get props => [id, username, name, profilePic];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$SearchForUsersToAddToEvent$Query$UserToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class SearchForUsersToAddToEvent$Query extends JsonSerializable
+    with EquatableMixin {
+  SearchForUsersToAddToEvent$Query();
+
+  factory SearchForUsersToAddToEvent$Query.fromJson(
+          Map<String, dynamic> json) =>
+      _$SearchForUsersToAddToEvent$QueryFromJson(json);
+
+  late List<SearchForUsersToAddToEvent$Query$User> searchForUsersToAddToEvent;
+
+  @override
+  List<Object?> get props => [searchForUsersToAddToEvent];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$SearchForUsersToAddToEvent$QueryToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -4841,130 +4841,6 @@ class GetEventHostsQuery
 }
 
 @JsonSerializable(explicitToJson: true)
-class SearchForUsersToAddAsGuestsArguments extends JsonSerializable
-    with EquatableMixin {
-  SearchForUsersToAddAsGuestsArguments({
-    required this.search,
-    required this.eventId,
-  });
-
-  @override
-  factory SearchForUsersToAddAsGuestsArguments.fromJson(
-          Map<String, dynamic> json) =>
-      _$SearchForUsersToAddAsGuestsArgumentsFromJson(json);
-
-  late String search;
-
-  late int eventId;
-
-  @override
-  List<Object?> get props => [search, eventId];
-  @override
-  Map<String, dynamic> toJson() =>
-      _$SearchForUsersToAddAsGuestsArgumentsToJson(this);
-}
-
-final SEARCH_FOR_USERS_TO_ADD_AS_GUESTS_QUERY_DOCUMENT_OPERATION_NAME =
-    'SearchForUsersToAddAsGuests';
-final SEARCH_FOR_USERS_TO_ADD_AS_GUESTS_QUERY_DOCUMENT =
-    DocumentNode(definitions: [
-  OperationDefinitionNode(
-    type: OperationType.query,
-    name: NameNode(value: 'SearchForUsersToAddAsGuests'),
-    variableDefinitions: [
-      VariableDefinitionNode(
-        variable: VariableNode(name: NameNode(value: 'search')),
-        type: NamedTypeNode(
-          name: NameNode(value: 'String'),
-          isNonNull: true,
-        ),
-        defaultValue: DefaultValueNode(value: null),
-        directives: [],
-      ),
-      VariableDefinitionNode(
-        variable: VariableNode(name: NameNode(value: 'eventId')),
-        type: NamedTypeNode(
-          name: NameNode(value: 'Int'),
-          isNonNull: true,
-        ),
-        defaultValue: DefaultValueNode(value: null),
-        directives: [],
-      ),
-    ],
-    directives: [],
-    selectionSet: SelectionSetNode(selections: [
-      FieldNode(
-        name: NameNode(value: 'searchForUsersToAddAsGuests'),
-        alias: null,
-        arguments: [
-          ArgumentNode(
-            name: NameNode(value: 'search'),
-            value: VariableNode(name: NameNode(value: 'search')),
-          ),
-          ArgumentNode(
-            name: NameNode(value: 'eventId'),
-            value: VariableNode(name: NameNode(value: 'eventId')),
-          ),
-        ],
-        directives: [],
-        selectionSet: SelectionSetNode(selections: [
-          FieldNode(
-            name: NameNode(value: 'id'),
-            alias: null,
-            arguments: [],
-            directives: [],
-            selectionSet: null,
-          ),
-          FieldNode(
-            name: NameNode(value: 'username'),
-            alias: null,
-            arguments: [],
-            directives: [],
-            selectionSet: null,
-          ),
-          FieldNode(
-            name: NameNode(value: 'name'),
-            alias: null,
-            arguments: [],
-            directives: [],
-            selectionSet: null,
-          ),
-          FieldNode(
-            name: NameNode(value: 'profilePic'),
-            alias: null,
-            arguments: [],
-            directives: [],
-            selectionSet: null,
-          ),
-        ]),
-      )
-    ]),
-  )
-]);
-
-class SearchForUsersToAddAsGuestsQuery extends GraphQLQuery<
-    SearchForUsersToAddAsGuests$Query, SearchForUsersToAddAsGuestsArguments> {
-  SearchForUsersToAddAsGuestsQuery({required this.variables});
-
-  @override
-  final DocumentNode document =
-      SEARCH_FOR_USERS_TO_ADD_AS_GUESTS_QUERY_DOCUMENT;
-
-  @override
-  final String operationName =
-      SEARCH_FOR_USERS_TO_ADD_AS_GUESTS_QUERY_DOCUMENT_OPERATION_NAME;
-
-  @override
-  final SearchForUsersToAddAsGuestsArguments variables;
-
-  @override
-  List<Object?> get props => [document, operationName, variables];
-  @override
-  SearchForUsersToAddAsGuests$Query parse(Map<String, dynamic> json) =>
-      SearchForUsersToAddAsGuests$Query.fromJson(json);
-}
-
-@JsonSerializable(explicitToJson: true)
 class SearchLocationArguments extends JsonSerializable with EquatableMixin {
   SearchLocationArguments({required this.search});
 
@@ -5706,6 +5582,129 @@ class SearchUsersQuery
   @override
   SearchUsers$Query parse(Map<String, dynamic> json) =>
       SearchUsers$Query.fromJson(json);
+}
+
+@JsonSerializable(explicitToJson: true)
+class SearchForUsersToAddToEventArguments extends JsonSerializable
+    with EquatableMixin {
+  SearchForUsersToAddToEventArguments({
+    required this.search,
+    required this.eventId,
+  });
+
+  @override
+  factory SearchForUsersToAddToEventArguments.fromJson(
+          Map<String, dynamic> json) =>
+      _$SearchForUsersToAddToEventArgumentsFromJson(json);
+
+  late String search;
+
+  late int eventId;
+
+  @override
+  List<Object?> get props => [search, eventId];
+  @override
+  Map<String, dynamic> toJson() =>
+      _$SearchForUsersToAddToEventArgumentsToJson(this);
+}
+
+final SEARCH_FOR_USERS_TO_ADD_TO_EVENT_QUERY_DOCUMENT_OPERATION_NAME =
+    'SearchForUsersToAddToEvent';
+final SEARCH_FOR_USERS_TO_ADD_TO_EVENT_QUERY_DOCUMENT =
+    DocumentNode(definitions: [
+  OperationDefinitionNode(
+    type: OperationType.query,
+    name: NameNode(value: 'SearchForUsersToAddToEvent'),
+    variableDefinitions: [
+      VariableDefinitionNode(
+        variable: VariableNode(name: NameNode(value: 'search')),
+        type: NamedTypeNode(
+          name: NameNode(value: 'String'),
+          isNonNull: true,
+        ),
+        defaultValue: DefaultValueNode(value: null),
+        directives: [],
+      ),
+      VariableDefinitionNode(
+        variable: VariableNode(name: NameNode(value: 'eventId')),
+        type: NamedTypeNode(
+          name: NameNode(value: 'Int'),
+          isNonNull: true,
+        ),
+        defaultValue: DefaultValueNode(value: null),
+        directives: [],
+      ),
+    ],
+    directives: [],
+    selectionSet: SelectionSetNode(selections: [
+      FieldNode(
+        name: NameNode(value: 'searchForUsersToAddToEvent'),
+        alias: null,
+        arguments: [
+          ArgumentNode(
+            name: NameNode(value: 'search'),
+            value: VariableNode(name: NameNode(value: 'search')),
+          ),
+          ArgumentNode(
+            name: NameNode(value: 'eventId'),
+            value: VariableNode(name: NameNode(value: 'eventId')),
+          ),
+        ],
+        directives: [],
+        selectionSet: SelectionSetNode(selections: [
+          FieldNode(
+            name: NameNode(value: 'id'),
+            alias: null,
+            arguments: [],
+            directives: [],
+            selectionSet: null,
+          ),
+          FieldNode(
+            name: NameNode(value: 'username'),
+            alias: null,
+            arguments: [],
+            directives: [],
+            selectionSet: null,
+          ),
+          FieldNode(
+            name: NameNode(value: 'name'),
+            alias: null,
+            arguments: [],
+            directives: [],
+            selectionSet: null,
+          ),
+          FieldNode(
+            name: NameNode(value: 'profilePic'),
+            alias: null,
+            arguments: [],
+            directives: [],
+            selectionSet: null,
+          ),
+        ]),
+      )
+    ]),
+  )
+]);
+
+class SearchForUsersToAddToEventQuery extends GraphQLQuery<
+    SearchForUsersToAddToEvent$Query, SearchForUsersToAddToEventArguments> {
+  SearchForUsersToAddToEventQuery({required this.variables});
+
+  @override
+  final DocumentNode document = SEARCH_FOR_USERS_TO_ADD_TO_EVENT_QUERY_DOCUMENT;
+
+  @override
+  final String operationName =
+      SEARCH_FOR_USERS_TO_ADD_TO_EVENT_QUERY_DOCUMENT_OPERATION_NAME;
+
+  @override
+  final SearchForUsersToAddToEventArguments variables;
+
+  @override
+  List<Object?> get props => [document, operationName, variables];
+  @override
+  SearchForUsersToAddToEvent$Query parse(Map<String, dynamic> json) =>
+      SearchForUsersToAddToEvent$Query.fromJson(json);
 }
 
 @JsonSerializable(explicitToJson: true)

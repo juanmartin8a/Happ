@@ -1132,40 +1132,6 @@ Map<String, dynamic> _$GetEventHosts$QueryToJson(
       'getEventHosts': instance.getEventHosts.toJson(),
     };
 
-SearchForUsersToAddAsGuests$Query$User
-    _$SearchForUsersToAddAsGuests$Query$UserFromJson(
-            Map<String, dynamic> json) =>
-        SearchForUsersToAddAsGuests$Query$User()
-          ..id = json['id'] as int
-          ..username = json['username'] as String
-          ..name = json['name'] as String
-          ..profilePic = json['profilePic'] as String;
-
-Map<String, dynamic> _$SearchForUsersToAddAsGuests$Query$UserToJson(
-        SearchForUsersToAddAsGuests$Query$User instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'username': instance.username,
-      'name': instance.name,
-      'profilePic': instance.profilePic,
-    };
-
-SearchForUsersToAddAsGuests$Query _$SearchForUsersToAddAsGuests$QueryFromJson(
-        Map<String, dynamic> json) =>
-    SearchForUsersToAddAsGuests$Query()
-      ..searchForUsersToAddAsGuests =
-          (json['searchForUsersToAddAsGuests'] as List<dynamic>)
-              .map((e) => SearchForUsersToAddAsGuests$Query$User.fromJson(
-                  e as Map<String, dynamic>))
-              .toList();
-
-Map<String, dynamic> _$SearchForUsersToAddAsGuests$QueryToJson(
-        SearchForUsersToAddAsGuests$Query instance) =>
-    <String, dynamic>{
-      'searchForUsersToAddAsGuests':
-          instance.searchForUsersToAddAsGuests.map((e) => e.toJson()).toList(),
-    };
-
 SearchLocation$Query$LocationAutoCompletePrediction
     _$SearchLocation$Query$LocationAutoCompletePredictionFromJson(
             Map<String, dynamic> json) =>
@@ -1462,6 +1428,40 @@ SearchUsers$Query _$SearchUsers$QueryFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SearchUsers$QueryToJson(SearchUsers$Query instance) =>
     <String, dynamic>{
       'searchUsers': instance.searchUsers.map((e) => e.toJson()).toList(),
+    };
+
+SearchForUsersToAddToEvent$Query$User
+    _$SearchForUsersToAddToEvent$Query$UserFromJson(
+            Map<String, dynamic> json) =>
+        SearchForUsersToAddToEvent$Query$User()
+          ..id = json['id'] as int
+          ..username = json['username'] as String
+          ..name = json['name'] as String
+          ..profilePic = json['profilePic'] as String;
+
+Map<String, dynamic> _$SearchForUsersToAddToEvent$Query$UserToJson(
+        SearchForUsersToAddToEvent$Query$User instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'username': instance.username,
+      'name': instance.name,
+      'profilePic': instance.profilePic,
+    };
+
+SearchForUsersToAddToEvent$Query _$SearchForUsersToAddToEvent$QueryFromJson(
+        Map<String, dynamic> json) =>
+    SearchForUsersToAddToEvent$Query()
+      ..searchForUsersToAddToEvent =
+          (json['searchForUsersToAddToEvent'] as List<dynamic>)
+              .map((e) => SearchForUsersToAddToEvent$Query$User.fromJson(
+                  e as Map<String, dynamic>))
+              .toList();
+
+Map<String, dynamic> _$SearchForUsersToAddToEvent$QueryToJson(
+        SearchForUsersToAddToEvent$Query instance) =>
+    <String, dynamic>{
+      'searchForUsersToAddToEvent':
+          instance.searchForUsersToAddToEvent.map((e) => e.toJson()).toList(),
     };
 
 LocationDetailsFromCoords$Query _$LocationDetailsFromCoords$QueryFromJson(
@@ -1802,20 +1802,6 @@ Map<String, dynamic> _$GetEventHostsArgumentsToJson(
       'idsList': instance.idsList,
     };
 
-SearchForUsersToAddAsGuestsArguments
-    _$SearchForUsersToAddAsGuestsArgumentsFromJson(Map<String, dynamic> json) =>
-        SearchForUsersToAddAsGuestsArguments(
-          search: json['search'] as String,
-          eventId: json['eventId'] as int,
-        );
-
-Map<String, dynamic> _$SearchForUsersToAddAsGuestsArgumentsToJson(
-        SearchForUsersToAddAsGuestsArguments instance) =>
-    <String, dynamic>{
-      'search': instance.search,
-      'eventId': instance.eventId,
-    };
-
 SearchLocationArguments _$SearchLocationArgumentsFromJson(
         Map<String, dynamic> json) =>
     SearchLocationArguments(
@@ -1878,6 +1864,20 @@ Map<String, dynamic> _$SearchUsersArgumentsToJson(
     <String, dynamic>{
       'search': instance.search,
       'userSearching': instance.userSearching,
+    };
+
+SearchForUsersToAddToEventArguments
+    _$SearchForUsersToAddToEventArgumentsFromJson(Map<String, dynamic> json) =>
+        SearchForUsersToAddToEventArguments(
+          search: json['search'] as String,
+          eventId: json['eventId'] as int,
+        );
+
+Map<String, dynamic> _$SearchForUsersToAddToEventArgumentsToJson(
+        SearchForUsersToAddToEventArguments instance) =>
+    <String, dynamic>{
+      'search': instance.search,
+      'eventId': instance.eventId,
     };
 
 LocationDetailsFromCoordsArguments _$LocationDetailsFromCoordsArgumentsFromJson(

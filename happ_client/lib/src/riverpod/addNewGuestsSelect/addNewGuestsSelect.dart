@@ -6,7 +6,7 @@ class AddNewGuestsSelectController extends StateNotifier<AddNewGuestsSelect> {
 
   AddNewGuestsSelectController() : super(AddNewGuestsInitState());
 
-  void inviteSelect(SearchForUsersToAddAsGuests$Query$User user, bool isAdd) async {
+  void inviteSelect(SearchForUsersToAddToEvent$Query$User user, bool isAdd) async {
     if (isAdd) {
       state = AddNewGuestsSelectedState(user: user);
     } else {

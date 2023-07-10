@@ -1,0 +1,8 @@
+query SearchForUsersToAddToEvent($search: String!, $eventId: Int!) {
+  searchForUsersToAddToEvent(search: $search, eventId: $eventId) {
+    id
+    username
+    name
+    profilePic
+  }
+}

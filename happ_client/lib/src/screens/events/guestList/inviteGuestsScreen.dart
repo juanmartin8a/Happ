@@ -4,15 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addGuests/addGuests.dart';
 import 'package:happ_client/src/riverpod/addNewGuestsSelect/AddNewGuestsSelect.dart';
-import 'package:happ_client/src/riverpod/searchForUsersToAddAsGuests/searchForUsersToAddAsGuests.dart';
-import 'package:happ_client/src/riverpod/searchForUsersToAddAsGuests/searchForUsersToAddAsGuestsState.dart';
+import 'package:happ_client/src/riverpod/searchForUsersToAddAsGuests/searchForUsersToAddToEvent.dart';
+import 'package:happ_client/src/riverpod/searchForUsersToAddAsGuests/searchForUsersToAddToEventState.dart';
 import 'package:happ_client/src/screens/events/guestList/inviteGuestsButton.dart';
 import 'package:happ_client/src/screens/events/guestList/inviteGuestsResults.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
 
 final searchProvider =
-  StateNotifierProvider<SearchForUsersToAddAsGuestsController, SearchForUsersToAddAsGuestsState>(
-    (ref) => SearchForUsersToAddAsGuestsController()
+  StateNotifierProvider<SearchForUsersToAddToEventController, SearchForUsersToAddToEventState>(
+    (ref) => SearchForUsersToAddToEventController()
   );
 
 class InviteNewGuests extends ConsumerStatefulWidget {
@@ -33,7 +33,7 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
 
   late int eventId;
 
-  List<SearchForUsersToAddAsGuests$Query$User> selectedUsers = [];
+  List<SearchForUsersToAddToEvent$Query$User> selectedUsers = [];
   List<int> selectedUsersIds = [];
 
   bool isEmpty = true;

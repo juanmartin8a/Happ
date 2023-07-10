@@ -58,18 +58,18 @@ class UserRepo {
     }
   }
 
-  Future<SearchForUsersToAddAsGuests$Query> searchUsersToAddAsGuests(
+  Future<SearchForUsersToAddToEvent$Query> searchForUsersToAddToEvent(
     String search,
     int eventId
   ) async {
     final result = await client.query(
-      UserOptions().searchUsersToAddAsGuestsQueryOptions(search, eventId)
+      UserOptions().searchUsersToAddToEventQueryOptions(search, eventId)
     );
 
     if (result.hasException) {
       throw (result.exception as OperationException);
     } else {
-      return SearchForUsersToAddAsGuests$Query.fromJson(result.data as Map<String, dynamic>);
+      return SearchForUsersToAddToEvent$Query.fromJson(result.data as Map<String, dynamic>);
     }
   }
 

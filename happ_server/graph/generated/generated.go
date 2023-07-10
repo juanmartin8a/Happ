@@ -908,7 +908,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Email(childComplexity), true
 
-	case "User.EventUserStatus":
+	case "User.eventUserStatus":
 		if e.complexity.User.EventUserStatus == nil {
 			break
 		}
@@ -1053,7 +1053,7 @@ type User {
   createdAt: String!
   updatedAt: String!
   profilePic: String!
-  EventUserStatus: EventUserStatus!
+  eventUserStatus: EventUserStatus!
 }
 
 type Event {
@@ -3166,8 +3166,8 @@ func (ec *executionContext) fieldContext_EventInviteRes_invitedBy(ctx context.Co
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
-			case "EventUserStatus":
-				return ec.fieldContext_User_EventUserStatus(ctx, field)
+			case "eventUserStatus":
+				return ec.fieldContext_User_eventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -3282,8 +3282,8 @@ func (ec *executionContext) fieldContext_EventInviteRes_friends(ctx context.Cont
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
-			case "EventUserStatus":
-				return ec.fieldContext_User_EventUserStatus(ctx, field)
+			case "eventUserStatus":
+				return ec.fieldContext_User_eventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -4443,8 +4443,8 @@ func (ec *executionContext) fieldContext_PaginatedEventUsersResults_users(ctx co
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
-			case "EventUserStatus":
-				return ec.fieldContext_User_EventUserStatus(ctx, field)
+			case "eventUserStatus":
+				return ec.fieldContext_User_eventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -4548,8 +4548,8 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
-			case "EventUserStatus":
-				return ec.fieldContext_User_EventUserStatus(ctx, field)
+			case "eventUserStatus":
+				return ec.fieldContext_User_eventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -4620,8 +4620,8 @@ func (ec *executionContext) fieldContext_Query_userFromId(ctx context.Context, f
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
-			case "EventUserStatus":
-				return ec.fieldContext_User_EventUserStatus(ctx, field)
+			case "eventUserStatus":
+				return ec.fieldContext_User_eventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -4695,8 +4695,8 @@ func (ec *executionContext) fieldContext_Query_searchUsers(ctx context.Context, 
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
-			case "EventUserStatus":
-				return ec.fieldContext_User_EventUserStatus(ctx, field)
+			case "eventUserStatus":
+				return ec.fieldContext_User_eventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -5127,8 +5127,8 @@ func (ec *executionContext) fieldContext_Query_searchForUsersToAddToEvent(ctx co
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
-			case "EventUserStatus":
-				return ec.fieldContext_User_EventUserStatus(ctx, field)
+			case "eventUserStatus":
+				return ec.fieldContext_User_eventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -5743,8 +5743,8 @@ func (ec *executionContext) fieldContext_SignInResponse_user(ctx context.Context
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
-			case "EventUserStatus":
-				return ec.fieldContext_User_EventUserStatus(ctx, field)
+			case "eventUserStatus":
+				return ec.fieldContext_User_eventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -5845,8 +5845,8 @@ func (ec *executionContext) fieldContext_UpdateUserResponse_user(ctx context.Con
 				return ec.fieldContext_User_updatedAt(ctx, field)
 			case "profilePic":
 				return ec.fieldContext_User_profilePic(ctx, field)
-			case "EventUserStatus":
-				return ec.fieldContext_User_EventUserStatus(ctx, field)
+			case "eventUserStatus":
+				return ec.fieldContext_User_eventUserStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -6253,8 +6253,8 @@ func (ec *executionContext) fieldContext_User_profilePic(ctx context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _User_EventUserStatus(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_EventUserStatus(ctx, field)
+func (ec *executionContext) _User_eventUserStatus(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_eventUserStatus(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6284,7 +6284,7 @@ func (ec *executionContext) _User_EventUserStatus(ctx context.Context, field gra
 	return ec.marshalNEventUserStatus2happᚋgraphᚋmodelᚐEventUserStatus(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_EventUserStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_eventUserStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -9756,7 +9756,7 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "EventUserStatus":
+		case "eventUserStatus":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -9765,7 +9765,7 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._User_EventUserStatus(ctx, field, obj)
+				res = ec._User_eventUserStatus(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

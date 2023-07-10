@@ -6,7 +6,7 @@ import 'package:happ_client/src/riverpod/addNewGuestsSelect/AddNewGuestsSelect.d
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
 
 class SearchFUTAAGInviteTile extends ConsumerStatefulWidget {
-  final SearchForUsersToAddAsGuests$Query$User user;
+  final SearchForUsersToAddToEvent$Query$User user;
   final bool isSelected;
   const SearchFUTAAGInviteTile({
     required this.user,

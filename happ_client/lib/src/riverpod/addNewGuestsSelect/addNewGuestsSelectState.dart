@@ -12,7 +12,7 @@ class AddNewGuestsInitState extends AddNewGuestsSelect {}
 
 
 class AddNewGuestsSelectedState extends AddNewGuestsSelect {
-  final SearchForUsersToAddAsGuests$Query$User user;
+  final SearchForUsersToAddToEvent$Query$User user;
 
   const AddNewGuestsSelectedState({
     required this.user,

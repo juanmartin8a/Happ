@@ -79,10 +79,10 @@ class UserOptions {
     return queryOptions;
   }
 
-  QueryOptions searchUsersToAddAsGuestsQueryOptions(String search, int eventId) {
+  QueryOptions searchUsersToAddToEventQueryOptions(String search, int eventId) {
     QueryOptions queryOptions = QueryOptions(
-      document: SearchForUsersToAddAsGuestsQuery(
-        variables: SearchForUsersToAddAsGuestsArguments(
+      document: SearchForUsersToAddToEventQuery(
+        variables: SearchForUsersToAddToEventArguments(
           search: search,
           eventId: eventId,
         )
