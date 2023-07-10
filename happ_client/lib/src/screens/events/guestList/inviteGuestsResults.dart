@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addNewGuestsSelect/AddNewGuestsSelect.dart';
 import 'package:happ_client/src/riverpod/addNewGuestsSelect/addNewGuestsSelectState.dart';
-import 'package:happ_client/src/riverpod/searchForUsersToAddAsGuests/searchForUsersToAddAsGuestsState.dart';
+import 'package:happ_client/src/riverpod/searchForUsersToAddAsGuests/searchForUsersToAddToEventState.dart';
 import 'package:happ_client/src/screens/events/updateEvent/widgets/searchFUTAAGInviteTile.dart';
 import 'package:happ_client/src/screens/events/guestList/inviteGuestsScreen.dart';
 
@@ -32,10 +32,10 @@ class _SearchInviteGuestsResultsState extends ConsumerState<SearchInviteGuestsRe
 // class SearchUserInviteResults extends ConsumerWidget {
 //   const SearchUserInviteResults({Key? key}) : super(key: key);
 
-  List<SearchForUsersToAddAsGuests$Query$User> selectedUsers = [];
+  List<SearchForUsersToAddToEvent$Query$User> selectedUsers = [];
   List<int> selectedUsersIds = [];
 
-  List<SearchForUsersToAddAsGuests$Query$User> searchUsersRes = [];
+  List<SearchForUsersToAddToEvent$Query$User> searchUsersRes = [];
 
   bool searchErr = false;
   bool searchIsLoaded = false;
@@ -68,16 +68,16 @@ class _SearchInviteGuestsResultsState extends ConsumerState<SearchInviteGuestsRe
       bool searchErrTemp = false;
       bool searchIsLoadedTemp = false;
 
-      if (next is SearchForUsersToAddAsGuestsLoadedState) {
+      if (next is SearchForUsersToAddToEventLoadedState) {
         setState(() {
           searchUsersRes = next.searchUsersRes;
           searchIsLoaded = true;
         });
-      } else if (next is SearchForUsersToAddAsGuestsErrorState) {
+      } else if (next is SearchForUsersToAddToEventErrorState) {
         changes = true;
         searchErrTemp = true;
         searchIsLoadedTemp = false;
-      } else if (next is !SearchForUsersToAddAsGuestsLoadedState) {
+      } else if (next is !SearchForUsersToAddToEventLoadedState) {
         changes = true;
         searchIsLoadedTemp = false;
       }
@@ -90,7 +90,7 @@ class _SearchInviteGuestsResultsState extends ConsumerState<SearchInviteGuestsRe
       }
     });
 
-    // SearchForUsersToAddAsGuestsState searchUserState = ref.watch(searchProvider);
+    // SearchForUsersToAddToEventState searchUserState = ref.watch(searchProvider);
 
     if (searchErr) {
       return SingleChildScrollView(
