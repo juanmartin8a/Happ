@@ -936,7 +936,28 @@ func (r *mutationResolver) InviteGuestsAndOrganizers(ctx context.Context, guests
 		return false, authErr
 	}
 
-	// bulk := make([]*ent.EventUserCreate, len(guests)+len(organizers))
+	eventUser, err := r.client.EventUser.Query().
+		Where(
+			eventuser.And(
+				eventuser.EventID(eventID),
+				eventuser.UserID(*currentUserID),
+			),
+		).
+		Only(ctx)
+	if err != nil {
+		return false, nil
+	}
+
+	if !eventUser.Admin {
+		return false, fmt.Errorf("operation not allowed")
+	}
+
+	if len(organizers) > 0 {
+		if !eventUser.Creator {
+			return false, fmt.Errorf("operation not allowed")
+		}
+	}
+
 	guestsBulk := make([]*ent.EventUserCreate, len(guests))
 	organizersBulk := make([]*ent.EventUserCreate, len(organizers))
 
@@ -964,7 +985,7 @@ func (r *mutationResolver) InviteGuestsAndOrganizers(ctx context.Context, guests
 
 	bulk := append(guestsBulk, organizersBulk...)
 
-	_, err := r.client.EventUser.CreateBulk(bulk...).Save(ctx)
+	_, err = r.client.EventUser.CreateBulk(bulk...).Save(ctx)
 	if err != nil {
 		return false, nil
 	}
@@ -1675,80 +1696,6 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID int) (*bool,
 	}
 
 	value := true
-	return &value, nil
-}
-
-// AddGuests is the resolver for the addGuests field.
-func (r *mutationResolver) AddGuests(ctx context.Context, eventID int, userIds []int) (*bool, error) {
-	userId, authErr := utils.IsAuth(ctx)
-	if authErr != nil {
-		return nil, authErr
-	}
-
-	var value bool
-
-	eventUser, err := r.client.EventUser.Query().
-		Where(
-			eventuser.And(
-				eventuser.EventID(eventID),
-				eventuser.UserID(*userId),
-			),
-		).
-		Only(ctx)
-	if err != nil {
-		value = false
-		return &value, nil
-	}
-
-	if !eventUser.Admin {
-		return nil, fmt.Errorf("operation not allowed")
-	}
-
-	// Add the guests to the event
-	bulk := make([]*ent.EventUserCreate, len(userIds))
-	for i, userID := range userIds {
-		bulk[i] = r.client.EventUser.
-			Create().
-			SetEventID(eventID).
-			SetUserID(userID).
-			SetInvitedBy(*userId)
-	}
-
-	_, err = r.client.EventUser.CreateBulk(bulk...).Save(ctx)
-	if err != nil {
-		value = false
-		return &value, err
-	}
-
-	value = true
-
-	go func() {
-
-		newctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		userName, err := utils.Client.User.Query().
-			Where(
-				user.ID(*userId),
-			).
-			Select(user.FieldName).
-			String(newctx)
-		if err != nil {
-			return
-		}
-
-		eventName, err := utils.Client.Event.Query().
-			Where(
-				event.ID(eventID),
-			).
-			Select(event.FieldName).
-			String(newctx)
-		if err != nil {
-			return
-		}
-
-		notifications.SendManyPushNotifications(utils.Client, newctx, userIds, "Happ", userName+" has invited you to "+eventName)
-	}()
 	return &value, nil
 }
 
@@ -3883,3 +3830,82 @@ type eventInviteResResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+// func (r *mutationResolver) AddGuests(ctx context.Context, eventID int, guestIds []int, hostIds []int) (*bool, error) {
+// 	userId, authErr := utils.IsAuth(ctx)
+// 	if authErr != nil {
+// 		return nil, authErr
+// 	}
+
+// 	var value bool
+
+// 	eventUser, err := r.client.EventUser.Query().
+// 		Where(
+// 			eventuser.And(
+// 				eventuser.EventID(eventID),
+// 				eventuser.UserID(*userId),
+// 			),
+// 		).
+// 		Only(ctx)
+// 	if err != nil {
+// 		value = false
+// 		return &value, nil
+// 	}
+
+// 	if !eventUser.Admin {
+// 		return nil, fmt.Errorf("operation not allowed")
+// 	}
+
+// 	// Add the guests to the event
+// 	bulk := make([]*ent.EventUserCreate, len(userIds))
+// 	for i, userID := range userIds {
+// 		bulk[i] = r.client.EventUser.
+// 			Create().
+// 			SetEventID(eventID).
+// 			SetUserID(userID).
+// 			SetInvitedBy(*userId)
+// 	}
+
+// 	_, err = r.client.EventUser.CreateBulk(bulk...).Save(ctx)
+// 	if err != nil {
+// 		value = false
+// 		return &value, err
+// 	}
+
+// 	value = true
+
+// 	go func() {
+
+// 		newctx, cancel := context.WithCancel(context.Background())
+// 		defer cancel()
+
+// 		userName, err := utils.Client.User.Query().
+// 			Where(
+// 				user.ID(*userId),
+// 			).
+// 			Select(user.FieldName).
+// 			String(newctx)
+// 		if err != nil {
+// 			return
+// 		}
+
+// 		eventName, err := utils.Client.Event.Query().
+// 			Where(
+// 				event.ID(eventID),
+// 			).
+// 			Select(event.FieldName).
+// 			String(newctx)
+// 		if err != nil {
+// 			return
+// 		}
+
+// 		notifications.SendManyPushNotifications(utils.Client, newctx, userIds, "Happ", userName+" has invited you to "+eventName)
+// 	}()
+// 	return &value, nil
+// }
