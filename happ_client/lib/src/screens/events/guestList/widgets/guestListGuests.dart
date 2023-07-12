@@ -15,9 +15,11 @@ import 'package:happ_client/src/utils/widgets/loader.dart';
 class GuestListGuests extends ConsumerStatefulWidget {
   final int eventId;
   final GetEventGuests$Query$PaginatedEventUsersResults paginatedGuestsRes;
+  final bool isCreator;
   const GuestListGuests({
     required this.eventId,
     required this.paginatedGuestsRes,
+    required this.isCreator,
     super.key
   });
 
@@ -99,10 +101,9 @@ class _GuestListGuestsState extends ConsumerState<GuestListGuests> with Automati
           selectMode = false;
         });
         if (next is GuestListActionAddState) {
-          // final inviteRes = EventTypesConverter().convertOtherInviteResToFriendsInviteRes(widget.inviteRes);
           context.push('/invite-guests', extra: InviteGuestsScreenParams(
-              // event: event, invitedBy: invitedBy, userInfo: userInfo
               eventId: widget.eventId,
+              isCreator: widget.isCreator,
             )
           );
         }

@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/eventHosts/eventHosts.dart';
 import 'package:happ_client/src/riverpod/eventHosts/eventHostsState.dart';
+import 'package:happ_client/src/riverpod/guestListAction/guestListAction.dart';
+import 'package:happ_client/src/riverpod/guestListAction/guestListActionState.dart';
+import 'package:happ_client/src/screens/events/class/eventAndInviteParams.dart';
 import 'package:happ_client/src/screens/profile/class/profileParams.dart';
 import 'package:happ_client/src/screens/profile/profile.dart';
 import 'package:happ_client/src/utils/widgets/loader.dart';
@@ -11,9 +14,11 @@ import 'package:happ_client/src/utils/widgets/loader.dart';
 class GuestListHosts extends ConsumerStatefulWidget {
   final int eventId;
   final GetEventHosts$Query$PaginatedEventUsersResults paginatedHostsRes;
+  final bool isCreator;
   const GuestListHosts({
     required this.eventId,
     required this.paginatedHostsRes,
+    required this.isCreator,
     super.key
   });
 
@@ -30,6 +35,8 @@ class _GuestListHostsState extends ConsumerState<GuestListHosts> with AutomaticK
 
   bool isLoading = false;
   bool hasMore = true; 
+
+  bool selectMode = false;
 
   @override
   void initState() {
@@ -74,6 +81,25 @@ class _GuestListHostsState extends ConsumerState<GuestListHosts> with AutomaticK
           hasMore = next.res.hasMore;
           isLoading = false;
         });
+      }
+    });
+    ref.listen(guestListActionProvider, (prev, next) {
+      if (next is GuestListActionRemoveState) {
+        setState(() {
+          selectMode = true;
+        });
+      } else {
+        setState(() {
+          selectMode = false;
+        });
+        if (next is GuestListActionAddState) {
+          context.push('/invite-guests', extra: InviteGuestsScreenParams(
+              eventId: widget.eventId,
+              isCreator: widget.isCreator,
+              isHosts: true
+            )
+          );
+        }
       }
     });
     return ListView(

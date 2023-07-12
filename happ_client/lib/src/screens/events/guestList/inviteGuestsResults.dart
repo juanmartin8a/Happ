@@ -10,10 +10,8 @@ import 'package:happ_client/src/screens/events/updateEvent/widgets/searchFUTAAGI
 import 'package:happ_client/src/screens/events/guestList/inviteGuestsScreen.dart';
 
 class SearchInviteGuestsResults extends ConsumerStatefulWidget {
-  // final List<SearchForUsersToAddAsGuests$Query$User> selectedUsers;
   final bool isEmpty;
   const SearchInviteGuestsResults({
-    // required this.selectedUsers,
     required this.isEmpty,
     super.key
   });
@@ -23,14 +21,6 @@ class SearchInviteGuestsResults extends ConsumerStatefulWidget {
 }
 
 class _SearchInviteGuestsResultsState extends ConsumerState<SearchInviteGuestsResults> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container();
-//   }
-// }
-
-// class SearchUserInviteResults extends ConsumerWidget {
-//   const SearchUserInviteResults({Key? key}) : super(key: key);
 
   List<SearchForUsersToAddToEvent$Query$User> selectedUsers = [];
   List<int> selectedUsersIds = [];

@@ -199,6 +199,7 @@ class _AcceptButtonState extends ConsumerState<AcceptButton> with AutomaticKeepA
           } else if (isConfirmed && isHost) {
             context.push('/scan-pass', extra: InviteGuestsScreenParams(
                 eventId: event.id,
+                isCreator: false
               )
             );
           }

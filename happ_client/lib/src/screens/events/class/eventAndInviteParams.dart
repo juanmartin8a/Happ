@@ -38,8 +38,12 @@ class EventGuestListParams {
 
 class InviteGuestsScreenParams {
   final int eventId;
+  final bool isCreator;
+  final bool isHosts;
   const InviteGuestsScreenParams({
     required this.eventId,
+    required this.isCreator,
+    this.isHosts = false,
   });
 }
 

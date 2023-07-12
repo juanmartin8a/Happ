@@ -551,14 +551,6 @@ Map<String, dynamic> _$DeleteEvent$MutationToJson(
       'deleteEvent': instance.deleteEvent,
     };
 
-AddGuests$Mutation _$AddGuests$MutationFromJson(Map<String, dynamic> json) =>
-    AddGuests$Mutation()..addGuests = json['addGuests'] as bool?;
-
-Map<String, dynamic> _$AddGuests$MutationToJson(AddGuests$Mutation instance) =>
-    <String, dynamic>{
-      'addGuests': instance.addGuests,
-    };
-
 RemoveGuests$Mutation _$RemoveGuests$MutationFromJson(
         Map<String, dynamic> json) =>
     RemoveGuests$Mutation()..removeGuests = json['removeGuests'] as bool?;
@@ -1437,7 +1429,10 @@ SearchForUsersToAddToEvent$Query$User
           ..id = json['id'] as int
           ..username = json['username'] as String
           ..name = json['name'] as String
-          ..profilePic = json['profilePic'] as String;
+          ..profilePic = json['profilePic'] as String
+          ..eventUserStatus = $enumDecode(
+              _$EventUserStatusEnumMap, json['eventUserStatus'],
+              unknownValue: EventUserStatus.artemisUnknown);
 
 Map<String, dynamic> _$SearchForUsersToAddToEvent$Query$UserToJson(
         SearchForUsersToAddToEvent$Query$User instance) =>
@@ -1446,7 +1441,15 @@ Map<String, dynamic> _$SearchForUsersToAddToEvent$Query$UserToJson(
       'username': instance.username,
       'name': instance.name,
       'profilePic': instance.profilePic,
+      'eventUserStatus': _$EventUserStatusEnumMap[instance.eventUserStatus]!,
     };
+
+const _$EventUserStatusEnumMap = {
+  EventUserStatus.notInvited: 'NOT_INVITED',
+  EventUserStatus.invited: 'INVITED',
+  EventUserStatus.confirmed: 'CONFIRMED',
+  EventUserStatus.artemisUnknown: 'ARTEMIS_UNKNOWN',
+};
 
 SearchForUsersToAddToEvent$Query _$SearchForUsersToAddToEvent$QueryFromJson(
         Map<String, dynamic> json) =>
@@ -1669,18 +1672,6 @@ Map<String, dynamic> _$DeleteEventArgumentsToJson(
         DeleteEventArguments instance) =>
     <String, dynamic>{
       'eventId': instance.eventId,
-    };
-
-AddGuestsArguments _$AddGuestsArgumentsFromJson(Map<String, dynamic> json) =>
-    AddGuestsArguments(
-      eventId: json['eventId'] as int,
-      userIds: (json['userIds'] as List<dynamic>).map((e) => e as int).toList(),
-    );
-
-Map<String, dynamic> _$AddGuestsArgumentsToJson(AddGuestsArguments instance) =>
-    <String, dynamic>{
-      'eventId': instance.eventId,
-      'userIds': instance.userIds,
     };
 
 RemoveGuestsArguments _$RemoveGuestsArgumentsFromJson(

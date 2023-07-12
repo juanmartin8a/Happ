@@ -758,21 +758,6 @@ class DeleteEvent$Mutation extends JsonSerializable with EquatableMixin {
 }
 
 @JsonSerializable(explicitToJson: true)
-class AddGuests$Mutation extends JsonSerializable with EquatableMixin {
-  AddGuests$Mutation();
-
-  factory AddGuests$Mutation.fromJson(Map<String, dynamic> json) =>
-      _$AddGuests$MutationFromJson(json);
-
-  bool? addGuests;
-
-  @override
-  List<Object?> get props => [addGuests];
-  @override
-  Map<String, dynamic> toJson() => _$AddGuests$MutationToJson(this);
-}
-
-@JsonSerializable(explicitToJson: true)
 class RemoveGuests$Mutation extends JsonSerializable with EquatableMixin {
   RemoveGuests$Mutation();
 
@@ -1886,8 +1871,11 @@ class SearchForUsersToAddToEvent$Query$User extends JsonSerializable
 
   late String profilePic;
 
+  @JsonKey(unknownEnumValue: EventUserStatus.artemisUnknown)
+  late EventUserStatus eventUserStatus;
+
   @override
-  List<Object?> get props => [id, username, name, profilePic];
+  List<Object?> get props => [id, username, name, profilePic, eventUserStatus];
   @override
   Map<String, dynamic> toJson() =>
       _$SearchForUsersToAddToEvent$Query$UserToJson(this);
@@ -2023,6 +2011,17 @@ enum SignInProvider {
   apple,
   @JsonValue('GOOGLE')
   google,
+  @JsonValue('ARTEMIS_UNKNOWN')
+  artemisUnknown,
+}
+
+enum EventUserStatus {
+  @JsonValue('NOT_INVITED')
+  notInvited,
+  @JsonValue('INVITED')
+  invited,
+  @JsonValue('CONFIRMED')
+  confirmed,
   @JsonValue('ARTEMIS_UNKNOWN')
   artemisUnknown,
 }
@@ -3311,97 +3310,6 @@ class DeleteEventMutation
   @override
   DeleteEvent$Mutation parse(Map<String, dynamic> json) =>
       DeleteEvent$Mutation.fromJson(json);
-}
-
-@JsonSerializable(explicitToJson: true)
-class AddGuestsArguments extends JsonSerializable with EquatableMixin {
-  AddGuestsArguments({
-    required this.eventId,
-    required this.userIds,
-  });
-
-  @override
-  factory AddGuestsArguments.fromJson(Map<String, dynamic> json) =>
-      _$AddGuestsArgumentsFromJson(json);
-
-  late int eventId;
-
-  late List<int> userIds;
-
-  @override
-  List<Object?> get props => [eventId, userIds];
-  @override
-  Map<String, dynamic> toJson() => _$AddGuestsArgumentsToJson(this);
-}
-
-final ADD_GUESTS_MUTATION_DOCUMENT_OPERATION_NAME = 'AddGuests';
-final ADD_GUESTS_MUTATION_DOCUMENT = DocumentNode(definitions: [
-  OperationDefinitionNode(
-    type: OperationType.mutation,
-    name: NameNode(value: 'AddGuests'),
-    variableDefinitions: [
-      VariableDefinitionNode(
-        variable: VariableNode(name: NameNode(value: 'eventId')),
-        type: NamedTypeNode(
-          name: NameNode(value: 'Int'),
-          isNonNull: true,
-        ),
-        defaultValue: DefaultValueNode(value: null),
-        directives: [],
-      ),
-      VariableDefinitionNode(
-        variable: VariableNode(name: NameNode(value: 'userIds')),
-        type: ListTypeNode(
-          type: NamedTypeNode(
-            name: NameNode(value: 'Int'),
-            isNonNull: true,
-          ),
-          isNonNull: true,
-        ),
-        defaultValue: DefaultValueNode(value: null),
-        directives: [],
-      ),
-    ],
-    directives: [],
-    selectionSet: SelectionSetNode(selections: [
-      FieldNode(
-        name: NameNode(value: 'addGuests'),
-        alias: null,
-        arguments: [
-          ArgumentNode(
-            name: NameNode(value: 'eventId'),
-            value: VariableNode(name: NameNode(value: 'eventId')),
-          ),
-          ArgumentNode(
-            name: NameNode(value: 'userIds'),
-            value: VariableNode(name: NameNode(value: 'userIds')),
-          ),
-        ],
-        directives: [],
-        selectionSet: null,
-      )
-    ]),
-  )
-]);
-
-class AddGuestsMutation
-    extends GraphQLQuery<AddGuests$Mutation, AddGuestsArguments> {
-  AddGuestsMutation({required this.variables});
-
-  @override
-  final DocumentNode document = ADD_GUESTS_MUTATION_DOCUMENT;
-
-  @override
-  final String operationName = ADD_GUESTS_MUTATION_DOCUMENT_OPERATION_NAME;
-
-  @override
-  final AddGuestsArguments variables;
-
-  @override
-  List<Object?> get props => [document, operationName, variables];
-  @override
-  AddGuests$Mutation parse(Map<String, dynamic> json) =>
-      AddGuests$Mutation.fromJson(json);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -5675,6 +5583,13 @@ final SEARCH_FOR_USERS_TO_ADD_TO_EVENT_QUERY_DOCUMENT =
           ),
           FieldNode(
             name: NameNode(value: 'profilePic'),
+            alias: null,
+            arguments: [],
+            directives: [],
+            selectionSet: null,
+          ),
+          FieldNode(
+            name: NameNode(value: 'eventUserStatus'),
             alias: null,
             arguments: [],
             directives: [],

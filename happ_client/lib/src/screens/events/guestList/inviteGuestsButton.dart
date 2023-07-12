@@ -23,7 +23,8 @@ class InviteGuestsButton extends ConsumerStatefulWidget {
 
 class _InviteGuestsButtonState extends ConsumerState<InviteGuestsButton> {
 
-  List<int> guests = [];  
+  List<int> guests = [];
+  List<int> hosts = [];  
   
   @override
   Widget build(BuildContext context) {
@@ -67,7 +68,7 @@ class _InviteGuestsButtonState extends ConsumerState<InviteGuestsButton> {
     return GestureDetector(
       onTap: () {
         if (guests.isNotEmpty) {
-          ref.read(addGuestsProvider.notifier).addGuests(guests, widget.eventId);
+          ref.read(addGuestsProvider.notifier).addGuests(guests, hosts, widget.eventId);
           showGeneralDialog(
             context: context,
             barrierColor: Colors.transparent,

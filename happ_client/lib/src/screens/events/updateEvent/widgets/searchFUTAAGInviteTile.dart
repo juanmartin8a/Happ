@@ -30,6 +30,57 @@ class _SearchFUTAAGInviteTileState extends ConsumerState<SearchFUTAAGInviteTile>
 
   @override
   Widget build(BuildContext context) {
+    Widget rightSideWidget = isSelected 
+      ? Container(
+        height: 24,
+        width: 24,
+        decoration: BoxDecoration(
+          color: Colors.greenAccent[700]!,
+          shape: BoxShape.circle,
+        ),
+        child: const Center(
+          child: Icon(
+            FluentIcons.checkmark_12_regular,
+            color: Colors.white,
+            size: 20
+          )
+        )
+      )
+      : Container(
+        height: 24,
+        width: 24,
+        decoration: BoxDecoration(
+          // color: Colors.red,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.grey, width: 2)
+        )
+      );
+
+    if (
+      widget.user.eventUserStatus == EventUserStatus.invited || 
+      widget.user.eventUserStatus == EventUserStatus.confirmed
+    ) {
+      bool isConfirmed = widget.user.eventUserStatus == EventUserStatus.confirmed;
+      rightSideWidget = Container(
+        height: 26,
+        width: 70,
+        decoration: BoxDecoration(
+          color: !isConfirmed ?Colors.grey[200] : Colors.black,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Center(
+          child: Text(
+            !isConfirmed ? "Invited" : "Going",
+            style: TextStyle(
+              color: !isConfirmed ? Colors.grey[900] : Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            )
+          ),
+        )
+      );
+    }
+    
     return GestureDetector(
       onTap: () {
         if (isSelected) {
@@ -91,31 +142,7 @@ class _SearchFUTAAGInviteTileState extends ConsumerState<SearchFUTAAGInviteTile>
               ),
             ),
             if (widget.user.id != ref.read(currentUserProvider)!.id)
-            isSelected 
-            ? Container(
-              height: 24,
-              width: 24,
-              decoration: BoxDecoration(
-                color: Colors.greenAccent[700]!,
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Icon(
-                  FluentIcons.checkmark_12_regular,
-                  color: Colors.white,
-                  size: 20
-                )
-              )
-            )
-            : Container(
-              height: 24,
-              width: 24,
-              decoration: BoxDecoration(
-                // color: Colors.red,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey, width: 2)
-              )
-            )
+            rightSideWidget
           ],
         ),
       ),

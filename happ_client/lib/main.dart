@@ -247,6 +247,8 @@ class MyApp extends ConsumerWidget {
             state: state,
             child: InviteNewGuests(
               eventId: params.eventId,
+              isCreator: params.isCreator,
+              isHosts: params.isHosts,
               key: Key("invite_guests_${params.eventId}")
             )
           );

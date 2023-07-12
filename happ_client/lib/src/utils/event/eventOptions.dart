@@ -305,26 +305,26 @@ class EventOptions {
     return mutationOptions;
   }
 
-  MutationOptions addGuests(
-    List<int> userIds,
-    int eventId
-  ) {
-    MutationOptions mutationOptions = MutationOptions(
-      document: AddGuestsMutation(
-        variables: AddGuestsArguments(
-          userIds: userIds,
-          eventId: eventId
-        )
-      ).document,
-      variables: {
-        "userIds": userIds,
-        "eventId": eventId
-      },
-      fetchPolicy: FetchPolicy.noCache
-    );
+  // MutationOptions addGuests(
+  //   List<int> userIds,
+  //   int eventId
+  // ) {
+  //   MutationOptions mutationOptions = MutationOptions(
+  //     document: AddGuestsMutation(
+  //       variables: AddGuestsArguments(
+  //         userIds: userIds,
+  //         eventId: eventId
+  //       )
+  //     ).document,
+  //     variables: {
+  //       "userIds": userIds,
+  //       "eventId": eventId
+  //     },
+  //     fetchPolicy: FetchPolicy.noCache
+  //   );
 
-    return mutationOptions;
-  }
+  //   return mutationOptions;
+  // }
 
   MutationOptions leaveEventMutationOptions(
     int eventId

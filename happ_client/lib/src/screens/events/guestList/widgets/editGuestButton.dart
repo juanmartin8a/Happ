@@ -10,10 +10,10 @@ import 'package:happ_client/src/screens/events/guestList/widgets/AddOrRemoveDial
 import 'package:happ_client/src/screens/events/guestList/widgets/removeGuestsConfirmDialog.dart';
 
 class EditGuestButton extends ConsumerStatefulWidget {
-  final Animation<double> opacityTween;
+  final double opacity;
   final int eventId;
   const EditGuestButton({
-    required this.opacityTween,
+    required this.opacity,
     required this.eventId,
     super.key
   });
@@ -43,15 +43,6 @@ class _EditGuestButtonState extends ConsumerState<EditGuestButton> {
       }
     });
     ref.listen(removeGuestSelectProvider, (prev, next) {
-      // create list to store user ids to delete
-      // add guests from temporal ids list
-      // remove guests from temporal ids list
-
-      // TODO: tomorrow 30 of march ------> MOVE IT BITCH
-      // do this thing below ()
-      // add guests
-      // pull to refresh 3 main lists (friends, other and user)
-      // Scan
       if (next is RemoveGuestRemoveState) {
         setState(() {
           usersToRemoveIds.removeWhere((userId) => userId == next.userId);
@@ -80,8 +71,8 @@ class _EditGuestButtonState extends ConsumerState<EditGuestButton> {
         children: [
           GestureDetector(
             onTap: () {
-              if (selectMode == false) {
-                if (widget.opacityTween.value == 1) {
+              if (widget.opacity == 1) {
+                if (selectMode == false) {
                   showGeneralDialog(
                     context: context,
                     barrierColor: Colors.transparent,
@@ -90,17 +81,17 @@ class _EditGuestButtonState extends ConsumerState<EditGuestButton> {
                       return const AddOrRemoveGuestDialog();
                     }
                   );
-                }
-              } else {
-                if (usersToRemoveIds.isNotEmpty) {
-                  showGeneralDialog(
-                    context: context,
-                    barrierColor: Colors.transparent,
-                    transitionDuration: const Duration(milliseconds: 200),
-                    pageBuilder: (context, anim1, anim2) {
-                      return RemoveGuestsConfirmDialog(userIds: usersToRemoveIds, eventId: widget.eventId);
-                    }
-                  );
+                } else {
+                  if (usersToRemoveIds.isNotEmpty) {
+                    showGeneralDialog(
+                      context: context,
+                      barrierColor: Colors.transparent,
+                      transitionDuration: const Duration(milliseconds: 200),
+                      pageBuilder: (context, anim1, anim2) {
+                        return RemoveGuestsConfirmDialog(userIds: usersToRemoveIds, eventId: widget.eventId);
+                      }
+                    );
+                  }
                 }
               }
             },

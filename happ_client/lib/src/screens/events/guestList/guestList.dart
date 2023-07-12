@@ -197,11 +197,13 @@ class _GuestListState extends ConsumerState<GuestList> with SingleTickerProvider
                 children:  [
                   GuestListHosts(
                     eventId: widget.eventId,
+                    isCreator: widget.isCreator,
                     paginatedHostsRes: widget.paginatedHostsRes,
                     key: Key("guestList_hosts_${widget.eventId}")
                   ),
                   GuestListGuests(
                     eventId: widget.eventId,
+                    isCreator: widget.isCreator,
                     paginatedGuestsRes:  widget.paginatedGuestRes,
                     key: Key("guestList_guests_${widget.eventId}")
                   ),
@@ -210,7 +212,7 @@ class _GuestListState extends ConsumerState<GuestList> with SingleTickerProvider
             )
             ],
           ),
-          if (widget.isHost)
+          if (widget.isHost && !widget.isCreator)
           Positioned(
             bottom: MediaQuery.of(context).padding.bottom > 34 
             ? MediaQuery.of(context).padding.bottom + 12 
@@ -227,47 +229,21 @@ class _GuestListState extends ConsumerState<GuestList> with SingleTickerProvider
                 ).animate(_tabController.animation!);
                 return Opacity(
                   opacity: opacityTween.value,
-                  child: EditGuestButton(opacityTween: opacityTween, eventId: widget.eventId)
-                  // GestureDetector(
-                  //   onTap: () {
-                  //     if (opacityTween.value == 1) {
-                  //       showGeneralDialog(
-                  //         context: context,
-                  //         barrierColor: Colors.transparent,
-                  //         transitionDuration: const Duration(milliseconds: 200),
-                  //         pageBuilder: (context, anim1, anim2) {
-                  //           return const AddOrRemoveGuestDialog();
-                  //         }
-                  //       );
-                  //     }
-                  //   },
-                  //   child: Container(
-                  //     width: 45 * 1.25,
-                  //     height: 45 * 1.25,
-                  //     decoration: BoxDecoration(
-                  //       color: Colors.black,
-                  //       borderRadius: BorderRadius.circular(100),
-                  //       boxShadow: [
-                  //         BoxShadow(
-                  //           color: Colors.grey.withOpacity(0.3),
-                  //           spreadRadius: 4,
-                  //           blurRadius: 6,
-                  //         ),
-                  //       ],
-                  //     ),
-                  //     child: const Center(
-                  //       child: Icon(
-                  //         FluentIcons.edit_16_regular,
-                  //         size: 28,
-                  //         color: Colors.white
-                  //       ),
-                  //     )
-                  //   ),
-                  // ),
+                  child: EditGuestButton(opacity: opacityTween.value, eventId: widget.eventId)
                 );
               }
             ),
-          )
+          ),
+          if (widget.isHost && widget.isCreator)
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom > 34
+            ? MediaQuery.of(context).padding.bottom + 12
+            : 34 * 0.75,
+            right: MediaQuery.of(context).padding.bottom > 34
+            ? 12
+            : 34 * 0.75,
+            child: EditGuestButton(opacity: 1.0, eventId: widget.eventId)
+          ),
         ],
       ),
     );

@@ -1,6 +1,0 @@
-mutation AddGuests($eventId: Int!, $userIds: [Int!]!) {
-  addGuests(
-    eventId: $eventId,
-    userIds: $userIds
-  )
-}

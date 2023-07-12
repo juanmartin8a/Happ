@@ -4,5 +4,6 @@ query SearchForUsersToAddToEvent($search: String!, $eventId: Int!) {
     username
     name
     profilePic
+    eventUserStatus
   }
 }

@@ -17,8 +17,12 @@ final searchProvider =
 
 class InviteNewGuests extends ConsumerStatefulWidget {
   final int eventId;
+  final bool isCreator;
+  final bool isHosts;
   const InviteNewGuests({
     required this.eventId,
+    required this.isCreator,
+    this.isHosts = false,
     super.key
   });
 
@@ -131,7 +135,7 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
                     // const Spacer(),
                     Center(
                       child: Text(
-                        "Add Guests",
+                        !widget.isHosts ? "Add Guests" : "Add Hosts",
                         style: TextStyle(
                           color: Colors.grey[800],
                           fontSize: 19,

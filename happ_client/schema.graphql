@@ -260,10 +260,10 @@ type Mutation {
   deleteEvent(
     eventId: Int!
   ): Boolean,
-  addGuests(
-    eventId: Int!
-    userIds: [Int!]!
-  ): Boolean
+  # addGuests(
+  #   eventId: Int!
+  #   userIds: [Int!]!
+  # ): Boolean
   removeGuests(
     eventId: Int!
     userIds: [Int!]!

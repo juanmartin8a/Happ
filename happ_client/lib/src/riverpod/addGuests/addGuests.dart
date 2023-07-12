@@ -11,12 +11,13 @@ class AddGuests extends StateNotifier<AddGuestsState> {
 
   void addGuests(
     List<int> guests,
+    List<int> organizers,
     int eventId
   ) async {
     state = AddGuestsLoadingState();
     try {
-      final res = await eventRepo.addGuests(guests, eventId);
-      state = AddGuestsDoneState(res: res.addGuests!);
+      final res = await eventRepo.inviteGuestsAndOrganizers(guests, organizers, eventId);
+      state = AddGuestsDoneState(res: res.inviteGuestsAndOrganizers);
     } catch(e) {
       debugPrint("error in addGuests: $e");
       state = AddGuestsErrorState();

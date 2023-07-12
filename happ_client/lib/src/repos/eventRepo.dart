@@ -225,22 +225,22 @@ class EventRepo {
     }
   }
 
-  Future<AddGuests$Mutation> addGuests(
-    List<int> userIds,
-    int eventId
-  ) async {
-    final result = await client.mutate(
-      EventOptions().addGuests(userIds, eventId)
-    );
+  // Future<AddGuests$Mutation> addGuests(
+  //   List<int> userIds,
+  //   int eventId
+  // ) async {
+  //   final result = await client.mutate(
+  //     EventOptions().addGuests(userIds, eventId)
+  //   );
 
-    if (result.hasException) {
-      throw (result.exception as OperationException);
-    } else {
-      return AddGuests$Mutation.fromJson(
-        result.data!
-      );
-    }
-  }
+  //   if (result.hasException) {
+  //     throw (result.exception as OperationException);
+  //   } else {
+  //     return AddGuests$Mutation.fromJson(
+  //       result.data!
+  //     );
+  //   }
+  // }
 
   Future<LeaveEvent$Mutation> leaveEvent(
     int eventId
