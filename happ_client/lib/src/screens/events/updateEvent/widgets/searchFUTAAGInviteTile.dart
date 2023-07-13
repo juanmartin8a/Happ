@@ -83,16 +83,21 @@ class _SearchFUTAAGInviteTileState extends ConsumerState<SearchFUTAAGInviteTile>
     
     return GestureDetector(
       onTap: () {
-        if (isSelected) {
-          setState(() {
-            isSelected = false;
-          });
-        } else {
-          setState(() {
-            isSelected = true;
-          });
+        if (
+          widget.user.eventUserStatus != EventUserStatus.confirmed &&
+          widget.user.eventUserStatus != EventUserStatus.invited
+        ) {
+          if (isSelected) {
+            setState(() {
+              isSelected = false;
+            });
+          } else {
+            setState(() {
+              isSelected = true;
+            });
+          }
+          ref.read(addNewGuestsSelectProvider.notifier).inviteSelect(widget.user, isSelected);
         }
-        ref.read(addNewGuestsSelectProvider.notifier).inviteSelect(widget.user, isSelected);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),

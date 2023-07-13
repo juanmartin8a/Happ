@@ -16,10 +16,12 @@ class GuestListGuests extends ConsumerStatefulWidget {
   final int eventId;
   final GetEventGuests$Query$PaginatedEventUsersResults paginatedGuestsRes;
   final bool isCreator;
+  final bool selectMode;
   const GuestListGuests({
     required this.eventId,
     required this.paginatedGuestsRes,
     required this.isCreator,
+    required this.selectMode,
     super.key
   });
 
@@ -36,8 +38,6 @@ class _GuestListGuestsState extends ConsumerState<GuestListGuests> with Automati
 
   bool isLoading = false;
   bool hasMore = true; 
-
-  bool selectMode = false;
 
   @override
   void initState() {
@@ -91,24 +91,24 @@ class _GuestListGuestsState extends ConsumerState<GuestListGuests> with Automati
         }
       }
     });
-    ref.listen(guestListActionProvider, (prev, next) {
-      if (next is GuestListActionRemoveState) {
-        setState(() {
-          selectMode = true;
-        });
-      } else {
-        setState(() {
-          selectMode = false;
-        });
-        if (next is GuestListActionAddState) {
-          context.push('/invite-guests', extra: InviteGuestsScreenParams(
-              eventId: widget.eventId,
-              isCreator: widget.isCreator,
-            )
-          );
-        }
-      }
-    });
+    // ref.listen(guestListActionProvider, (prev, next) {
+    //   if (next is GuestListActionRemoveState) {
+    //     setState(() {
+    //       selectMode = true;
+    //     });
+    //   } else {
+    //     setState(() {
+    //       selectMode = false;
+    //     });
+    //     if (next is GuestListActionAddState) {
+    //       context.push('/invite-guests', extra: InviteGuestsScreenParams(
+    //           eventId: widget.eventId,
+    //           isCreator: widget.isCreator,
+    //         )
+    //       );
+    //     }
+    //   }
+    // });
     return ListView(
       padding: EdgeInsets.zero,
       controller: scrollController,
@@ -120,7 +120,7 @@ class _GuestListGuestsState extends ConsumerState<GuestListGuests> with Automati
 
         if (guests.isNotEmpty)
         ...guests.map((guest) {
-          return GuestListGuestUserTile(guest: guest, selectMode: selectMode);
+          return GuestListGuestUserTile(guest: guest, selectMode: widget.selectMode);
         }).toList(),
 
         if (guests.isEmpty)

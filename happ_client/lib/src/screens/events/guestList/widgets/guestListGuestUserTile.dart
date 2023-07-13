@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
+import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
 import 'package:happ_client/src/riverpod/guestListAction/guestListAction.dart';
 import 'package:happ_client/src/riverpod/guestListAction/guestListActionState.dart';
 import 'package:happ_client/src/riverpod/removeGuestSelect/removeGuestSelect.dart';
@@ -12,9 +13,11 @@ import 'package:happ_client/src/screens/profile/profile.dart';
 class GuestListGuestUserTile extends ConsumerStatefulWidget {
   final GetEventGuests$Query$PaginatedEventUsersResults$User guest;
   final bool selectMode;
+  // final bool isHost;
   const GuestListGuestUserTile({
     required this.guest,
     required this.selectMode,
+    // this.isHost = false,
     super.key
   });
 
@@ -26,6 +29,7 @@ class _GuestListGuestUserTileState extends ConsumerState<GuestListGuestUserTile>
 
   bool isSelected = false;
   @override
+
   Widget build(BuildContext context) {
     super.build(context);
 
@@ -42,19 +46,12 @@ class _GuestListGuestUserTileState extends ConsumerState<GuestListGuestUserTile>
     return GestureDetector(
       onTap: () {
         if (widget.selectMode) {
-          ref.read(removeGuestSelectProvider.notifier).select(widget.guest.id, !isSelected);
-          // if (isSelected) {
-          //   setState(() {
-          //     isSelected = false;
-          //   });
-          // } else {
-          //   setState(() {
-          //     isSelected = true;
-          //   });
-          // }
-          setState(() {
-            isSelected = !isSelected;
-          });
+          if (widget.guest.id != ref.read(currentUserProvider)!.id) {
+            ref.read(removeGuestSelectProvider.notifier).select(widget.guest.id, !isSelected);
+            setState(() {
+              isSelected = !isSelected;
+            });
+          }
         } else {
           final user = ProfileUserData.fromUserData(widget.guest);
           context.push('/profile', extra: ProfileParams(
@@ -105,7 +102,7 @@ class _GuestListGuestUserTileState extends ConsumerState<GuestListGuestUserTile>
               ],
             ),
             const Spacer(),
-            if (widget.selectMode)
+            if (widget.selectMode && widget.guest.id != ref.read(currentUserProvider)!.id)
             isSelected
             ? Container(
               height: 24,

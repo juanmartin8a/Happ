@@ -7,6 +7,7 @@ import 'package:happ_client/src/riverpod/eventHosts/eventHostsState.dart';
 import 'package:happ_client/src/riverpod/guestListAction/guestListAction.dart';
 import 'package:happ_client/src/riverpod/guestListAction/guestListActionState.dart';
 import 'package:happ_client/src/screens/events/class/eventAndInviteParams.dart';
+import 'package:happ_client/src/screens/events/guestList/widgets/guestListGuestUserTile.dart';
 import 'package:happ_client/src/screens/profile/class/profileParams.dart';
 import 'package:happ_client/src/screens/profile/profile.dart';
 import 'package:happ_client/src/utils/widgets/loader.dart';
@@ -15,10 +16,12 @@ class GuestListHosts extends ConsumerStatefulWidget {
   final int eventId;
   final GetEventHosts$Query$PaginatedEventUsersResults paginatedHostsRes;
   final bool isCreator;
+  final bool selectMode;
   const GuestListHosts({
     required this.eventId,
     required this.paginatedHostsRes,
     required this.isCreator,
+    required this.selectMode,
     super.key
   });
 
@@ -36,7 +39,7 @@ class _GuestListHostsState extends ConsumerState<GuestListHosts> with AutomaticK
   bool isLoading = false;
   bool hasMore = true; 
 
-  bool selectMode = false;
+  // bool selectMode = false;
 
   @override
   void initState() {
@@ -83,25 +86,25 @@ class _GuestListHostsState extends ConsumerState<GuestListHosts> with AutomaticK
         });
       }
     });
-    ref.listen(guestListActionProvider, (prev, next) {
-      if (next is GuestListActionRemoveState) {
-        setState(() {
-          selectMode = true;
-        });
-      } else {
-        setState(() {
-          selectMode = false;
-        });
-        if (next is GuestListActionAddState) {
-          context.push('/invite-guests', extra: InviteGuestsScreenParams(
-              eventId: widget.eventId,
-              isCreator: widget.isCreator,
-              isHosts: true
-            )
-          );
-        }
-      }
-    });
+    // ref.listen(guestListActionProvider, (prev, next) {
+    //   if (next is GuestListActionRemoveState) {
+    //     setState(() {
+    //       selectMode = true;
+    //     });
+    //   } else {
+    //     setState(() {
+    //       selectMode = false;
+    //     });
+    //     if (next is GuestListActionAddState) {
+    //       context.push('/invite-guests', extra: InviteGuestsScreenParams(
+    //           eventId: widget.eventId,
+    //           isCreator: widget.isCreator,
+    //           isHosts: true
+    //         )
+    //       );
+    //     }
+    //   }
+    // });
     return ListView(
       padding: EdgeInsets.zero,
       controller: scrollController,
@@ -111,59 +114,62 @@ class _GuestListHostsState extends ConsumerState<GuestListHosts> with AutomaticK
           height: 10,
         ),
         ...hosts.map((host) {
-          return GestureDetector(
-            onTap: () {
-              final user = ProfileUserData.fromUserData(host);
-              context.push('/profile', extra: ProfileParams(
-                  user: user,
-                )
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              color: Colors.transparent,
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(25),
-                    child: SizedBox(
-                      height: 45,
-                      width: 45,
-                      child: Image.network(
-                        host.profilePic,
-                        fit: BoxFit.cover
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        host.name,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
-                          height: 1
-                        )
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        host.username,
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          height: 1
-                        ),
-                      )
-                    ],
-                  )
-                ],
-              )
-            ),
-          );
+          final hostJson = host.toJson();
+          final castedHost = GetEventGuests$Query$PaginatedEventUsersResults$User.fromJson(hostJson);
+          return GuestListGuestUserTile(guest: castedHost, selectMode: widget.selectMode);
+          // return GestureDetector(
+          //   onTap: () {
+          //     final user = ProfileUserData.fromUserData(host);
+          //     context.push('/profile', extra: ProfileParams(
+          //         user: user,
+          //       )
+          //     );
+          //   },
+          //   child: Container(
+          //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          //     color: Colors.transparent,
+          //     child: Row(
+          //       children: [
+          //         ClipRRect(
+          //           borderRadius: BorderRadius.circular(25),
+          //           child: SizedBox(
+          //             height: 45,
+          //             width: 45,
+          //             child: Image.network(
+          //               host.profilePic,
+          //               fit: BoxFit.cover
+          //             ),
+          //           ),
+          //         ),
+          //         const SizedBox(width: 8),
+          //         Column(
+          //           crossAxisAlignment: CrossAxisAlignment.start,
+          //           children: [
+          //             Text(
+          //               host.name,
+          //               style: TextStyle(
+          //                 fontSize: 14,
+          //                 fontWeight: FontWeight.w600,
+          //                 color: Colors.grey[800],
+          //                 height: 1
+          //               )
+          //             ),
+          //             const SizedBox(height: 2),
+          //             Text(
+          //               host.username,
+          //               style: TextStyle(
+          //                 color: Colors.grey[600],
+          //                 fontSize: 13,
+          //                 fontWeight: FontWeight.w500,
+          //                 height: 1
+          //               ),
+          //             )
+          //           ],
+          //         )
+          //       ],
+          //     )
+          //   ),
+          // );
         }).toList(),
         if (isLoading)
         const SizedBox(

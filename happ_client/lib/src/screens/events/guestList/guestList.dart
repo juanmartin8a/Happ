@@ -4,10 +4,13 @@ import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/eventGuests/eventGuests.dart';
 import 'package:happ_client/src/riverpod/guestListAction/guestListAction.dart';
+import 'package:happ_client/src/riverpod/guestListAction/guestListActionState.dart';
 import 'package:happ_client/src/riverpod/removeGuestSelect/removeGuestSelect.dart';
+import 'package:happ_client/src/screens/events/class/eventAndInviteParams.dart';
 import 'package:happ_client/src/screens/events/guestList/widgets/editGuestButton.dart';
 import 'package:happ_client/src/screens/events/guestList/widgets/guestListGuests.dart';
 import 'package:happ_client/src/screens/events/guestList/widgets/guestListHosts.dart';
@@ -37,6 +40,8 @@ class _GuestListState extends ConsumerState<GuestList> with SingleTickerProvider
   late TabController _tabController;
   bool isButtonDelete = false;
 
+  bool selectMode = false;
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +50,34 @@ class _GuestListState extends ConsumerState<GuestList> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(guestListActionProvider, (prev, next) {
+      if (next is GuestListActionRemoveState) {
+        setState(() {
+          selectMode = true;
+        });
+      } else {
+        setState(() {
+          selectMode = false;
+        });
+        if (next is GuestListActionAddState) {
+          if (_tabController.index == 0) {
+            context.push('/invite-guests', extra: InviteGuestsScreenParams(
+                eventId: widget.eventId,
+                isCreator: widget.isCreator,
+                isHosts: true
+              )
+            );
+          } else if (_tabController.index == 1) {
+            context.push('/invite-guests', extra: InviteGuestsScreenParams(
+                eventId: widget.eventId,
+                isCreator: widget.isCreator,
+              )
+            );
+          }
+        }
+      }
+    });
+    
     final statusBar = MediaQuery.of(context).padding.top;
     return Material(
       color: Colors.white,
@@ -199,12 +232,14 @@ class _GuestListState extends ConsumerState<GuestList> with SingleTickerProvider
                     eventId: widget.eventId,
                     isCreator: widget.isCreator,
                     paginatedHostsRes: widget.paginatedHostsRes,
+                    selectMode: widget.isCreator ? selectMode : false,
                     key: Key("guestList_hosts_${widget.eventId}")
                   ),
                   GuestListGuests(
                     eventId: widget.eventId,
                     isCreator: widget.isCreator,
                     paginatedGuestsRes:  widget.paginatedGuestRes,
+                    selectMode: widget.isHost ? selectMode : false,
                     key: Key("guestList_guests_${widget.eventId}")
                   ),
                 ]
