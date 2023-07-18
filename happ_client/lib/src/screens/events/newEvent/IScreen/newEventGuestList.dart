@@ -123,11 +123,11 @@ class _NewEventGuestListState extends ConsumerState<NewEventGuestList> {
                     child: Text(
                       "Hosts",
                       style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.grey[800],
-                      height: 1
-                    )
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey[800],
+                        height: 1
+                      )
                     ),
                   ),
                 ),

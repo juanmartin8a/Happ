@@ -48,6 +48,15 @@ class _GuestListGuestUserTileState extends ConsumerState<GuestListGuestUserTile>
         if (widget.selectMode) {
           if (widget.guest.id != ref.read(currentUserProvider)!.id) {
             ref.read(removeGuestSelectProvider.notifier).select(widget.guest.id, !isSelected);
+            // if (isSelected) {
+            //   setState(() {
+            //     isSelected = false;
+            //   });
+            // } else {
+            //   setState(() {
+            //     isSelected = true;
+            //   });
+            // }
             setState(() {
               isSelected = !isSelected;
             });
