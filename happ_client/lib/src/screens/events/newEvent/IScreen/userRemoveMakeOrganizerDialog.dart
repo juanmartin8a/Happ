@@ -4,11 +4,16 @@ import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelect.dart';
 
 class UserRemoveMakeOrganizerDialog extends ConsumerWidget {
-  final SearchUsers$Query$User user;
+  final dynamic user;
   final bool isOrganizer;
+  // final SearchUsers$Query$User otherUser;
+  final bool fUTAAG;
+  final bool fUTAAGCUisCreator;
   const UserRemoveMakeOrganizerDialog({
     required this.user,
     required this.isOrganizer,
+    this.fUTAAG = false,
+    this.fUTAAGCUisCreator = true,
     super.key
   });
 
@@ -22,21 +27,33 @@ class UserRemoveMakeOrganizerDialog extends ConsumerWidget {
             onTap: () => Navigator.pop(context),
             child: Container(color: Colors.black26)
           ),
+          // if (fUTAAGCUisCreator)
+          // just dont allow to see the make host thing when the user is seeing is not creator
+          // if isOrganizer and 
           Center(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.6,
-                height: isOrganizer == false ? 90 : 45,
+                height: isOrganizer == false && fUTAAGCUisCreator ? 90 : 45,
                 color: Colors.black,
                 child: Column(
                   children: [
+                    if (fUTAAGCUisCreator)
                     GestureDetector(
                       onTap: () {
                         if (!isOrganizer) {
-                          ref.read(inviteUserSelectProvider.notifier).makeRemoveOrganizer(user, true);
+                          if (fUTAAG) {
+                            ref.read(uInviteUserSelectProvider.notifier).makeRemoveOrganizer(user as SearchForUsersToAddToEvent$Query$User, true);
+                          } else {
+                            ref.read(inviteUserSelectProvider.notifier).makeRemoveOrganizer(user as SearchUsers$Query$User, true);
+                          }
                         } else {
-                          ref.read(inviteUserSelectProvider.notifier).makeRemoveOrganizer(user, false);
+                          if (fUTAAG) {
+                            ref.read(uInviteUserSelectProvider.notifier).makeRemoveOrganizer(user as SearchForUsersToAddToEvent$Query$User, false);
+                          } else {
+                            ref.read(inviteUserSelectProvider.notifier).makeRemoveOrganizer(user as SearchUsers$Query$User, false);
+                          }
                         }
                         Navigator.pop(context);
                       },
@@ -59,7 +76,11 @@ class UserRemoveMakeOrganizerDialog extends ConsumerWidget {
                     if (!isOrganizer)
                     GestureDetector(
                       onTap: () {
-                        ref.read(inviteUserSelectProvider.notifier).inviteSelect(user, false);
+                        if (fUTAAG) {
+                          ref.read(uInviteUserSelectProvider.notifier).inviteSelect(user as SearchForUsersToAddToEvent$Query$User, false);
+                        } else {
+                          ref.read(inviteUserSelectProvider.notifier).inviteSelect(user as SearchUsers$Query$User, false);
+                        }
                         Navigator.pop(context);
                       },
                       child: Container(

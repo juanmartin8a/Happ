@@ -11,6 +11,7 @@ import 'package:happ_client/src/screens/events/guestList/inviteGuestsScreen.dart
 
 class SearchInviteGuestsResults extends ConsumerStatefulWidget {
   final bool isEmpty;
+
   const SearchInviteGuestsResults({
     required this.isEmpty,
     super.key
@@ -116,6 +117,7 @@ class _SearchInviteGuestsResultsState extends ConsumerState<SearchInviteGuestsRe
             return SearchFUTAAGInviteTile(
               user: user,
               isSelected: selectedUsersIds.contains(user.id),
+              isOrganizer: false,
               key: Key("searchFUTAAGIntiveTile_select_${user.id}")
             );
           }).toList(),
@@ -187,6 +189,7 @@ class _SearchInviteGuestsResultsState extends ConsumerState<SearchInviteGuestsRe
         return SearchFUTAAGInviteTile(
           user: searchUsersRes[searchUserResIndex],
           isSelected: selectedUsersIds.contains(searchUsersRes[searchUserResIndex].id),
+          isOrganizer: false,
           key: Key("searchFUTAAGIntiveTile_${searchUsersRes[searchUserResIndex].id}")
         );
       }

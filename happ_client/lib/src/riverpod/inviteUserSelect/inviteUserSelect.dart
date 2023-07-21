@@ -27,3 +27,30 @@ final inviteUserSelectProvider =
   StateNotifierProvider<InviteUserSelectController, InviteUserSelectState>(
     (ref) => InviteUserSelectController()
   );
+
+
+class UInviteUserSelectUpdateController extends StateNotifier<UInviteUserSelectState> {
+
+  UInviteUserSelectUpdateController() : super(UInviteUserSelectInitState());
+
+  void inviteSelect(SearchForUsersToAddToEvent$Query$User user, bool isAdded) async {
+    if (isAdded) {
+      state = UInviteUserSelectedState(user: user);
+    } else {
+      state = UInviteUserRemoveState(userId: user.id);
+    }
+  }
+
+  void makeRemoveOrganizer(SearchForUsersToAddToEvent$Query$User user, bool isMake) async {
+    if (isMake) {
+      state = UMakeOrganizerState(user: user);
+    } else {
+      state = URemoveOrganizerState(user: user);
+    }
+  }
+}
+
+final uInviteUserSelectProvider =
+  StateNotifierProvider<UInviteUserSelectUpdateController, UInviteUserSelectState>(
+    (ref) => UInviteUserSelectUpdateController()
+  );

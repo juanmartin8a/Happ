@@ -1,13 +1,18 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addGuests/addGuests.dart';
 import 'package:happ_client/src/riverpod/addNewGuestsSelect/AddNewGuestsSelect.dart';
+import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelect.dart';
+import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelectState.dart';
 import 'package:happ_client/src/riverpod/searchForUsersToAddAsGuests/searchForUsersToAddToEvent.dart';
 import 'package:happ_client/src/riverpod/searchForUsersToAddAsGuests/searchForUsersToAddToEventState.dart';
 import 'package:happ_client/src/screens/events/guestList/inviteGuestsButton.dart';
 import 'package:happ_client/src/screens/events/guestList/inviteGuestsResults.dart';
+import 'package:happ_client/src/screens/search/class/SearchUserInviteResParams.dart';
 import 'package:happ_client/src/utils/widgets/floatingActions.dart';
 
 final searchProvider =
@@ -40,6 +45,9 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
   List<SearchForUsersToAddToEvent$Query$User> selectedUsers = [];
   List<int> selectedUsersIds = [];
 
+  List<SearchForUsersToAddToEvent$Query$User> hosts = [];
+  List<int> hostIds = [];
+
   bool isEmpty = true;
 
   @override
@@ -61,31 +69,27 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
   @override
   Widget build(BuildContext context) {
 
-    // ref.listen(inviteUserSelectProvider, (prev, next) {
-    //   switch (next.runtimeType) {
-    //     case InviteUserSelectedState:
-    //       selectedUsers.insert(0, (next as InviteUserSelectedState).user);
-    //       selectedUsersIds.add(next.user.id);
-    //       callFieldChange();
-    //       break;
-    //     case InviteUserRemoveState:
-    //       selectedUsers.removeWhere((item) => item.id == (next as InviteUserRemoveState).userId);
-    //       selectedUsersIds.removeWhere((item) => item == (next as InviteUserRemoveState).userId);
-    //       organizers.removeWhere((user) => user.id == (next as InviteUserRemoveState).userId);
-    //       callFieldChange();
-    //       break;
-    //     case MakeOrganizerState:
-    //       organizers.add((next as MakeOrganizerState).user);
-    //       selectedUsers.removeWhere((item) => item.id == next.user.id);
-    //       callFieldChange();
-    //       break;
-    //     case RemoveOrganizerState:
-    //       organizers.removeWhere((user) => user.id == (next as RemoveOrganizerState).user.id);
-    //       selectedUsers.insert(0, (next as RemoveOrganizerState).user);
-    //       callFieldChange();
-    //       break;
-    //   }
-    // });
+    ref.listen(uInviteUserSelectProvider, (prev, next) {
+      switch (next.runtimeType) {
+        case UInviteUserSelectedState:
+          selectedUsers.insert(0, (next as UInviteUserSelectedState).user);
+          selectedUsersIds.add(next.user.id);
+          break;
+        case UInviteUserRemoveState:
+          selectedUsers.removeWhere((item) => item.id == (next as UInviteUserRemoveState).userId);
+          selectedUsersIds.removeWhere((item) => item == (next as UInviteUserRemoveState).userId);
+          hosts.removeWhere((user) => user.id == (next as UInviteUserRemoveState).userId);
+          break;
+        case UMakeOrganizerState:
+          hosts.add((next as UMakeOrganizerState).user);
+          selectedUsers.removeWhere((item) => item.id == next.user.id);
+          break;
+        case URemoveOrganizerState:
+          hosts.removeWhere((user) => user.id == (next as URemoveOrganizerState).user.id);
+          selectedUsers.insert(0, (next as URemoveOrganizerState).user);
+          break;
+      }
+    });
 
     // ref.listen(searchProvider, (prev, next) {
     //   if (next is SearchForUsersToAddAsGuestsInitState) {
@@ -177,11 +181,11 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.grey[200],
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            bottomLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
-                            bottomRight: Radius.circular(20),
+                          borderRadius: BorderRadius.only(
+                            topLeft: const Radius.circular(20),
+                            bottomLeft: const Radius.circular(20),
+                            topRight: widget.isCreator ? const Radius.circular(8) : const Radius.circular(20),
+                            bottomRight: widget.isCreator ? const Radius.circular(8) : const Radius.circular(20),
                           ),
                         ),
                         height: 40,
@@ -249,6 +253,45 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
                         ),
                       ),
                     ),
+                    if (widget.isCreator)
+                    const SizedBox(width: 6),
+
+                    if (widget.isCreator)
+                    GestureDetector(
+                      onTap: () {
+                        // userLocationPermission();
+
+                        NewGuestsListParams params = NewGuestsListParams(
+                          eventId: eventId, 
+                          users: selectedUsers, 
+                          organizers: hosts,
+                          isCreator: widget.isCreator
+                        );
+                        context.push(
+                          '/updated-guest-list',
+                          extra: params
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(8),
+                            bottomLeft: Radius.circular(8),
+                            topRight: Radius.circular(20),
+                            bottomRight: Radius.circular(20),
+                          ) 
+                        ),
+                        height: 40,
+                        width: 50,
+                        child: const Center(
+                          child: Icon(
+                            FluentIcons.clipboard_bullet_list_ltr_20_regular,
+                            size: 30,
+                          )
+                        ),
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -274,15 +317,6 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
     );
   }
 
-  // void callFieldChange() {
-  //   List<int> organizerIDs = organizers.map((item) => item.id).toList();
-  //   List<int> guestIDs = selectedUsers.map((item) => item.id).toList();
-  //   ref.read(newEventCompleteProvider.notifier).fieldChange(
-  //     guests: guestIDs,
-  //     organizers: organizerIDs,
-  //     eventId: widget.eventId,
-  //   );
-  // }
   void invalidateProviders() {
     ref.invalidate(addNewGuestsSelectProvider);
     ref.invalidate(searchProvider);

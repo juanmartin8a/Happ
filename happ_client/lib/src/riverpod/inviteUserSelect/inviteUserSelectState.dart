@@ -54,3 +54,60 @@ class RemoveOrganizerState extends InviteUserSelectState {
   @override
   List<Object?> get props => [user];
 }
+
+
+// For updating guest list
+
+abstract class UInviteUserSelectState extends Equatable {
+  const UInviteUserSelectState();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class UInviteUserSelectInitState extends UInviteUserSelectState {}
+
+
+class UInviteUserSelectedState extends UInviteUserSelectState {
+  final SearchForUsersToAddToEvent$Query$User user;
+
+  const UInviteUserSelectedState({
+    required this.user,
+  });
+
+  @override
+  List<Object?> get props => [user];
+}
+
+class UInviteUserRemoveState extends UInviteUserSelectState {
+  final int userId;
+
+  const UInviteUserRemoveState({
+    required this.userId,
+  });
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class UMakeOrganizerState extends UInviteUserSelectState {
+  final SearchForUsersToAddToEvent$Query$User user;
+
+  const UMakeOrganizerState({
+    required this.user
+  });
+
+  @override
+  List<Object?> get props => [user];
+}
+
+class URemoveOrganizerState extends UInviteUserSelectState {
+  final SearchForUsersToAddToEvent$Query$User user;
+
+  const URemoveOrganizerState({
+    required this.user
+  });
+
+  @override
+  List<Object?> get props => [user];
+}

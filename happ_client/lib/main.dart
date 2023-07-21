@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:happ_client/src/screens/events/class/eventAndInviteParams.dart';
 import 'package:happ_client/src/screens/events/event.dart';
+import 'package:happ_client/src/screens/events/guestList/newGuestList.dart';
 import 'package:happ_client/src/screens/events/invitation/eventInvitation.dart';
 import 'package:happ_client/src/screens/events/guestList/guestList.dart';
 import 'package:happ_client/src/screens/events/guestList/inviteGuestsScreen.dart';
@@ -130,12 +131,25 @@ class MyApp extends ConsumerWidget {
               key: Key("guestList_eventId_${params.eventId}")
             )
           );
-          // return NewEventGuestList(
-          //   users: params.selectedUsers,
-          //   organizers: params.organizers,
-          //   eventId: params.eventId,
-          //   key: Key("guestList_eventId_${params.eventId}")
-          // );
+        }
+      ),
+      GoRoute(
+        path: '/updated-guest-list',
+        // name: "sample",
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          NewGuestsListParams params = state.extra as NewGuestsListParams;
+
+          return buildPageWithDefaultTransition<void>(
+            context: context, 
+            state: state,
+            child: NewGuestList(
+              users: params.users,
+              organizers: params.organizers,
+              eventId: params.eventId,
+              isCreator: params.isCreator,
+              key: Key("updateGuestList_eventId_${params.eventId}")
+            )
+          );
         }
       ),
       GoRoute(

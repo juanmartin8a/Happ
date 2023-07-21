@@ -224,11 +224,9 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
                           appId: "rsvp.happ.happ",
                           imagePath: file.path,
                           backgroundTopColor: "#ffffff", 
-                          backgroundBottomColor: "#000000", 
+                          backgroundBottomColor: "#000000",
                           attributionURL: "https://deep-link-url"
                         );
-                        print("Error: $string");
-                        print("6");
                       }
     
                     },

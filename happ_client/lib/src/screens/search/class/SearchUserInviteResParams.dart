@@ -7,6 +7,19 @@ class NewEventInvitedFriendsListParams {
   const NewEventInvitedFriendsListParams({
     required this.eventId,
     required this.selectedUsers,
-    required this.organizers
+    required this.organizers,
+  });
+}
+
+class NewGuestsListParams {
+  final int eventId;
+  final List<SearchForUsersToAddToEvent$Query$User> users;
+  final List<SearchForUsersToAddToEvent$Query$User> organizers;
+  final bool isCreator;
+  const NewGuestsListParams({
+    required this.eventId,
+    required this.users,
+    required this.organizers,
+    this.isCreator = true,
   });
 }

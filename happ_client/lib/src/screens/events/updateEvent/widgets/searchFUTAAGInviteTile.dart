@@ -1,16 +1,26 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addNewGuestsSelect/AddNewGuestsSelect.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
+import 'package:happ_client/src/screens/events/newEvent/IScreen/userRemoveMakeOrganizerDialog.dart';
+import 'package:happ_client/src/screens/profile/class/profileParams.dart';
+import 'package:happ_client/src/screens/profile/profile.dart';
 
 class SearchFUTAAGInviteTile extends ConsumerStatefulWidget {
   final SearchForUsersToAddToEvent$Query$User user;
+  final bool isOrganizer;
   final bool isSelected;
+  final bool fromGuestList;
+  final bool isCreatorSeeing;
   const SearchFUTAAGInviteTile({
     required this.user,
+    required this.isOrganizer,
     required this.isSelected,
+    this.fromGuestList = false,
+    this.isCreatorSeeing = false,
     super.key
   });
 
@@ -30,73 +40,115 @@ class _SearchFUTAAGInviteTileState extends ConsumerState<SearchFUTAAGInviteTile>
 
   @override
   Widget build(BuildContext context) {
-    Widget rightSideWidget = isSelected 
-      ? Container(
-        height: 24,
-        width: 24,
-        decoration: BoxDecoration(
-          color: Colors.greenAccent[700]!,
-          shape: BoxShape.circle,
+    Widget rightSideWidget;
+
+    if (widget.fromGuestList) {
+      rightSideWidget = GestureDetector(
+        onTap: () {
+          showGeneralDialog(
+            context: context, 
+            barrierColor: Colors.transparent,
+            transitionDuration: const Duration(milliseconds: 200),
+            pageBuilder: (context, anim1, anim2) {
+              return UserRemoveMakeOrganizerDialog(
+                user: widget.user, 
+                isOrganizer: widget.isOrganizer, 
+                fUTAAG: true,
+                fUTAAGCUisCreator: widget.isCreatorSeeing,
+              );
+            }
+          );
+        },
+        child: SizedBox(
+          height: 26,
+          width: 26,
+          child: Center(
+            child: Icon(
+              FluentIcons.more_vertical_20_regular,
+              color: Colors.grey[800]!,
+              size: 26
+            )
+          )
         ),
-        child: const Center(
-          child: Icon(
-            FluentIcons.checkmark_12_regular,
-            color: Colors.white,
-            size: 20
+      );
+    } else {
+      if (
+        widget.user.eventUserStatus == EventUserStatus.invited || 
+        widget.user.eventUserStatus == EventUserStatus.confirmed
+      ) {
+        bool isConfirmed = widget.user.eventUserStatus == EventUserStatus.confirmed;
+        rightSideWidget = Container(
+          height: 26,
+          width: 70,
+          decoration: BoxDecoration(
+            color: !isConfirmed ?Colors.grey[200] : Colors.black,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Center(
+            child: Text(
+              !isConfirmed ? "Invited" : "Going",
+              style: TextStyle(
+                color: !isConfirmed ? Colors.grey[900] : Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              )
+            ),
+          )
+        );
+      } else {
+        rightSideWidget = isSelected 
+        ? Container(
+          height: 24,
+          width: 24,
+          decoration: BoxDecoration(
+            color: Colors.greenAccent[700]!,
+            shape: BoxShape.circle,
+          ),
+          child: const Center(
+            child: Icon(
+              FluentIcons.checkmark_12_regular,
+              color: Colors.white,
+              size: 20
+            )
           )
         )
-      )
-      : Container(
-        height: 24,
-        width: 24,
-        decoration: BoxDecoration(
-          // color: Colors.red,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.grey, width: 2)
-        )
-      );
-
-    if (
-      widget.user.eventUserStatus == EventUserStatus.invited || 
-      widget.user.eventUserStatus == EventUserStatus.confirmed
-    ) {
-      bool isConfirmed = widget.user.eventUserStatus == EventUserStatus.confirmed;
-      rightSideWidget = Container(
-        height: 26,
-        width: 70,
-        decoration: BoxDecoration(
-          color: !isConfirmed ?Colors.grey[200] : Colors.black,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Center(
-          child: Text(
-            !isConfirmed ? "Invited" : "Going",
-            style: TextStyle(
-              color: !isConfirmed ? Colors.grey[900] : Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            )
-          ),
-        )
-      );
+        : Container(
+          height: 24,
+          width: 24,
+          decoration: BoxDecoration(
+            // color: Colors.red,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.grey, width: 2)
+          )
+        );
+      }
     }
+
     
     return GestureDetector(
       onTap: () {
-        if (
-          widget.user.eventUserStatus != EventUserStatus.confirmed &&
-          widget.user.eventUserStatus != EventUserStatus.invited
-        ) {
-          if (isSelected) {
-            setState(() {
-              isSelected = false;
-            });
-          } else {
-            setState(() {
-              isSelected = true;
-            });
+        if (widget.fromGuestList) {
+          final user = ProfileUserData.fromSearchUsersQueryUser(widget.user);
+          context.push('/profile', extra: ProfileParams(
+              user: user,
+            )
+          );
+        } else {
+          if (
+            widget.user.eventUserStatus != EventUserStatus.confirmed &&
+            widget.user.eventUserStatus != EventUserStatus.invited
+          ) {
+            if (isSelected) {
+              setState(() {
+                isSelected = false;
+              });
+            } else {
+              setState(() {
+                isSelected = true;
+              });
+            }
+            ref.read(addNewGuestsSelectProvider.notifier).inviteSelect(widget.user, isSelected);
           }
-          ref.read(addNewGuestsSelectProvider.notifier).inviteSelect(widget.user, isSelected);
         }
       },
       child: Container(
