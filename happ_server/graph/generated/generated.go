@@ -115,7 +115,7 @@ type ComplexityRoot struct {
 		InviteGuestsAndOrganizers func(childComplexity int, guests []int, organizers []int, eventID int) int
 		LeaveEvent                func(childComplexity int, eventID int) int
 		NewEvent                  func(childComplexity int, input model.NewEventInput) int
-		RemoveGuests              func(childComplexity int, eventID int, userIds []int) int
+		RemoveGuests              func(childComplexity int, eventID int, guests []int, organizers []int) int
 		SaveDevice                func(childComplexity int, token string) int
 		ScanPass                  func(childComplexity int, eventID int, cypherText string) int
 		SignIn                    func(childComplexity int, input model.SignInInput) int
@@ -197,7 +197,7 @@ type MutationResolver interface {
 	AcceptInvitation(ctx context.Context, eventID int) (*model.AcceptInvitationResponse, error)
 	UpdateEvent(ctx context.Context, input model.UpdateEventInput, eventID int) (*model.CreateEventResponse, error)
 	DeleteEvent(ctx context.Context, eventID int) (*bool, error)
-	RemoveGuests(ctx context.Context, eventID int, userIds []int) (*bool, error)
+	RemoveGuests(ctx context.Context, eventID int, guests []int, organizers []int) (*bool, error)
 	ScanPass(ctx context.Context, eventID int, cypherText string) (*bool, error)
 	LeaveEvent(ctx context.Context, eventID int) (*bool, error)
 	SaveDevice(ctx context.Context, token string) (*bool, error)
@@ -558,7 +558,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveGuests(childComplexity, args["eventId"].(int), args["userIds"].([]int)), true
+		return e.complexity.Mutation.RemoveGuests(childComplexity, args["eventId"].(int), args["guests"].([]int), args["organizers"].([]int)), true
 
 	case "Mutation.saveDevice":
 		if e.complexity.Mutation.SaveDevice == nil {
@@ -1281,7 +1281,8 @@ type Mutation {
   # ): Boolean
   removeGuests(
     eventId: Int!
-    userIds: [Int!]!
+    guests: [Int!]!,
+    organizers: [Int!]!,
   ): Boolean
   scanPass(
     eventId: Int!
@@ -1434,14 +1435,23 @@ func (ec *executionContext) field_Mutation_removeGuests_args(ctx context.Context
 	}
 	args["eventId"] = arg0
 	var arg1 []int
-	if tmp, ok := rawArgs["userIds"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIds"))
+	if tmp, ok := rawArgs["guests"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("guests"))
 		arg1, err = ec.unmarshalNInt2ᚕintᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userIds"] = arg1
+	args["guests"] = arg1
+	var arg2 []int
+	if tmp, ok := rawArgs["organizers"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizers"))
+		arg2, err = ec.unmarshalNInt2ᚕintᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organizers"] = arg2
 	return args, nil
 }
 
@@ -3944,7 +3954,7 @@ func (ec *executionContext) _Mutation_removeGuests(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveGuests(rctx, fc.Args["eventId"].(int), fc.Args["userIds"].([]int))
+		return ec.resolvers.Mutation().RemoveGuests(rctx, fc.Args["eventId"].(int), fc.Args["guests"].([]int), fc.Args["organizers"].([]int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
