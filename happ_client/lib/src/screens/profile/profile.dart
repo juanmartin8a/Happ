@@ -244,8 +244,8 @@ class ProfileState extends ConsumerState<Profile> with AutomaticKeepAliveClientM
               setState(() {
                 addedMeUsers = [...addedMeUsers, ...next.val.users];
                 addedMeUsersIds = addedMeUsers.map((user) => user.id).toList();
-                hasMore = next.val.hasMore;
-                isLoading = false;
+                addedMeHasMore = next.val.hasMore;
+                addedMeIsLoading = false;
               });
             }
           }
