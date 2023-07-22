@@ -11,11 +11,12 @@ class RemoveGuests extends StateNotifier<RemoveGuestsState> {
 
   void removeGuests(
     List<int> guests,
+    List<int> hosts,
     int eventId
   ) async {
     state = RemoveGuestsLoadingState();
     try {
-      final res = await eventRepo.removeGuests(guests, eventId);
+      final res = await eventRepo.removeGuests(guests, hosts, eventId);
       state = RemoveGuestsDoneState(res: res.removeGuests!, eventId: eventId, deletedEventUsers: guests.length);
     } catch(e) {
       debugPrint("error in removeGuests: $e");

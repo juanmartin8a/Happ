@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
+import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelect.dart';
+import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelectState.dart';
 import 'package:happ_client/src/screens/events/newEvent/IScreen/searchUserInviteTile.dart';
 import 'package:happ_client/src/screens/events/updateEvent/widgets/searchFUTAAGInviteTile.dart';
 import 'package:happ_client/src/utils/user/userTypesConverter.dart';
@@ -41,27 +43,28 @@ class _NewGuestListState extends ConsumerState<NewGuestList> {
   Widget build(BuildContext context) {
     users = users.toSet().toList();
     organizers = organizers.toSet().toList();
-    // ref.listen(inviteUserSelectProvider, (prev, next) {
-    //   switch (next.runtimeType) {
-    //     case InviteUserRemoveState:
-    //       setState(() {
-    //         users.removeWhere((item) => item.id == (next as InviteUserRemoveState).userId);
-    //       });
-    //       break;
-    //     case MakeOrganizerState:
-    //       setState(() {
-    //         organizers.add((next as MakeOrganizerState).user);
-    //         users.removeWhere((item) => item.id == next.user.id);
-    //       });
-    //       break;
-    //     case RemoveOrganizerState:
-    //       setState(() {
-    //         users.insert(0, (next as RemoveOrganizerState).user);
-    //         organizers.removeWhere((user) => user.id == next.user.id);
-    //       });
-    //       break;
-    //   }
-    // });
+    ref.listen(uInviteUserSelectProvider, (prev, next) {
+      switch (next.runtimeType) {
+        case UInviteUserRemoveState:
+          setState(() {
+            users.removeWhere((item) => item.id == (next as UInviteUserRemoveState).userId);
+            organizers.removeWhere((user) => user.id == (next as UInviteUserRemoveState).userId);
+          });
+          break;
+        case UMakeOrganizerState:
+          setState(() {
+            organizers.add((next as UMakeOrganizerState).user);
+            users.removeWhere((item) => item.id == next.user.id);
+          });
+          break;
+        case URemoveOrganizerState:
+          setState(() {
+            users.insert(0, (next as URemoveOrganizerState).user);
+            organizers.removeWhere((user) => user.id == next.user.id);
+          });
+          break;
+      }
+    });
 
     final statusBar = MediaQuery.of(context).padding.top;
 
@@ -78,7 +81,7 @@ class _NewGuestListState extends ConsumerState<NewGuestList> {
                   // heightFactor: 100,
                   // width
                   child: Text(
-                    "Guest List",
+                    "New Guests",
                     style: TextStyle(
                       color: Colors.grey[800],
                       fontSize: 19,
@@ -111,11 +114,11 @@ class _NewGuestListState extends ConsumerState<NewGuestList> {
           Expanded(
             child: CustomScrollView(
               slivers: [
-                if (widget.isCreator)
+                if (widget.isCreator && organizers.isNotEmpty)
                 const SliverToBoxAdapter(
                   child: SizedBox(height: 20),
                 ),
-                if (widget.isCreator)
+                if (widget.isCreator && organizers.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Container(
                     padding: const EdgeInsets.only(
@@ -134,7 +137,7 @@ class _NewGuestListState extends ConsumerState<NewGuestList> {
                     ),
                   ),
                 ),
-                if (widget.isCreator)
+                if (widget.isCreator && organizers.isNotEmpty)
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int i) {
@@ -143,6 +146,7 @@ class _NewGuestListState extends ConsumerState<NewGuestList> {
                         isSelected: true,
                         fromGuestList: true,
                         isOrganizer: true,
+                        isCreatorSeeing: widget.isCreator,
                         key: Key("searchUserInviteTile_fromNewGuestList_${organizers[i].id}")
                       );
                     },
@@ -179,6 +183,7 @@ class _NewGuestListState extends ConsumerState<NewGuestList> {
                         isSelected: true,
                         fromGuestList: true,
                         isOrganizer: false,
+                        isCreatorSeeing: widget.isCreator,
                         key: Key("searchUserInviteTile_fromNewGuestList_${users[i].id}")
                       );
                     },

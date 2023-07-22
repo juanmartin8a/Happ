@@ -3316,7 +3316,8 @@ class DeleteEventMutation
 class RemoveGuestsArguments extends JsonSerializable with EquatableMixin {
   RemoveGuestsArguments({
     required this.eventId,
-    required this.userIds,
+    required this.guests,
+    required this.organizers,
   });
 
   @override
@@ -3325,10 +3326,12 @@ class RemoveGuestsArguments extends JsonSerializable with EquatableMixin {
 
   late int eventId;
 
-  late List<int> userIds;
+  late List<int> guests;
+
+  late List<int> organizers;
 
   @override
-  List<Object?> get props => [eventId, userIds];
+  List<Object?> get props => [eventId, guests, organizers];
   @override
   Map<String, dynamic> toJson() => _$RemoveGuestsArgumentsToJson(this);
 }
@@ -3349,7 +3352,19 @@ final REMOVE_GUESTS_MUTATION_DOCUMENT = DocumentNode(definitions: [
         directives: [],
       ),
       VariableDefinitionNode(
-        variable: VariableNode(name: NameNode(value: 'userIds')),
+        variable: VariableNode(name: NameNode(value: 'guests')),
+        type: ListTypeNode(
+          type: NamedTypeNode(
+            name: NameNode(value: 'Int'),
+            isNonNull: true,
+          ),
+          isNonNull: true,
+        ),
+        defaultValue: DefaultValueNode(value: null),
+        directives: [],
+      ),
+      VariableDefinitionNode(
+        variable: VariableNode(name: NameNode(value: 'organizers')),
         type: ListTypeNode(
           type: NamedTypeNode(
             name: NameNode(value: 'Int'),
@@ -3372,8 +3387,12 @@ final REMOVE_GUESTS_MUTATION_DOCUMENT = DocumentNode(definitions: [
             value: VariableNode(name: NameNode(value: 'eventId')),
           ),
           ArgumentNode(
-            name: NameNode(value: 'userIds'),
-            value: VariableNode(name: NameNode(value: 'userIds')),
+            name: NameNode(value: 'guests'),
+            value: VariableNode(name: NameNode(value: 'guests')),
+          ),
+          ArgumentNode(
+            name: NameNode(value: 'organizers'),
+            value: VariableNode(name: NameNode(value: 'organizers')),
           ),
         ],
         directives: [],

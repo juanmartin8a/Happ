@@ -19,6 +19,8 @@ class UserRemoveMakeOrganizerDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    print(isOrganizer);
+    print(fUTAAGCUisCreator);
     return Material(
       color: Colors.transparent,
       child: Stack(

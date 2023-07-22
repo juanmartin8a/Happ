@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/riverpod/eventGuests/eventGuests.dart';
+import 'package:happ_client/src/riverpod/eventHosts/eventHosts.dart';
 import 'package:happ_client/src/riverpod/guestListAction/guestListAction.dart';
 import 'package:happ_client/src/riverpod/removeGuests/removeGuests.dart';
 import 'package:happ_client/src/riverpod/removeGuests/removeGuestsState.dart';
 import 'package:uuid/uuid.dart';
 
 class RemoveGuestsConfirmDialog extends ConsumerStatefulWidget {
-  final List<int> userIds;
+  final List<int> guests;
+  final List<int> hosts;
   final int eventId;
   const RemoveGuestsConfirmDialog({
-    required this.userIds,
+    required this.guests,
+    required this.hosts,
     required this.eventId,
     super.key
   });
@@ -31,7 +34,8 @@ class _RemoveGuestsConfirmDialogState extends ConsumerState<RemoveGuestsConfirmD
     ref.listen(removeGuestsProvider, (prev, next) {
       switch (next.runtimeType) {
         case RemoveGuestsDoneState:
-          ref.read(eventGuestsProvider.notifier).removeGuests(widget.userIds);
+          ref.read(eventGuestsProvider.notifier).removeGuests(widget.guests);
+          ref.read(eventHostsProvider.notifier).removeHosts(widget.hosts);
           ref.read(guestListActionProvider.notifier).isAdd(null);
           Navigator.pop(context);
           break;
@@ -132,7 +136,7 @@ class _RemoveGuestsConfirmDialogState extends ConsumerState<RemoveGuestsConfirmD
                           GestureDetector(
                             onTap: () {
                               if (!loading && !error) {
-                                ref.read(removeGuestsProvider.notifier).removeGuests(widget.userIds, widget.eventId);
+                                ref.read(removeGuestsProvider.notifier).removeGuests(widget.guests, widget.hosts, widget.eventId);
                               }
                               // Navigator.pop(context);
                             },

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addGuests/addGuests.dart';
 import 'package:happ_client/src/riverpod/addNewGuestsSelect/AddNewGuestsSelect.dart';
+import 'package:happ_client/src/riverpod/addNewGuestsSelect/addNewGuestsSelectState.dart';
 import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelect.dart';
 import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelectState.dart';
 import 'package:happ_client/src/riverpod/searchForUsersToAddAsGuests/searchForUsersToAddToEvent.dart';
@@ -43,10 +44,10 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
   late int eventId;
 
   List<SearchForUsersToAddToEvent$Query$User> selectedUsers = [];
-  List<int> selectedUsersIds = [];
+  // List<int> selectedUsersIds = [];
 
   List<SearchForUsersToAddToEvent$Query$User> hosts = [];
-  List<int> hostIds = [];
+  // List<int> hostIds = [];
 
   bool isEmpty = true;
 
@@ -73,11 +74,9 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
       switch (next.runtimeType) {
         case UInviteUserSelectedState:
           selectedUsers.insert(0, (next as UInviteUserSelectedState).user);
-          selectedUsersIds.add(next.user.id);
           break;
         case UInviteUserRemoveState:
           selectedUsers.removeWhere((item) => item.id == (next as UInviteUserRemoveState).userId);
-          selectedUsersIds.removeWhere((item) => item == (next as UInviteUserRemoveState).userId);
           hosts.removeWhere((user) => user.id == (next as UInviteUserRemoveState).userId);
           break;
         case UMakeOrganizerState:
@@ -88,6 +87,24 @@ class _InviteNewGuestsState extends ConsumerState<InviteNewGuests> {
           hosts.removeWhere((user) => user.id == (next as URemoveOrganizerState).user.id);
           selectedUsers.insert(0, (next as URemoveOrganizerState).user);
           break;
+      }
+    });
+
+    ref.listen(addNewGuestsSelectProvider, (prev, next) {
+      if (next is AddNewGuestsSelectedState) {
+        setState(() {
+          selectedUsers.add(next.user);
+        });
+      } else if (next is AddNewGuestsRemoveState) {
+        setState(() {
+          selectedUsers.removeWhere((item) => item.id == next.userId);
+          hosts.removeWhere((item) => item.id == next.userId);
+        });
+      } else if (next is AddNewGuestsInitState) {
+        setState(() {
+          selectedUsers = [];
+          hosts = [];
+        });
       }
     });
 

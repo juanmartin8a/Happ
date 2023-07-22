@@ -1678,14 +1678,17 @@ RemoveGuestsArguments _$RemoveGuestsArgumentsFromJson(
         Map<String, dynamic> json) =>
     RemoveGuestsArguments(
       eventId: json['eventId'] as int,
-      userIds: (json['userIds'] as List<dynamic>).map((e) => e as int).toList(),
+      guests: (json['guests'] as List<dynamic>).map((e) => e as int).toList(),
+      organizers:
+          (json['organizers'] as List<dynamic>).map((e) => e as int).toList(),
     );
 
 Map<String, dynamic> _$RemoveGuestsArgumentsToJson(
         RemoveGuestsArguments instance) =>
     <String, dynamic>{
       'eventId': instance.eventId,
-      'userIds': instance.userIds,
+      'guests': instance.guests,
+      'organizers': instance.organizers,
     };
 
 UserFromIdArguments _$UserFromIdArgumentsFromJson(Map<String, dynamic> json) =>

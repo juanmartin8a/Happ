@@ -147,6 +147,13 @@ class _EventState extends ConsumerState<Event> {
             isHostsLoading = false;
           });
         }
+      } else if (next is GetEventHostsRemoveState) {
+        if (hosts.isNotEmpty) {
+          setState(() {
+            paginatedHostsRes.users.removeWhere((user) => next.userIds.contains(user.id));
+            hosts.removeWhere((user) => next.userIds.contains(user.id));
+          });
+        }
       }
     });
 

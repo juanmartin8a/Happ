@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addNewGuestsSelect/AddNewGuestsSelect.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
+import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelect.dart';
+import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelectState.dart';
 import 'package:happ_client/src/screens/events/newEvent/IScreen/userRemoveMakeOrganizerDialog.dart';
 import 'package:happ_client/src/screens/profile/class/profileParams.dart';
 import 'package:happ_client/src/screens/profile/profile.dart';
@@ -40,6 +42,18 @@ class _SearchFUTAAGInviteTileState extends ConsumerState<SearchFUTAAGInviteTile>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(uInviteUserSelectProvider, (prev, next) {
+      if (next is UInviteUserRemoveState) {
+        if (next.userId == widget.user.id) {
+          if (isSelected) {
+            setState(() {
+              isSelected = false;
+            });
+          }
+        }
+      }
+    });
+
     Widget rightSideWidget;
 
     if (widget.fromGuestList) {
@@ -128,7 +142,7 @@ class _SearchFUTAAGInviteTileState extends ConsumerState<SearchFUTAAGInviteTile>
     return GestureDetector(
       onTap: () {
         if (widget.fromGuestList) {
-          final user = ProfileUserData.fromSearchUsersQueryUser(widget.user);
+          final user = ProfileUserData.fromUserData(widget.user);
           context.push('/profile', extra: ProfileParams(
               user: user,
             )

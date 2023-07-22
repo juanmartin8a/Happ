@@ -3,6 +3,8 @@ import 'package:happ_client/src/riverpod/addGuests/addGuests.dart';
 import 'package:happ_client/src/riverpod/addNewGuestsSelect/AddNewGuestsSelect.dart';
 import 'package:happ_client/src/riverpod/addNewGuestsSelect/addNewGuestsSelectState.dart';
 import 'package:flutter/material.dart';
+import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelect.dart';
+import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelectState.dart';
 import 'package:happ_client/src/screens/events/newEvent/IScreen/inviteLoadingDialog.dart';
 import 'package:http/http.dart';
 import 'package:latlong2/latlong.dart' as latLng;
@@ -29,6 +31,35 @@ class _InviteGuestsButtonState extends ConsumerState<InviteGuestsButton> {
   @override
   Widget build(BuildContext context) {
 
+    //
+    ref.listen(uInviteUserSelectProvider, (prev, next) {
+      switch (next.runtimeType) {
+        case UInviteUserSelectedState:
+          setState(() {
+            guests.insert(0, (next as UInviteUserSelectedState).user.id);
+          });
+          break;
+        case UInviteUserRemoveState:
+          setState(() {
+            guests.removeWhere((item) => item == (next as UInviteUserRemoveState).userId);
+            hosts.removeWhere((user) => user == (next as UInviteUserRemoveState).userId);
+          });
+          break;
+        case UMakeOrganizerState:
+          setState(() {
+            hosts.add((next as UMakeOrganizerState).user.id);
+            guests.removeWhere((item) => item == next.user.id);
+          });
+          break;
+        case URemoveOrganizerState:
+          setState(() {
+            hosts.removeWhere((user) => user == (next as URemoveOrganizerState).user.id);
+            guests.insert(0, (next as URemoveOrganizerState).user.id);
+          });
+          break;
+      }
+    });
+
     ref.listen(addNewGuestsSelectProvider, (prev, next) {
       if (next is AddNewGuestsSelectedState) {
         setState(() {
@@ -37,10 +68,12 @@ class _InviteGuestsButtonState extends ConsumerState<InviteGuestsButton> {
       } else if (next is AddNewGuestsRemoveState) {
         setState(() {
           guests.removeWhere((item) => item == next.userId);
+          hosts.removeWhere((item) => item == next.userId);
         });
       } else if (next is AddNewGuestsInitState) {
         setState(() {
           guests = [];
+          hosts = [];
         });
       }
     });
@@ -67,7 +100,7 @@ class _InviteGuestsButtonState extends ConsumerState<InviteGuestsButton> {
 
     return GestureDetector(
       onTap: () {
-        if (guests.isNotEmpty) {
+        if (guests.isNotEmpty || hosts.isNotEmpty) {
           ref.read(addGuestsProvider.notifier).addGuests(guests, hosts, widget.eventId);
           showGeneralDialog(
             context: context,
@@ -88,7 +121,7 @@ class _InviteGuestsButtonState extends ConsumerState<InviteGuestsButton> {
         width: MediaQuery.of(context).size.width * 0.5,
         height: 45,
         decoration: BoxDecoration(
-          color: guests.isNotEmpty ? Colors.black : Colors.grey[500],
+          color: guests.isNotEmpty || hosts.isNotEmpty ? Colors.black : Colors.grey[500],
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(

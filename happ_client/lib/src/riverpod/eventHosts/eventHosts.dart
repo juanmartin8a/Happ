@@ -23,6 +23,12 @@ class EventHostsController extends StateNotifier<EventHostsState> {
       state = EventHostsErrorState();
     }
   }
+
+  void removeHosts(
+    List<int> userIds,
+  ) {
+    state = GetEventHostsRemoveState(userIds: userIds);
+  }
 }
 
 final eventHostsProvider =

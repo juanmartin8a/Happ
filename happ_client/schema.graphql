@@ -266,7 +266,8 @@ type Mutation {
   # ): Boolean
   removeGuests(
     eventId: Int!
-    userIds: [Int!]!
+    guests: [Int!]!,
+    organizers: [Int!]!,
   ): Boolean,
   scanPass(
     eventId: Int!

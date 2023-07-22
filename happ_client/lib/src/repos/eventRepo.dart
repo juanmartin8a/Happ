@@ -209,11 +209,12 @@ class EventRepo {
   }
 
   Future<RemoveGuests$Mutation> removeGuests(
-    List<int> userIds,
+    List<int> guests,
+    List<int> hosts,
     int eventId
   ) async {
     final result = await client.mutate(
-      EventOptions().removeGuests(userIds, eventId)
+      EventOptions().removeGuests(guests, hosts, eventId)
     );
 
     if (result.hasException) {

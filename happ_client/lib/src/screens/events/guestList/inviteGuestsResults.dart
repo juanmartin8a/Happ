@@ -1,10 +1,11 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/addNewGuestsSelect/AddNewGuestsSelect.dart';
 import 'package:happ_client/src/riverpod/addNewGuestsSelect/addNewGuestsSelectState.dart';
+import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelect.dart';
+import 'package:happ_client/src/riverpod/inviteUserSelect/inviteUserSelectState.dart';
 import 'package:happ_client/src/riverpod/searchForUsersToAddAsGuests/searchForUsersToAddToEventState.dart';
 import 'package:happ_client/src/screens/events/updateEvent/widgets/searchFUTAAGInviteTile.dart';
 import 'package:happ_client/src/screens/events/guestList/inviteGuestsScreen.dart';
@@ -34,6 +35,17 @@ class _SearchInviteGuestsResultsState extends ConsumerState<SearchInviteGuestsRe
   @override
   Widget build(BuildContext context) {
 
+    ref.listen(uInviteUserSelectProvider, (prev, next) {
+      if (next is UInviteUserRemoveState) {
+        if (selectedUsersIds.contains(next.userId)) {
+          setState(() {
+            selectedUsersIds.removeWhere((item) => item == next.userId);
+            selectedUsers.removeWhere((item) => item.id == next.userId);
+          });
+        }
+      }
+    });
+
     ref.listen(addNewGuestsSelectProvider, (prev, next) {
       if (next is AddNewGuestsSelectedState) {
         setState(() {
@@ -46,8 +58,28 @@ class _SearchInviteGuestsResultsState extends ConsumerState<SearchInviteGuestsRe
           selectedUsers.removeWhere((item) => item.id == next.userId);
         });
       } else if (next is AddNewGuestsInitState) {
+        final usersToChangeEventUserStatusIndexes = searchUsersRes
+          .asMap()
+          .entries
+          .where((entry) => selectedUsersIds.contains(entry.value.id))
+          .map((entry) => entry.key)
+          .toList();
+
+        if (usersToChangeEventUserStatusIndexes.isNotEmpty) {
+          for (int i = 0; i < usersToChangeEventUserStatusIndexes.length; i++) {
+            final user = searchUsersRes[usersToChangeEventUserStatusIndexes[i]];
+
+            final userToJson = user.toJson();
+
+            userToJson["eventUserStatus"] = "INVITED";
+
+            final updatedUser = SearchForUsersToAddToEvent$Query$User.fromJson(userToJson);
+
+            searchUsersRes[usersToChangeEventUserStatusIndexes[i]] = updatedUser;
+          }
+        }
+
         setState(() {
-          searchUsersRes.removeWhere((user) => selectedUsersIds.contains(user.id));
           selectedUsersIds = [];
           selectedUsers = [];
         });

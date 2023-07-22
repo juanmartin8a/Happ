@@ -285,18 +285,21 @@ class EventOptions {
   }
 
   MutationOptions removeGuests(
-    List<int> userIds,
+    List<int> guests,
+    List<int> hosts,
     int eventId
   ) {
     MutationOptions mutationOptions = MutationOptions(
       document: RemoveGuestsMutation(
         variables: RemoveGuestsArguments(
-          userIds: userIds,
+          guests: guests,
+          organizers: hosts,
           eventId: eventId
         )
       ).document,
       variables: {
-        "userIds": userIds,
+        "guests": guests,
+        "organizers": hosts,
         "eventId": eventId
       },
       fetchPolicy: FetchPolicy.noCache

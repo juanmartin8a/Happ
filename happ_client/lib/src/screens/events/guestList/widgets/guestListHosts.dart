@@ -84,6 +84,13 @@ class _GuestListHostsState extends ConsumerState<GuestListHosts> with AutomaticK
           hasMore = next.res.hasMore;
           isLoading = false;
         });
+      } else if (next is GetEventHostsRemoveState) {
+        if (hosts.isNotEmpty) {
+          setState(() {
+            hosts.removeWhere((user) => next.userIds.contains(user.id));
+            userIds = hosts.map((user) => user.id).toList();
+          });
+        }
       }
     });
     // ref.listen(guestListActionProvider, (prev, next) {
@@ -116,7 +123,7 @@ class _GuestListHostsState extends ConsumerState<GuestListHosts> with AutomaticK
         ...hosts.map((host) {
           final hostJson = host.toJson();
           final castedHost = GetEventGuests$Query$PaginatedEventUsersResults$User.fromJson(hostJson);
-          return GuestListGuestUserTile(guest: castedHost, selectMode: widget.selectMode);
+          return GuestListGuestUserTile(guest: castedHost, isHost: true, selectMode: widget.selectMode);
           // return GestureDetector(
           //   onTap: () {
           //     final user = ProfileUserData.fromUserData(host);

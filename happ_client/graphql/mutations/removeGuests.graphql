@@ -1,6 +1,7 @@
-mutation RemoveGuests($eventId: Int!, $userIds: [Int!]!) {
+mutation RemoveGuests($eventId: Int!, $guests: [Int!]!, $organizers: [Int!]!,) {
   removeGuests(
     eventId: $eventId,
-    userIds: $userIds
+    guests: $guests,
+    organizers: $organizers,
   )
 }

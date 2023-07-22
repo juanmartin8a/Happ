@@ -24,7 +24,8 @@ class EditGuestButton extends ConsumerStatefulWidget {
 
 class _EditGuestButtonState extends ConsumerState<EditGuestButton> {
 
-  List<int> usersToRemoveIds = [];
+  List<int> guestsToRemoveIds = [];
+  List<int> hostsToRemoveIds = [];
 
   bool selectMode = false;
   
@@ -38,21 +39,35 @@ class _EditGuestButtonState extends ConsumerState<EditGuestButton> {
       } else {
         setState(() {
           selectMode = false;
-          usersToRemoveIds = [];
+          guestsToRemoveIds = [];
+          hostsToRemoveIds = [];
         });
       }
     });
     ref.listen(removeGuestSelectProvider, (prev, next) {
       if (next is RemoveGuestRemoveState) {
-        setState(() {
-          usersToRemoveIds.removeWhere((userId) => userId == next.userId);
-        });
+        if (next.isHost) {
+          setState(() {
+            hostsToRemoveIds.removeWhere((userId) => userId == next.userId);
+          });
+        } else {
+          setState(() {
+            guestsToRemoveIds.removeWhere((userId) => userId == next.userId);
+          });
+        }
       } else if (next is RemoveGuestSelectedState) {
-        setState(() {
-          usersToRemoveIds.add(next.userId);
-        });
+        if (next.isHost) {
+          setState(() {
+            hostsToRemoveIds.add(next.userId);
+          });
+        } else {
+          setState(() {
+            guestsToRemoveIds.add(next.userId);
+          });
+        }
       }
     });
+
     return Container(
       // width: 45 * 1.25,
       height: 45 * 1.25,
@@ -82,13 +97,13 @@ class _EditGuestButtonState extends ConsumerState<EditGuestButton> {
                     }
                   );
                 } else {
-                  if (usersToRemoveIds.isNotEmpty) {
+                  if (guestsToRemoveIds.isNotEmpty || hostsToRemoveIds.isNotEmpty) {
                     showGeneralDialog(
                       context: context,
                       barrierColor: Colors.transparent,
                       transitionDuration: const Duration(milliseconds: 200),
                       pageBuilder: (context, anim1, anim2) {
-                        return RemoveGuestsConfirmDialog(userIds: usersToRemoveIds, eventId: widget.eventId);
+                        return RemoveGuestsConfirmDialog(guests: guestsToRemoveIds, hosts: hostsToRemoveIds, eventId: widget.eventId);
                       }
                     );
                   }
@@ -103,7 +118,7 @@ class _EditGuestButtonState extends ConsumerState<EditGuestButton> {
                 child: Icon(
                   selectMode == false ? FluentIcons.edit_16_regular : FluentIcons.delete_16_regular,
                   size: 28,
-                  color: selectMode == false ?Colors.white : usersToRemoveIds.isNotEmpty ? Colors.red : Colors.grey,
+                  color: selectMode == false ?Colors.white : guestsToRemoveIds.isNotEmpty || hostsToRemoveIds.isNotEmpty ? Colors.red : Colors.grey,
                 ),
               ),
             ),
@@ -111,7 +126,9 @@ class _EditGuestButtonState extends ConsumerState<EditGuestButton> {
           if (selectMode)
           GestureDetector(
             onTap: () {
-              ref.read(guestListActionProvider.notifier).isAdd(null);
+              if (widget.opacity == 1) {
+                ref.read(guestListActionProvider.notifier).isAdd(null);
+              }
             },
             child: Container(
               width: 45 * 1.25,

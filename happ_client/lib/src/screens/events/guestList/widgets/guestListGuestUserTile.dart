@@ -13,11 +13,11 @@ import 'package:happ_client/src/screens/profile/profile.dart';
 class GuestListGuestUserTile extends ConsumerStatefulWidget {
   final GetEventGuests$Query$PaginatedEventUsersResults$User guest;
   final bool selectMode;
-  // final bool isHost;
+  final bool isHost;
   const GuestListGuestUserTile({
     required this.guest,
     required this.selectMode,
-    // this.isHost = false,
+    this.isHost = false,
     super.key
   });
 
@@ -47,7 +47,7 @@ class _GuestListGuestUserTileState extends ConsumerState<GuestListGuestUserTile>
       onTap: () {
         if (widget.selectMode) {
           if (widget.guest.id != ref.read(currentUserProvider)!.id) {
-            ref.read(removeGuestSelectProvider.notifier).select(widget.guest.id, !isSelected);
+            ref.read(removeGuestSelectProvider.notifier).select(widget.guest.id, !isSelected, widget.isHost);
             // if (isSelected) {
             //   setState(() {
             //     isSelected = false;

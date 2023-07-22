@@ -22,4 +22,15 @@ class GetEventHostsDoneState extends EventHostsState {
   List<Object?> get props => [res];
 }
 
+class GetEventHostsRemoveState extends EventHostsState {
+  final List<int> userIds;
+
+  GetEventHostsRemoveState({
+    required this.userIds,
+  });
+
+  @override
+  List<Object?> get props => [userIds];
+}
+
 class EventHostsErrorState extends EventHostsState {}
