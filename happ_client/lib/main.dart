@@ -41,8 +41,7 @@ void main() async {
   final firebaseAuth = FirebaseAuth.instance;
 
   final HttpLink httpLink = HttpLink(
-    // 'https://api.happ.rsvp/query'
-    'http://192.168.100.234:8080/query'
+    'https://api.happ.rsvp/query'
   );
 
   final AuthLink authLink = AuthLink(

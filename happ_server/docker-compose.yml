@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: juanmartin8a/happ_server:v0.2.4
+    image: juanmartin8a/happ_server:v0.2.5
     ports:
       - "8080:8080"
     environment:

@@ -17,7 +17,6 @@ class AddedMe extends StateNotifier<AddedMeState> {
     state = AddedMeLoadingState();
     try {
       final res = await userRepo.addedMe(limit, idsList);
-      print(res);
       state = AddedMeLoadedState(val: res.addedMe);
     } catch (e) {
       debugPrint("error in addedMe: $e");
