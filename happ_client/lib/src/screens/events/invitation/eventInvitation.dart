@@ -1,4 +1,4 @@
-import 'dart:io';
+// import 'dart:io';
 import 'dart:typed_data';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happ_client/src/api/graphql/graphql_api.dart';
 import 'package:happ_client/src/riverpod/currentUser/currentUser.dart';
 // import 'package:path_provider/path_provider.dart';
-import 'package:screenshot/screenshot.dart';
+// import 'package:screenshot/screenshot.dart';
 import '../../../utils/widgets/floatingActions.dart';
 // import 'package:social_share/social_share.dart';
 
@@ -35,7 +35,7 @@ class _EventInvitationState extends ConsumerState<EventInvitation> {
   Uint8List? image;
   // bool? isLoading;
 
-  ScreenshotController screenshotController = ScreenshotController();
+  // ScreenshotController screenshotController = ScreenshotController();
 
   @override
   void initState() {
