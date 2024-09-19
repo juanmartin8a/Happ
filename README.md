@@ -1,8 +1,11 @@
 # Happ
 An event planning app aimed at simplifying event planning and management while also making it easy to track both events and invitations ;)
 
-## Why
-After the COVID quarantine, as people started going out more, I noticed that event planning apps like EventBrite weren’t being used much, especially by my age group (teenagers to young adults). Happ was made to address that gap :)
+  - ### Why
+    After the COVID quarantine, as people started going out more, I noticed that event planning apps like EventBrite weren’t being used much, especially by my age group (teenagers to young adults). Happ was made to address that gap :)
+
+  - ### Status
+    No longer active as it failed to achieve product-market fit. It turns out that the simplest way to manage events is through chatting apps like WhatsApp and events don't always need a ticketing system. Still a cool project though! Propper market research next time!
 
 ## Platforms
 - iOS
